@@ -214,23 +214,6 @@ pData(gs)$Group[i6] <- "Naive POST"
 pData(gs)$Group[i7] <- "Conv PRE"
 pData(gs)$Group[i8] <- "Conv POST"
 
-## Grab the cytokine and memory gates from CD8+ and add under DN gate 
-#gates_to_copy <- c("/Time/CD3+/CD14-CD19-/Lymphocytes/Singlet/Live/CD8+/CCR7+",
-#"/Time/CD3+/CD14-CD19-/Lymphocytes/Singlet/Live/CD8+/CD45RA+",
-#"/Time/CD3+/CD14-CD19-/Lymphocytes/Singlet/Live/CD8+/CD107a+",
-#"/Time/CD3+/CD14-CD19-/Lymphocytes/Singlet/Live/CD8+/CD154+",
-#"/Time/CD3+/CD14-CD19-/Lymphocytes/Singlet/Live/CD8+/IFNg+",
-#"/Time/CD3+/CD14-CD19-/Lymphocytes/Singlet/Live/CD8+/IL2+",
-#"/Time/CD3+/CD14-CD19-/Lymphocytes/Singlet/Live/CD8+/IL4_5_13+",
-#"/Time/CD3+/CD14-CD19-/Lymphocytes/Singlet/Live/CD8+/IL17a+",
-#"/Time/CD3+/CD14-CD19-/Lymphocytes/Singlet/Live/CD8+/TNFa+")
-
-#for(path in gates_to_copy) {
-#  gs_pop_add(gs, lapply(gs, gh_pop_get_gate, y=path),
-#             parent = "/Time/CD3+/CD14-CD19-/Lymphocytes/Singlet/Live/DN")
-#}
-#recompute(gs, "/Time/CD3+/CD14-CD19-/Lymphocytes/Singlet/Live/DN")
-
 # Plot gating tree
 png(here::here("out/QC/GatingTree.png"), width = 7, height = 5, units = "in", res = 300)
 plot(gs, fontsize=15, bool=T)
@@ -294,15 +277,46 @@ ggplot(cd3_cd4_cd8_counts %>%
   theme(legend.position = "none", axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
 dev.off()
 
-# Investigate the low count wells
+# Investigate the low CD4 and CD8 count wells
 low_count <- cd3_cd4_cd8_counts %>%
-  dplyr::filter(CD3 < 10000 | CD4 < 3000 | CD8 < 3000) %>%
-  select("SAMPLE ID", "Stim", "CD3", "CD4", "CD8") %>%
+  dplyr::filter(CD4 < 3000 | CD8 < 3000) %>%
+  select("SAMPLE ID", "Stim", "CD4", "CD8") %>%
   arrange("SAMPLE ID")
 
 low_count
 
 # I will filter based on CD4 and CD8 count when constructing the COMPASSContainer
+# These are the following samples that will get dropped depending on the COMPASS run:
+
+# 3C-2 has low CD8 count for all stims
+# 50H-2 has low CD8 count for S2
+# 53H-2 has low CD8 count for S2
+# 54H-2 has low CD4 count for S2 and low CD8 count for all stims
+# 55H-2 has low CD8 count for DMSO, SEB, S2, and NCAP
+# 120C-2 has low CD8 count for NCAP
+# 149C-2 has low CD8 count for S2 and NCAP
+# 161C-2 has low CD4 count for S2 and NCAP and low CD8 count for all stims
+# 194C-2 has low CD8 count for all stims
+# 239C-2 has low CD8 count for S1, S2, and NCAP
+# 161C-1 has low CD4 count for S2 and low CD8 count for all stims
+# 194C-1 has low CD8 count for S2
+# 27H-1 has low CD8 count for DMSO, S2, and SEB
+# 35H-1 has low CD8 count for all stims
+# 35H-2 has low CD8 count for all stims
+# 188C-1 has low CD8 count for DMSO
+# 235C-1 has low CD8 count for all stims
+# 12C-1 has low CD8 count for DMSO, S1, S2, and NCAP
+# 16H-1 has low CD8 count for S2
+# 17H-1 has low CD8 count for all stims
+# 17H-2 has low CD8 count for all stims
+# 24H-1 has low CD8 count for DMSO
+# 57H-1 has low CD8 count for DMSO, S1, and S2
+# 57H-2 has low CD8 count for DMSO, S1, and S2
+# 76C-1 has low CD8 count for all stims
+# 76C-2 has low CD8 count for all stims
+# 87C-1 has low CD8 count for all stims
+# 87C-2 has low CD8 count for all stims
+# 242C-2 has low CD4 and CD8 count for all stims
 
 ## Plot DMSO signal stratified by cohort ##
 # Load gating set if needed: 
