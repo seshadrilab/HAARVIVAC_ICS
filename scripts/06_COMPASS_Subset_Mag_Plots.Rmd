@@ -91,8 +91,8 @@ plot_subset_vs_group <- function(bg_corr_boxplots, current_run,
     mutate(BgCorr_Zeroed = ifelse(!!as.symbol(current_subset) < 0, 0, !!as.symbol(current_subset)),
            Group = factor(Group, levels = groups))
   current_test_result <- bg_corr_boxplots[[current_run]]$Test_Results %>% dplyr::filter(BooleanSubset == current_subset)
-  current_coreceptor <- sub("([A-Z][A-Z][0-9])_.*", "\\1", "CD4_S1")
-current_stim <- sub("[A-Z][A-Z][0-9]_(.*)", "\\1", "CD4_S1")
+  current_coreceptor <- sub("([A-Z][A-Z][0-9])_.*", "\\1", current_run)
+current_stim <- sub("[A-Z][A-Z][0-9]_(.*)", "\\1", current_run)
   
   cytokine_display_text <- c("IFNg" = "IFNg", "CD154" = "CD154", "TNFa" = "TNFa", 
                 "IL2" = "IL2", "IL4_5_13" = "IL-4/5/13", "IL17a" = "IL17a", "CD107a" = "CD107a")
