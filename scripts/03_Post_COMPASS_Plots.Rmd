@@ -45,7 +45,7 @@ source(here::here("scripts/Helper_Functions.R"))
 # Font and colors
 
 ```{r}
-save_output <- FALSE
+save_output <- TRUE
 # Arial font setup. Downloaded afms from https://github.com/microsoft/microsoft-r-open/tree/ec3fd89e5fb5794bd8149905c134ad801bb61800
 Arial <- Type1Font(family = "Arial",
                    metrics = c(here::here("data/Arial_afm/ArialMT.afm"),
@@ -250,9 +250,13 @@ cd4_naive_bg_corr_boxplots <- pmap(.l = list(CD4RunNames,
                                                         zeroed_BgCorr_stats = FALSE, zeroed_BgCorr_plot = FALSE,
                                                         dichotomize_by_cytokine = dichotomize_by_cytokine, dichotomize_by_cytokine_color="#999999",
                                                         cats_heatmap_left_padding=left_cats_heatmap_padding, main_title = main_title,
-                                                        save_test_results=TRUE, output_folder=NA)
+                                                        save_test_results=TRUE, output_folder=here::here("processed_data"))
                          })
 names(cd4_naive_bg_corr_boxplots) <- CD4RunNames
+
+if(save_output) {
+  saveRDS(cd4_naive_bg_corr_boxplots, here::here("processed_data/CD4_N_make_boxplot_for_COMPASS_run_list.rds"))
+}
 
 # CD4 convalescent
 cd4_conv_bg_corr_boxplots <- pmap(.l = list(CD4RunNames, 
@@ -276,9 +280,12 @@ cd4_conv_bg_corr_boxplots <- pmap(.l = list(CD4RunNames,
                                                         zeroed_BgCorr_stats = FALSE, zeroed_BgCorr_plot = FALSE,
                                                         dichotomize_by_cytokine = dichotomize_by_cytokine, dichotomize_by_cytokine_color="#999999",
                                                         cats_heatmap_left_padding=left_cats_heatmap_padding, main_title = main_title,
-                                                        save_test_results=TRUE, output_folder=NA)
+                                                        save_test_results=TRUE, output_folder=here::here("processed_data"))
                          })
 names(cd4_conv_bg_corr_boxplots) <- CD4RunNames
+if(save_output) {
+  saveRDS(cd4_conv_bg_corr_boxplots, here::here("processed_data/CD4_C_make_boxplot_for_COMPASS_run_list.rds"))
+}
 ```
 
 ```{r, fig.width=10, fig.height=8}
@@ -330,7 +337,7 @@ cd8_naive_bg_corr_boxplots <- pmap(.l = list(CD8RunNames,
                                                         zeroed_BgCorr_stats = FALSE, zeroed_BgCorr_plot = FALSE,
                                                         dichotomize_by_cytokine = dichotomize_by_cytokine, dichotomize_by_cytokine_color="#999999",
                                                         cats_heatmap_left_padding=left_cats_heatmap_padding, main_title = main_title,
-                                                        save_test_results=TRUE, output_folder=NA)
+                                                        save_test_results=TRUE, output_folder=here::here("processed_data"))
                          })
 names(cd8_naive_bg_corr_boxplots) <- CD8RunNames
 
@@ -356,7 +363,7 @@ cd8_conv_bg_corr_boxplots <- pmap(.l = list(CD8RunNames,
                                                         zeroed_BgCorr_stats = FALSE, zeroed_BgCorr_plot = FALSE,
                                                         dichotomize_by_cytokine = dichotomize_by_cytokine, dichotomize_by_cytokine_color="#999999",
                                                         cats_heatmap_left_padding=left_cats_heatmap_padding, main_title = main_title,
-                                                        save_test_results=TRUE, output_folder=NA)
+                                                        save_test_results=TRUE, output_folder=here::here("processed_data"))
                          })
 names(cd8_conv_bg_corr_boxplots) <- CD8RunNames
 ```
@@ -418,9 +425,12 @@ cd4_pre_bg_corr_boxplots <- pmap(.l = list(CD4RunNames,
                                                         zeroed_BgCorr_stats = FALSE, zeroed_BgCorr_plot = FALSE,
                                                         dichotomize_by_cytokine = dichotomize_by_cytokine, dichotomize_by_cytokine_color="#999999",
                                                         cats_heatmap_left_padding=left_cats_heatmap_padding, main_title = main_title,
-                                                        save_test_results=TRUE, output_folder=NA)
+                                                        save_test_results=TRUE, output_folder=here::here("processed_data"))
                          })
 names(cd4_pre_bg_corr_boxplots) <- CD4RunNames
+if(save_output) {
+  saveRDS(cd4_pre_bg_corr_boxplots, here::here("processed_data/CD4_pre_make_boxplot_for_COMPASS_run_list.rds"))
+}
 ```
 
 ```{r, fig.width=10, fig.height=8}
@@ -460,7 +470,7 @@ cd8_pre_bg_corr_boxplots <- pmap(.l = list(CD8RunNames,
                                                         zeroed_BgCorr_stats = FALSE, zeroed_BgCorr_plot = FALSE,
                                                         dichotomize_by_cytokine = dichotomize_by_cytokine, dichotomize_by_cytokine_color="#999999",
                                                         cats_heatmap_left_padding=left_cats_heatmap_padding, main_title = main_title,
-                                                        save_test_results=TRUE, output_folder=NA)
+                                                        save_test_results=TRUE, output_folder=here::here("processed_data"))
                          })
 names(cd8_pre_bg_corr_boxplots) <- CD8RunNames
 ```
@@ -510,7 +520,7 @@ cd4_post_bg_corr_boxplots <- pmap(.l = list(CD4RunNames,
                                                         zeroed_BgCorr_stats = FALSE, zeroed_BgCorr_plot = FALSE,
                                                         dichotomize_by_cytokine = dichotomize_by_cytokine, dichotomize_by_cytokine_color="#999999",
                                                         cats_heatmap_left_padding=left_cats_heatmap_padding, main_title = main_title,
-                                                        save_test_results=TRUE, output_folder=NA)
+                                                        save_test_results=TRUE, output_folder=here::here("processed_data"))
                          })
 names(cd4_post_bg_corr_boxplots) <- CD4RunNames
 ```
@@ -552,7 +562,7 @@ cd8_post_bg_corr_boxplots <- pmap(.l = list(CD8RunNames,
                                                         zeroed_BgCorr_stats = FALSE, zeroed_BgCorr_plot = FALSE,
                                                         dichotomize_by_cytokine = dichotomize_by_cytokine, dichotomize_by_cytokine_color="#999999",
                                                         cats_heatmap_left_padding=left_cats_heatmap_padding, main_title = main_title,
-                                                        save_test_results=TRUE, output_folder=NA)
+                                                        save_test_results=TRUE, output_folder=here::here("processed_data"))
                          })
 names(cd8_post_bg_corr_boxplots) <- CD8RunNames
 ```
