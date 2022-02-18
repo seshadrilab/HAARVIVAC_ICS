@@ -109,7 +109,7 @@ indiv_pop_counts <- pData(gs) %>%
   dplyr::select(rowname, "SAMPLE ID", "EXPERIMENT NAME", Stim, Group, CD4_PolyF) %>%
   dplyr::filter(Stim != "SEB")
 
-sum(indiv_pop_counts$CD4_PolyF) # 341185
+sum(indiv_pop_counts$CD4_PolyF) # 18818
 
 # Counts from CD4_PolyF_Subsets gate (excluding SEB)
 pop_counts <- pData(gs) %>%
@@ -119,7 +119,7 @@ pop_counts <- pData(gs) %>%
   dplyr::select(rowname, "SAMPLE ID", "EXPERIMENT NAME", Stim, Group, CD4_PolyF) %>%
   dplyr::filter(Stim != "SEB")
 
-sum(pop_counts$CD4_PolyF) # 1444
+sum(pop_counts$CD4_PolyF) # 3
 
 # Something is wrong, the counts are really different and they keep changing
 
