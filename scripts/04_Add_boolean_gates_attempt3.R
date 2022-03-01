@@ -47,11 +47,14 @@ bool_list_polyf_cat_long <- unlist(bool_list_polyf_cat_long)
 
 # Assign shortened names to each boolean subset in the list
 names(bool_list_polyf_cat_long) <- bool_list_polyf_cat
+names(bool_list_polyf_cat_long) <- paste0("CD4_", gsub("CD4\\+\\/", "", gsub("\\&", "_AND_", names(bool_list_polyf_cat_long))))
+dput(names(bool_list_polyf_cat_long))
 
 # Add individual gates
-for(i in seq_along(bool_list_polyf_cat_long)) {
-  gs_pop_add(gs,  eval(substitute(booleanFilter(v), list(v = as.symbol(bool_list_polyf_cat_long[[i]])))),
-             parent = "/Time/CD3+/CD14-CD19-/Lymphocytes/Singlet/Live/CD4+")
+for(booleanSubsetName in names(bool_list_polyf_cat_long)) {
+  gs_pop_add(gs,  eval(substitute(booleanFilter(v), list(v = as.symbol(bool_list_polyf_cat_long[[booleanSubsetName]])))),
+             parent = "/Time/CD3+/CD14-CD19-/Lymphocytes/Singlet/Live/CD4+",
+             name = booleanSubsetName)
 }
 
 # Add union gate
@@ -109,7 +112,7 @@ indiv_pop_counts <- pData(gs) %>%
   dplyr::select(rowname, "SAMPLE ID", "EXPERIMENT NAME", Stim, Group, CD4_PolyF) %>%
   dplyr::filter(Stim != "SEB")
 
-sum(indiv_pop_counts$CD4_PolyF) # 18818
+sum(indiv_pop_counts$CD4_PolyF) # 264705
 
 # Counts from CD4_PolyF_Subsets gate (excluding SEB)
 pop_counts <- pData(gs) %>%
@@ -119,15 +122,12 @@ pop_counts <- pData(gs) %>%
   dplyr::select(rowname, "SAMPLE ID", "EXPERIMENT NAME", Stim, Group, CD4_PolyF) %>%
   dplyr::filter(Stim != "SEB")
 
-sum(pop_counts$CD4_PolyF) # 3
+sum(pop_counts$CD4_PolyF) # 264705
 
-# Something is wrong, the counts are really different and they keep changing
+## Plot gating tree ##
+png(here::here("out/GatingTree_with_Bool_Subsets.png"), width = 7, height = 5, units = "in", res = 300)
+plot(gs, bool = T, fontsize = 10)
+dev.off()
 
-# ## Plot gating tree ##
-# png(here::here("out/GatingTree_with_Bool_Subsets.png"), width = 7, height = 5, units = "in", res = 300)
-# plot(gs, bool = T, fontsize = 10)
-# dev.off()
-# 
-# ## Save GatingSet ##
-# save_gs(gs, here::here("out/GatingSets/HAARVIVAC_GatingSet_with_bool"))
-#gs <- load_gs(here::here("out/GatingSets/HAARVIVAC_GatingSet_with_bool"))
+## Save GatingSet ##
+save_gs(gs, here::here("out/GatingSets/HAARVIVAC_GatingSet_with_bool"))
