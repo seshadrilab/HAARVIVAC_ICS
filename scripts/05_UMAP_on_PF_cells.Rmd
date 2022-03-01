@@ -3,14 +3,14 @@ title: "HAARVIVAC ICS Dimensionality Reduction on polyfunctional cells"
 author: "Jolie Phan"
 date: "version `r format(Sys.time(), '%B %d, %Y')`"
 output:
-  pdf_document:
-    toc: yes
-    toc_depth: 4
   html_document:
     toc: yes
     toc_depth: 4
     toc_float:
       collapsed: no
+  pdf_document:
+    toc: yes
+    toc_depth: 4
 editor_options:
   chunk_output_type: console
 ---
@@ -47,8 +47,8 @@ source(here::here("scripts/Helper_Functions.R")) # for distributeEvents() and sa
 
 ```{r}
 date <- 20220228
-save_output <- TRUE
-rerun_dimred <- TRUE
+save_output <- FALSE
+rerun_dimred <- FALSE
 gs <- load_gs(here::here("out/GatingSets/HAARVIVAC_GatingSet_with_bool"))
 
 if(!dir.exists(here::here("out/UMAP"))) {
@@ -72,6 +72,16 @@ cd4_gates_for_dimred <- c(
   "/Time/CD3+/CD14-CD19-/Lymphocytes/Singlet/Live/CD4+/CD45RA+",
   "/Time/CD3+/CD14-CD19-/Lymphocytes/Singlet/Live/CD38+",
   "/Time/CD3+/CD14-CD19-/Lymphocytes/Singlet/Live/HLADR+")
+
+cd4_cytokine_gates <- c(
+  "/Time/CD3+/CD14-CD19-/Lymphocytes/Singlet/Live/CD4+/CD107a+",
+  "/Time/CD3+/CD14-CD19-/Lymphocytes/Singlet/Live/CD4+/CD154+", 
+  "/Time/CD3+/CD14-CD19-/Lymphocytes/Singlet/Live/CD4+/IFNg+",
+  "/Time/CD3+/CD14-CD19-/Lymphocytes/Singlet/Live/CD4+/IL2+",
+  "/Time/CD3+/CD14-CD19-/Lymphocytes/Singlet/Live/CD4+/IL17a+",
+  "/Time/CD3+/CD14-CD19-/Lymphocytes/Singlet/Live/CD4+/IL4_5_13+", 
+  "/Time/CD3+/CD14-CD19-/Lymphocytes/Singlet/Live/CD4+/TNFa+"
+)
 ```
 
 Get counts for polyfunctional CD4+ events.
@@ -228,7 +238,30 @@ for(cg in cd4_gates_for_dimred) {
 
 Colored by gate membership (TEMRA, TEM, TCM, Naive)
 
-First, subset data.
+First, add memory category column. 
+
+```{r}
+getMemoryCategory <- function(CD45RA, CCR7) {
+  if(CD45RA & CCR7) {
+    "Naive"
+  } else if(CD45RA & !CCR7) {
+    "TEMRA"
+  } else if(!CD45RA & CCR7) {
+    "TCM"
+  } else if(!CD45RA & !CCR7) {
+    "TEM"
+  } else {
+    "Uncategorized"
+  }
+}
+
+cd4_polyf_subsets_w_umap$MemoryCategory <- pmap_chr(.l = list(cd4_polyf_subsets_w_umap$`/Time/CD3+/CD14-CD19-/Lymphocytes/Singlet/Live/CD4+/CD45RA+`,
+                                                               cd4_polyf_subsets_w_umap$`/Time/CD3+/CD14-CD19-/Lymphocytes/Singlet/Live/CD4+/CCR7+`),
+                                                     .f = getMemoryCategory)
+memColorScheme <- c("TEM" = "#9E0142", "TEMRA" = "#BEE4A0", "TCM" = "#5E4FA2", "Naive" = "#FDBE6F")
+```
+
+Subset data.
 
 ```{r}
 naive_data <- cd4_polyf_subsets_w_umap %>%
@@ -250,7 +283,7 @@ conv_post_data <- cd4_polyf_subsets_w_umap %>%
   dplyr::filter(Group == "Conv POST")
 ```
 
-Next, set ggplot settings.
+Set ggplot settings (use these for the activation plots too).
 
 ```{r}
 pointSize <- 0.02
@@ -357,24 +390,6 @@ conv_post_gg_themes <- ggplot(conv_post_data, aes(x=x.umap, y=y.umap)) +
 ### Unstratified
 
 ```{r}
-getMemoryCategory <- function(CD45RA, CCR7) {
-  if(CD45RA & CCR7) {
-    "Naive"
-  } else if(CD45RA & !CCR7) {
-    "TEMRA"
-  } else if(!CD45RA & CCR7) {
-    "TCM"
-  } else if(!CD45RA & !CCR7) {
-    "TEM"
-  } else {
-    "Uncategorized"
-  }
-}
-
-cd4_polyf_subsets_w_umap$MemoryCategory <- pmap_chr(.l = list(cd4_polyf_subsets_w_umap$`/Time/CD3+/CD14-CD19-/Lymphocytes/Singlet/Live/CD4+/CD45RA+`,
-                                                               cd4_polyf_subsets_w_umap$`/Time/CD3+/CD14-CD19-/Lymphocytes/Singlet/Live/CD4+/CCR7+`),
-                                                     .f = getMemoryCategory)
-memColorScheme <- c("TEM" = "#9E0142", "TEMRA" = "#BEE4A0", "TCM" = "#5E4FA2", "Naive" = "#FDBE6F")
 mem_plot_colored_by_gate <- gg_themes +
   geom_point_rast(aes(colour=cd4_polyf_subsets_w_umap[,"MemoryCategory"]),
                shape=20, alpha=0.8, size=pointSize) +
@@ -382,7 +397,7 @@ mem_plot_colored_by_gate <- gg_themes +
   scale_color_manual(values = memColorScheme)
 ```
 
-Get legend
+Get legend (use this legend for the rest of the memory plots).
 
 ```{r}
 mem_legend <- as_ggplot(get_legend(mem_plot_colored_by_gate +
@@ -452,7 +467,7 @@ print((naive_pre_mem_plot_colored_by_gate | naive_post_mem_plot_colored_by_gate 
 
 Colored by HLADR+CD38+ and HLADR-CD38-
 
-### Unstratified
+First, add activation category column.
 
 ```{r}
 getActivationCategory <- function(HLADR, CD38) {
@@ -469,6 +484,33 @@ cd4_polyf_subsets_w_umap$ActivationCategory <- pmap_chr(.l = list(cd4_polyf_subs
                                                                cd4_polyf_subsets_w_umap$`/Time/CD3+/CD14-CD19-/Lymphocytes/Singlet/Live/CD38+`),
                                                      .f = getActivationCategory)
 actColorScheme <- c("HLADR-/CD38-" = "#999999", "HLADR+/CD38+" = "#D55E00")
+```
+
+Subset data.
+
+```{r}
+naive_data <- cd4_polyf_subsets_w_umap %>%
+  dplyr::filter(Group == "Naive PRE" | Group == "Naive POST")
+
+naive_pre_data <- cd4_polyf_subsets_w_umap %>%
+  dplyr::filter(Group == "Naive PRE")
+
+naive_post_data <- cd4_polyf_subsets_w_umap %>%
+  dplyr::filter(Group == "Naive POST")
+
+conv_data <- cd4_polyf_subsets_w_umap %>%
+  dplyr::filter(Group == "Conv PRE" | Group == "Conv POST")
+
+conv_pre_data <- cd4_polyf_subsets_w_umap %>%
+  dplyr::filter(Group == "Conv PRE")
+
+conv_post_data <- cd4_polyf_subsets_w_umap %>%
+  dplyr::filter(Group == "Conv POST")
+```
+
+### Unstratified
+
+```{r}
 act_plot_colored_by_gate <- gg_themes +
   geom_point_rast(aes(colour=cd4_polyf_subsets_w_umap[,"ActivationCategory"]),
                shape=20, alpha=0.8, size=pointSize) +
@@ -476,7 +518,7 @@ act_plot_colored_by_gate <- gg_themes +
   scale_color_manual(values = actColorScheme)
 ```
 
-Get legend
+Get legend (use this legend for the rest of the activation plots).
 
 ```{r}
 act_legend <- as_ggplot(get_legend(act_plot_colored_by_gate +
@@ -513,13 +555,13 @@ print(naive_act_plot_colored_by_gate | conv_act_plot_colored_by_gate | act_legen
 ### Stratified by timepoint
 
 ```{r}
-naive_act_mem_plot_colored_by_gate <- naive_pre_gg_themes +
+naive_pre_act_plot_colored_by_gate <- naive_pre_gg_themes +
   geom_point_rast(aes(colour=naive_pre_data[,"ActivationCategory"]),
                shape=20, alpha=0.8, size=pointSize) +
   ggtitle("Naive PRE") +
   scale_color_manual(values = memColorScheme)
 
-naive_act_mem_plot_colored_by_gate <- naive_post_gg_themes +
+naive_post_act_plot_colored_by_gate <- naive_post_gg_themes +
   geom_point_rast(aes(colour=naive_post_data[,"ActivationCategory"]),
                shape=20, alpha=0.8, size=pointSize) +
   ggtitle("Naive POST") +
