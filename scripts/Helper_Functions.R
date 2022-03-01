@@ -766,8 +766,16 @@ make_boxplot_for_COMPASS_run <- function(cr, subset_keep = NULL, run_name, outpu
     
     if(!is.na(output_folder)) {
       test_results_file_path <- file.path(output_folder,
-                                          sprintf("%s_%s_BooleanSubsets_BgCorrProps_MannWhitney.tsv",
-                                                  run_name, if(zeroed_BgCorr_stats) {"Zeroed"} else {"NotZeroed"}))
+                                          sprintf("%s_%s_%s_BooleanSubsets_BgCorrProps_MannWhitney.tsv",
+                                                  run_name,
+                                                  if(subset_keep == "H-") {
+                                                    "N"
+                                                    } else if(subset_keep == "C-") {
+                                                      "C"
+                                                    } else if(subset_keep == "H-1|C-1") {
+                                                      "PRE"
+                                                    } else {"POST"},
+                                                  if(zeroed_BgCorr_stats) {"Zeroed"} else {"NotZeroed"}))
       write.table(pvals_df_for_file,
                   file = test_results_file_path,
                   sep = "\t", row.names = FALSE, quote = FALSE)
