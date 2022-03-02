@@ -1,0 +1,365 @@
+---
+title: "Memory and Activation Boxplots"
+author: "Jolie Phan"
+date: "version `r format(Sys.time(), '%B %d, %Y')`"
+output:
+  html_document:
+    toc: yes
+    toc_depth: 4
+    toc_float:
+      collapsed: no
+  pdf_document:
+    toc: yes
+    toc_depth: 4
+editor_options:
+  chunk_output_type: console
+---
+
+Plots frequencies of polyfunctional CD4+ T cells based on memory phenotype (TCM and TEM) and activation phenotype (HLADR+CD38+)
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(here)
+library(flowWorkspace)
+library(dplyr)
+library(ggplot2)
+library(ggpubr)
+```
+
+# Load data
+
+```{r}
+gs <- load_gs(here::here("out/GatingSets/HAARVIVAC_GatingSet_with_bool"))
+```
+
+# Extract frequencies
+
+Exclude SEB, background-subtract DMSO from S1, S2, and NCAP frequencies.
+
+Sum the S1, S2, and NCAP frequencies.
+
+```{r}
+cd4_mem_act_gates <- c(
+  "/Time/CD3+/CD14-CD19-/Lymphocytes/Singlet/Live/CD4+/CCR7+",
+  "/Time/CD3+/CD14-CD19-/Lymphocytes/Singlet/Live/CD4+/CD45RA+",
+  "/Time/CD3+/CD14-CD19-/Lymphocytes/Singlet/Live/CD38+",
+  "/Time/CD3+/CD14-CD19-/Lymphocytes/Singlet/Live/HLADR+"
+  )
+```
+
+```{r}
+cd4_polyf_act_parent <- "/Time/CD3+/CD14-CD19-/Lymphocytes/Singlet/Live/CD4+/CD4_PolyF_Subsets/HLADR+CD38+"
+
+cd4_polyf_cm_parent <- "/Time/CD3+/CD14-CD19-/Lymphocytes/Singlet/Live/CD4+/CD4_PolyF_Subsets/TCM"
+
+cd4_polyf_em_parent <- "/Time/CD3+/CD14-CD19-/Lymphocytes/Singlet/Live/CD4+/CD4_PolyF_Subsets/TEM"
+```
+
+## Activation
+
+```{r}
+dmso_hladr_cd38_counts <- pData(gs) %>%
+  tibble::rownames_to_column("rowname") %>%
+  left_join(gs_pop_get_count_fast(gs, subpopulations = cd4_polyf_act_parent), by = c("rowname" = "name")) %>%
+  dplyr::rename(CD4_PolyF = Count) %>%
+  dplyr::select(rowname, "SAMPLE ID", "EXPERIMENT NAME", Stim, Group, CD4_PolyF, ParentCount) %>%
+  dplyr::filter(Stim == "DMSO") %>%
+  mutate(DMSO_Freq = (CD4_PolyF/ParentCount)*100)
+
+dmso_hladr_cd38_freq <- select(dmso_hladr_cd38_counts, "SAMPLE ID", "DMSO_Freq")
+
+stim_hladr_cd38_counts <- pData(gs) %>%
+  tibble::rownames_to_column("rowname") %>%
+  left_join(gs_pop_get_count_fast(gs, subpopulations = cd4_polyf_act_parent), by = c("rowname" = "name")) %>%
+  dplyr::rename(CD4_PolyF = Count) %>%
+  dplyr::select(rowname, "SAMPLE ID", "EXPERIMENT NAME", Stim, Group, CD4_PolyF, ParentCount) %>%
+  dplyr::filter(Stim != "SEB" & Stim != "DMSO") %>%
+  mutate(Freq = (CD4_PolyF/ParentCount)*100) 
+
+bgCorr_stim_hladr_cd38_counts <- stim_hladr_cd38_counts %>%
+  left_join(dmso_hladr_cd38_freq, by = "SAMPLE ID") %>%
+  mutate(bgCorr_Freq = Freq - DMSO_Freq) %>%
+  group_by(`SAMPLE ID`) %>%
+  summarise(bgCorr_Freq_total = sum(bgCorr_Freq))
+
+# Add infection status column
+i1 <- grepl("H", bgCorr_stim_hladr_cd38_counts$`SAMPLE ID`) 
+i2 <- grepl("C", bgCorr_stim_hladr_cd38_counts$`SAMPLE ID`) 
+bgCorr_stim_hladr_cd38_counts$Infection_Status <- NULL
+bgCorr_stim_hladr_cd38_counts$Infection_Status[i1] <- "Naive"
+bgCorr_stim_hladr_cd38_counts$Infection_Status[i2] <- "Conv"
+bgCorr_stim_hladr_cd38_counts$Infection_Status <- factor(bgCorr_stim_hladr_cd38_counts$Infection_Status, levels = c("Naive", "Conv"))
+
+# Add "Timepoint" column
+i3 <- grepl("-1", bgCorr_stim_hladr_cd38_counts$`SAMPLE ID`) 
+i4 <- grepl("-2", bgCorr_stim_hladr_cd38_counts$`SAMPLE ID`) 
+bgCorr_stim_hladr_cd38_counts$Timepoint <- NULL
+bgCorr_stim_hladr_cd38_counts$Timepoint[i3] <- "PRE"
+bgCorr_stim_hladr_cd38_counts$Timepoint[i4] <- "POST"
+
+# Add column to pData indicating sample group (Naive vs. Conv and PRE vs. POST)
+i5 <- grepl("H", bgCorr_stim_hladr_cd38_counts$`SAMPLE ID`) & grepl("PRE", bgCorr_stim_hladr_cd38_counts$Timepoint)
+i6 <- grepl("H", bgCorr_stim_hladr_cd38_counts$`SAMPLE ID`) & grepl("POST", bgCorr_stim_hladr_cd38_counts$Timepoint)
+i7 <- grepl("C", bgCorr_stim_hladr_cd38_counts$`SAMPLE ID`) & grepl("PRE", bgCorr_stim_hladr_cd38_counts$Timepoint)
+i8 <- grepl("C", bgCorr_stim_hladr_cd38_counts$`SAMPLE ID`) & grepl("POST", bgCorr_stim_hladr_cd38_counts$Timepoint)
+bgCorr_stim_hladr_cd38_counts$Group <- NULL
+bgCorr_stim_hladr_cd38_counts$Group[i5] <- "Naive PRE"
+bgCorr_stim_hladr_cd38_counts$Group[i6] <- "Naive POST"
+bgCorr_stim_hladr_cd38_counts$Group[i7] <- "Conv PRE"
+bgCorr_stim_hladr_cd38_counts$Group[i8] <- "Conv POST"
+bgCorr_stim_hladr_cd38_counts$Group <- factor(bgCorr_stim_hladr_cd38_counts$Group, levels = c("Naive PRE", "Naive POST", "Conv PRE", "Conv POST"))
+```
+
+## Memory
+
+Central memory
+
+```{r}
+dmso_cm_counts <- pData(gs) %>%
+  tibble::rownames_to_column("rowname") %>%
+  left_join(gs_pop_get_count_fast(gs, subpopulations = cd4_polyf_cm_parent), by = c("rowname" = "name")) %>%
+  dplyr::rename(CD4_PolyF = Count) %>%
+  dplyr::select(rowname, "SAMPLE ID", "EXPERIMENT NAME", Stim, Group, CD4_PolyF, ParentCount) %>%
+  dplyr::filter(Stim == "DMSO") %>%
+  mutate(DMSO_Freq = (CD4_PolyF/ParentCount)*100)
+
+dmso_cm_freq <- select(dmso_cm_counts, "SAMPLE ID", "DMSO_Freq")
+
+stim_cm_counts <- pData(gs) %>%
+  tibble::rownames_to_column("rowname") %>%
+  left_join(gs_pop_get_count_fast(gs, subpopulations = cd4_polyf_cm_parent), by = c("rowname" = "name")) %>%
+  dplyr::rename(CD4_PolyF = Count) %>%
+  dplyr::select(rowname, "SAMPLE ID", "EXPERIMENT NAME", Stim, Group, CD4_PolyF, ParentCount) %>%
+  dplyr::filter(Stim != "SEB" & Stim != "DMSO") %>%
+  mutate(Freq = (CD4_PolyF/ParentCount)*100) 
+
+bgCorr_stim_cm_counts <- stim_cm_counts %>%
+  left_join(dmso_cm_freq, by = "SAMPLE ID") %>%
+  mutate(bgCorr_Freq = Freq - DMSO_Freq) %>%
+  group_by(`SAMPLE ID`) %>%
+  summarise(bgCorr_Freq_total = sum(bgCorr_Freq))
+
+# Add infection status column
+i1 <- grepl("H", bgCorr_stim_cm_counts$`SAMPLE ID`) 
+i2 <- grepl("C", bgCorr_stim_cm_counts$`SAMPLE ID`) 
+bgCorr_stim_cm_counts$Infection_Status <- NULL
+bgCorr_stim_cm_counts$Infection_Status[i1] <- "Naive"
+bgCorr_stim_cm_counts$Infection_Status[i2] <- "Conv"
+bgCorr_stim_cm_counts$Infection_Status <- factor(bgCorr_stim_cm_counts$Infection_Status, levels = c("Naive", "Conv"))
+
+# Add "Timepoint" column
+i3 <- grepl("-1", bgCorr_stim_cm_counts$`SAMPLE ID`) 
+i4 <- grepl("-2", bgCorr_stim_cm_counts$`SAMPLE ID`) 
+bgCorr_stim_cm_counts$Timepoint <- NULL
+bgCorr_stim_cm_counts$Timepoint[i3] <- "PRE"
+bgCorr_stim_cm_counts$Timepoint[i4] <- "POST"
+
+# Add column to pData indicating sample group (Naive vs. Conv and PRE vs. POST)
+i5 <- grepl("H", bgCorr_stim_cm_counts$`SAMPLE ID`) & grepl("PRE", bgCorr_stim_cm_counts$Timepoint)
+i6 <- grepl("H", bgCorr_stim_cm_counts$`SAMPLE ID`) & grepl("POST", bgCorr_stim_cm_counts$Timepoint)
+i7 <- grepl("C", bgCorr_stim_cm_counts$`SAMPLE ID`) & grepl("PRE", bgCorr_stim_cm_counts$Timepoint)
+i8 <- grepl("C", bgCorr_stim_cm_counts$`SAMPLE ID`) & grepl("POST", bgCorr_stim_cm_counts$Timepoint)
+bgCorr_stim_cm_counts$Group <- NULL
+bgCorr_stim_cm_counts$Group[i5] <- "Naive PRE"
+bgCorr_stim_cm_counts$Group[i6] <- "Naive POST"
+bgCorr_stim_cm_counts$Group[i7] <- "Conv PRE"
+bgCorr_stim_cm_counts$Group[i8] <- "Conv POST"
+bgCorr_stim_cm_counts$Group <- factor(bgCorr_stim_cm_counts$Group, levels = c("Naive PRE", "Naive POST", "Conv PRE", "Conv POST"))
+```
+
+Effector memory
+
+```{r}
+dmso_em_counts <- pData(gs) %>%
+  tibble::rownames_to_column("rowname") %>%
+  left_join(gs_pop_get_count_fast(gs, subpopulations = cd4_polyf_em_parent), by = c("rowname" = "name")) %>%
+  dplyr::rename(CD4_PolyF = Count) %>%
+  dplyr::select(rowname, "SAMPLE ID", "EXPERIMENT NAME", Stim, Group, CD4_PolyF, ParentCount) %>%
+  dplyr::filter(Stim == "DMSO") %>%
+  mutate(DMSO_Freq = (CD4_PolyF/ParentCount)*100)
+
+dmso_em_freq <- select(dmso_em_counts, "SAMPLE ID", "DMSO_Freq")
+
+stim_em_counts <- pData(gs) %>%
+  tibble::rownames_to_column("rowname") %>%
+  left_join(gs_pop_get_count_fast(gs, subpopulations = cd4_polyf_em_parent), by = c("rowname" = "name")) %>%
+  dplyr::rename(CD4_PolyF = Count) %>%
+  dplyr::select(rowname, "SAMPLE ID", "EXPERIMENT NAME", Stim, Group, CD4_PolyF, ParentCount) %>%
+  dplyr::filter(Stim != "SEB" & Stim != "DMSO") %>%
+  mutate(Freq = (CD4_PolyF/ParentCount)*100) 
+
+bgCorr_stim_em_counts <- stim_em_counts %>%
+  left_join(dmso_em_freq, by = "SAMPLE ID") %>%
+  mutate(bgCorr_Freq = Freq - DMSO_Freq) %>%
+  group_by(`SAMPLE ID`) %>%
+  summarise(bgCorr_Freq_total = sum(bgCorr_Freq))
+
+# Add infection status column
+i1 <- grepl("H", bgCorr_stim_em_counts$`SAMPLE ID`) 
+i2 <- grepl("C", bgCorr_stim_em_counts$`SAMPLE ID`) 
+bgCorr_stim_em_counts$Infection_Status <- NULL
+bgCorr_stim_em_counts$Infection_Status[i1] <- "Naive"
+bgCorr_stim_em_counts$Infection_Status[i2] <- "Conv"
+bgCorr_stim_em_counts$Infection_Status <- factor(bgCorr_stim_em_counts$Infection_Status, levels = c("Naive", "Conv"))
+
+# Add "Timepoint" column
+i3 <- grepl("-1", bgCorr_stim_em_counts$`SAMPLE ID`) 
+i4 <- grepl("-2", bgCorr_stim_em_counts$`SAMPLE ID`) 
+bgCorr_stim_em_counts$Timepoint <- NULL
+bgCorr_stim_em_counts$Timepoint[i3] <- "PRE"
+bgCorr_stim_em_counts$Timepoint[i4] <- "POST"
+
+# Add column to pData indicating sample group (Naive vs. Conv and PRE vs. POST)
+i5 <- grepl("H", bgCorr_stim_em_counts$`SAMPLE ID`) & grepl("PRE", bgCorr_stim_em_counts$Timepoint)
+i6 <- grepl("H", bgCorr_stim_em_counts$`SAMPLE ID`) & grepl("POST", bgCorr_stim_em_counts$Timepoint)
+i7 <- grepl("C", bgCorr_stim_em_counts$`SAMPLE ID`) & grepl("PRE", bgCorr_stim_em_counts$Timepoint)
+i8 <- grepl("C", bgCorr_stim_em_counts$`SAMPLE ID`) & grepl("POST", bgCorr_stim_em_counts$Timepoint)
+bgCorr_stim_em_counts$Group <- NULL
+bgCorr_stim_em_counts$Group[i5] <- "Naive PRE"
+bgCorr_stim_em_counts$Group[i6] <- "Naive POST"
+bgCorr_stim_em_counts$Group[i7] <- "Conv PRE"
+bgCorr_stim_em_counts$Group[i8] <- "Conv POST"
+bgCorr_stim_em_counts$Group <- factor(bgCorr_stim_em_counts$Group, levels = c("Naive PRE", "Naive POST", "Conv PRE", "Conv POST"))
+```
+
+# Boxplots
+
+```{r}
+naive_pre_post_colors <- c("Naive PRE" = "#A6CEE3", "Naive POST" = "#1F78B4")
+
+conv_pre_post_colors <- c("Conv PRE" = "#FB9A99", "Conv POST" = "#E31A1C")
+
+infection_status_colors <- c("Naive" = "#1F78B4", "Conv" = "#E31A1C")
+```
+
+## Activation
+
+### By Timepoint
+
+Naive PRE vs Naive POST 
+
+```{r}
+naive_act_plot <- ggplot(bgCorr_stim_hladr_cd38_counts %>% dplyr::filter(Infection_Status == "Naive"), aes(x = Group, y = bgCorr_Freq_total, fill = Group)) +
+  geom_boxplot(outlier.shape=NA, position = position_dodge2(preserve = "total")) +
+  stat_compare_means(method = "wilcox.test", paired = TRUE) +
+  geom_jitter(color="black", size=0.4, alpha=0.9) +
+  scale_fill_manual(values = naive_pre_post_colors) +
+  labs(title = "HLADR+CD38+", y = "% Polyfunctional CD4+ T Cells")
+
+naive_act_plot
+```
+
+Conv PRE vs Conv POST
+
+```{r}
+conv_act_plot <- ggplot(bgCorr_stim_hladr_cd38_counts %>% dplyr::filter(Infection_Status == "Conv"), aes(x = Group, y = bgCorr_Freq_total, fill = Group)) +
+  geom_boxplot(outlier.shape=NA, position = position_dodge2(preserve = "total")) +
+  stat_compare_means(method = "wilcox.test", paired = TRUE) +
+  geom_jitter(color="black", size=0.4, alpha=0.9) +
+  scale_fill_manual(values = conv_pre_post_colors) +
+  labs(title = "HLADR+CD38+", y = "% Polyfunctional CD4+ T Cells")
+
+conv_act_plot
+```
+
+### By infection status
+
+Naive vs Conv
+
+```{r}
+infect_act_plot <- ggplot(bgCorr_stim_hladr_cd38_counts, aes(x = Infection_Status, y = bgCorr_Freq_total, fill = Infection_Status)) +
+  geom_boxplot(outlier.shape=NA, position = position_dodge2(preserve = "total")) +
+  stat_compare_means(method = "wilcox.test", paired = FALSE) +
+  geom_jitter(color="black", size=0.4, alpha=0.9) +
+  scale_fill_manual(values = infection_status_colors) +
+  labs(title = "HLADR+CD38+", y = "% Polyfunctional CD4+ T Cells")
+
+infect_act_plot
+```
+
+## Memory
+
+### By Timepoint
+
+Naive PRE vs Naive POST 
+
+```{r}
+# Central memory
+naive_cm_plot <- ggplot(bgCorr_stim_cm_counts %>% dplyr::filter(Infection_Status == "Naive"), aes(x = Group, y = bgCorr_Freq_total, fill = Group)) +
+  geom_boxplot(outlier.shape=NA, position = position_dodge2(preserve = "total")) +
+  stat_compare_means(method = "wilcox.test", paired = TRUE) +
+  geom_jitter(color="black", size=0.4, alpha=0.9) +
+  scale_fill_manual(values = naive_pre_post_colors) +
+  labs(title = "Central Memory", y = "% Polyfunctional CD4+ T Cells")
+
+naive_cm_plot
+```
+
+```{r}
+# Effector memory
+naive_em_plot <- ggplot(bgCorr_stim_em_counts %>% dplyr::filter(Infection_Status == "Naive"), aes(x = Group, y = bgCorr_Freq_total, fill = Group)) +
+  geom_boxplot(outlier.shape=NA, position = position_dodge2(preserve = "total")) +
+  stat_compare_means(method = "wilcox.test", paired = TRUE) +
+  geom_jitter(color="black", size=0.4, alpha=0.9) +
+  scale_fill_manual(values = naive_pre_post_colors) +
+  labs(title = "Effector Memory", y = "% Polyfunctional CD4+ T Cells")
+
+naive_em_plot
+```
+
+Conv PRE vs Conv POST
+
+```{r}
+# Central memory
+conv_cm_plot <- ggplot(bgCorr_stim_cm_counts %>% dplyr::filter(Infection_Status == "Conv"), aes(x = Group, y = bgCorr_Freq_total, fill = Group)) +
+  geom_boxplot(outlier.shape=NA, position = position_dodge2(preserve = "total")) +
+  stat_compare_means(method = "wilcox.test", paired = TRUE) +
+  geom_jitter(color="black", size=0.4, alpha=0.9) +
+  scale_fill_manual(values = conv_pre_post_colors) +
+  labs(title = "Central Memory", y = "% Polyfunctional CD4+ T Cells")
+
+conv_cm_plot
+```
+
+```{r}
+# Effector memory
+conv_em_plot <- ggplot(bgCorr_stim_em_counts %>% dplyr::filter(Infection_Status == "Conv"), aes(x = Group, y = bgCorr_Freq_total, fill = Group)) +
+  geom_boxplot(outlier.shape=NA, position = position_dodge2(preserve = "total")) +
+  stat_compare_means(method = "wilcox.test", paired = TRUE) +
+  geom_jitter(color="black", size=0.4, alpha=0.9) +
+  scale_fill_manual(values = conv_pre_post_colors) +
+  labs(title = "Effector Memory", y = "% Polyfunctional CD4+ T Cells")
+
+conv_em_plot
+```
+
+### By infection status
+
+Naive vs Conv
+
+```{r}
+# Central memory
+infect_cm_plot <- ggplot(bgCorr_stim_cm_counts, aes(x = Infection_Status, y = bgCorr_Freq_total, fill = Infection_Status)) +
+  geom_boxplot(outlier.shape=NA, position = position_dodge2(preserve = "total")) +
+  stat_compare_means(method = "wilcox.test", paired = FALSE) +
+  geom_jitter(color="black", size=0.4, alpha=0.9) +
+  scale_fill_manual(values = infection_status_colors) +
+  labs(title = "Central Memory", y = "% Polyfunctional CD4+ T Cells")
+
+infect_cm_plot
+```
+
+```{r}
+# Effector memory
+infect_em_plot <- ggplot(bgCorr_stim_em_counts, aes(x = Infection_Status, y = bgCorr_Freq_total, fill = Infection_Status)) +
+  geom_boxplot(outlier.shape=NA, position = position_dodge2(preserve = "total")) +
+  stat_compare_means(method = "wilcox.test", paired = FALSE) +
+  geom_jitter(color="black", size=0.4, alpha=0.9) +
+  scale_fill_manual(values = infection_status_colors) +
+  labs(title = "Effector Memory", y = "% Polyfunctional CD4+ T Cells")
+
+infect_em_plot
+```
