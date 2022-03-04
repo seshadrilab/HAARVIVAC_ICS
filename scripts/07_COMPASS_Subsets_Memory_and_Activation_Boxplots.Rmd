@@ -1,0 +1,478 @@
+---
+title: "COMPASS Subset CD4+ T cell Memory and Activation Boxplots"
+author: "Jolie Phan"
+date: "version `r format(Sys.time(), '%B %d, %Y')`"
+output:
+  html_document:
+    toc: yes
+    toc_depth: 4
+    toc_float:
+      collapsed: no
+  pdf_document:
+    toc: yes
+    toc_depth: 4
+editor_options:
+  chunk_output_type: console
+---
+
+Plots frequencies of CD4+ T cells which express a COMPASS subset based on memory phenotype (TCM and TEM) and activation phenotype (HLADR+CD38+).
+
+Stratify by stim (S1, S2, NCAP, and DMSO).
+
+Note: all p-values are unadjusted.
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r, message = FALSE}
+library(here)
+library(flowWorkspace)
+library(dplyr)
+library(ggplot2)
+library(ggpubr)
+```
+
+# Load data
+
+```{r}
+gs <- load_gs(here::here("out/GatingSets/HAARVIVAC_GatingSet_with_COMPASS_Subsets"))
+```
+
+# Extract frequencies
+
+Exclude SEB.
+
+```{r}
+cd4_compass_act_parent <- "/Time/CD3+/CD14-CD19-/Lymphocytes/Singlet/Live/CD4+/CD4_COMPASS_Subsets/HLADR+CD38+"
+
+cd4_compass_cd38_parent <- "/Time/CD3+/CD14-CD19-/Lymphocytes/Singlet/Live/CD4+/CD4_COMPASS_Subsets/CD38+"
+
+cd4_compass_cm_parent <- "/Time/CD3+/CD14-CD19-/Lymphocytes/Singlet/Live/CD4+/CD4_COMPASS_Subsets/TCM"
+
+cd4_compass_em_parent <- "/Time/CD3+/CD14-CD19-/Lymphocytes/Singlet/Live/CD4+/CD4_COMPASS_Subsets/TEM"
+```
+
+## HLADR+CD38+
+
+```{r}
+act_counts <- pData(gs) %>%
+  tibble::rownames_to_column("rowname") %>%
+  left_join(gs_pop_get_count_fast(gs, subpopulations = cd4_compass_act_parent), by = c("rowname" = "name")) %>%
+  dplyr::rename(CD4_PolyF = Count) %>%
+  dplyr::select(rowname, "SAMPLE ID", "EXPERIMENT NAME", Stim, Group, CD4_PolyF, ParentCount) %>%
+  dplyr::filter(Stim != "SEB") %>%
+  mutate(Freq = (CD4_PolyF/ParentCount)*100) 
+
+# Add infection status column
+i1 <- grepl("H", act_counts$`SAMPLE ID`) 
+i2 <- grepl("C", act_counts$`SAMPLE ID`) 
+act_counts$Infection_Status <- NULL
+act_counts$Infection_Status[i1] <- "Naive"
+act_counts$Infection_Status[i2] <- "Conv"
+act_counts$Infection_Status <- factor(act_counts$Infection_Status, levels = c("Naive", "Conv"))
+
+# Add "Timepoint" column
+i3 <- grepl("-1", act_counts$`SAMPLE ID`) 
+i4 <- grepl("-2", act_counts$`SAMPLE ID`) 
+act_counts$Timepoint <- NULL
+act_counts$Timepoint[i3] <- "PRE"
+act_counts$Timepoint[i4] <- "POST"
+
+# Add column to pData indicating sample group (Naive vs. Conv and PRE vs. POST)
+i5 <- grepl("H", act_counts$`SAMPLE ID`) & grepl("PRE", act_counts$Timepoint)
+i6 <- grepl("H", act_counts$`SAMPLE ID`) & grepl("POST", act_counts$Timepoint)
+i7 <- grepl("C", act_counts$`SAMPLE ID`) & grepl("PRE", act_counts$Timepoint)
+i8 <- grepl("C", act_counts$`SAMPLE ID`) & grepl("POST", act_counts$Timepoint)
+act_counts$Group <- NULL
+act_counts$Group[i5] <- "Naive PRE"
+act_counts$Group[i6] <- "Naive POST"
+act_counts$Group[i7] <- "Conv PRE"
+act_counts$Group[i8] <- "Conv POST"
+act_counts$Group <- factor(act_counts$Group, levels = c("Naive PRE", "Naive POST", "Conv PRE", "Conv POST"))
+```
+
+## CD38+
+
+```{r}
+cd38_counts <- pData(gs) %>%
+  tibble::rownames_to_column("rowname") %>%
+  left_join(gs_pop_get_count_fast(gs, subpopulations = cd4_compass_cd38_parent), by = c("rowname" = "name")) %>%
+  dplyr::rename(CD4_PolyF = Count) %>%
+  dplyr::select(rowname, "SAMPLE ID", "EXPERIMENT NAME", Stim, Group, CD4_PolyF, ParentCount) %>%
+  dplyr::filter(Stim != "SEB") %>%
+  mutate(Freq = (CD4_PolyF/ParentCount)*100) 
+
+# Add infection status column
+i1 <- grepl("H", cd38_counts$`SAMPLE ID`) 
+i2 <- grepl("C", cd38_counts$`SAMPLE ID`) 
+cd38_counts$Infection_Status <- NULL
+cd38_counts$Infection_Status[i1] <- "Naive"
+cd38_counts$Infection_Status[i2] <- "Conv"
+cd38_counts$Infection_Status <- factor(cd38_counts$Infection_Status, levels = c("Naive", "Conv"))
+
+# Add "Timepoint" column
+i3 <- grepl("-1", cd38_counts$`SAMPLE ID`) 
+i4 <- grepl("-2", cd38_counts$`SAMPLE ID`) 
+cd38_counts$Timepoint <- NULL
+cd38_counts$Timepoint[i3] <- "PRE"
+cd38_counts$Timepoint[i4] <- "POST"
+
+# Add column to pData indicating sample group (Naive vs. Conv and PRE vs. POST)
+i5 <- grepl("H", cd38_counts$`SAMPLE ID`) & grepl("PRE", cd38_counts$Timepoint)
+i6 <- grepl("H", cd38_counts$`SAMPLE ID`) & grepl("POST", cd38_counts$Timepoint)
+i7 <- grepl("C", cd38_counts$`SAMPLE ID`) & grepl("PRE", cd38_counts$Timepoint)
+i8 <- grepl("C", cd38_counts$`SAMPLE ID`) & grepl("POST", cd38_counts$Timepoint)
+cd38_counts$Group <- NULL
+cd38_counts$Group[i5] <- "Naive PRE"
+cd38_counts$Group[i6] <- "Naive POST"
+cd38_counts$Group[i7] <- "Conv PRE"
+cd38_counts$Group[i8] <- "Conv POST"
+cd38_counts$Group <- factor(cd38_counts$Group, levels = c("Naive PRE", "Naive POST", "Conv PRE", "Conv POST"))
+```
+
+## Central memory
+
+```{r}
+cm_counts <- pData(gs) %>%
+  tibble::rownames_to_column("rowname") %>%
+  left_join(gs_pop_get_count_fast(gs, subpopulations = cd4_compass_cm_parent), by = c("rowname" = "name")) %>%
+  dplyr::rename(CD4_PolyF = Count) %>%
+  dplyr::select(rowname, "SAMPLE ID", "EXPERIMENT NAME", Stim, Group, CD4_PolyF, ParentCount) %>%
+  dplyr::filter(Stim != "SEB") %>%
+  mutate(Freq = (CD4_PolyF/ParentCount)*100) 
+
+# Add infection status column
+i1 <- grepl("H", cm_counts$`SAMPLE ID`) 
+i2 <- grepl("C", cm_counts$`SAMPLE ID`) 
+cm_counts$Infection_Status <- NULL
+cm_counts$Infection_Status[i1] <- "Naive"
+cm_counts$Infection_Status[i2] <- "Conv"
+cm_counts$Infection_Status <- factor(cm_counts$Infection_Status, levels = c("Naive", "Conv"))
+
+# Add "Timepoint" column
+i3 <- grepl("-1", cm_counts$`SAMPLE ID`) 
+i4 <- grepl("-2", cm_counts$`SAMPLE ID`) 
+cm_counts$Timepoint <- NULL
+cm_counts$Timepoint[i3] <- "PRE"
+cm_counts$Timepoint[i4] <- "POST"
+
+# Add column to pData indicating sample group (Naive vs. Conv and PRE vs. POST)
+i5 <- grepl("H", cm_counts$`SAMPLE ID`) & grepl("PRE", cm_counts$Timepoint)
+i6 <- grepl("H", cm_counts$`SAMPLE ID`) & grepl("POST", cm_counts$Timepoint)
+i7 <- grepl("C", cm_counts$`SAMPLE ID`) & grepl("PRE", cm_counts$Timepoint)
+i8 <- grepl("C", cm_counts$`SAMPLE ID`) & grepl("POST", cm_counts$Timepoint)
+cm_counts$Group <- NULL
+cm_counts$Group[i5] <- "Naive PRE"
+cm_counts$Group[i6] <- "Naive POST"
+cm_counts$Group[i7] <- "Conv PRE"
+cm_counts$Group[i8] <- "Conv POST"
+cm_counts$Group <- factor(cm_counts$Group, levels = c("Naive PRE", "Naive POST", "Conv PRE", "Conv POST"))
+```
+
+## Effector memory
+
+```{r}
+em_counts <- pData(gs) %>%
+  tibble::rownames_to_column("rowname") %>%
+  left_join(gs_pop_get_count_fast(gs, subpopulations = cd4_compass_em_parent), by = c("rowname" = "name")) %>%
+  dplyr::rename(CD4_PolyF = Count) %>%
+  dplyr::select(rowname, "SAMPLE ID", "EXPERIMENT NAME", Stim, Group, CD4_PolyF, ParentCount) %>%
+  dplyr::filter(Stim != "SEB") %>%
+  mutate(Freq = (CD4_PolyF/ParentCount)*100) 
+
+# Add infection status column
+i1 <- grepl("H", em_counts$`SAMPLE ID`) 
+i2 <- grepl("C", em_counts$`SAMPLE ID`) 
+em_counts$Infection_Status <- NULL
+em_counts$Infection_Status[i1] <- "Naive"
+em_counts$Infection_Status[i2] <- "Conv"
+em_counts$Infection_Status <- factor(em_counts$Infection_Status, levels = c("Naive", "Conv"))
+
+# Add "Timepoint" column
+i3 <- grepl("-1", em_counts$`SAMPLE ID`) 
+i4 <- grepl("-2", em_counts$`SAMPLE ID`) 
+em_counts$Timepoint <- NULL
+em_counts$Timepoint[i3] <- "PRE"
+em_counts$Timepoint[i4] <- "POST"
+
+# Add column to pData indicating sample group (Naive vs. Conv and PRE vs. POST)
+i5 <- grepl("H", em_counts$`SAMPLE ID`) & grepl("PRE", em_counts$Timepoint)
+i6 <- grepl("H", em_counts$`SAMPLE ID`) & grepl("POST", em_counts$Timepoint)
+i7 <- grepl("C", em_counts$`SAMPLE ID`) & grepl("PRE", em_counts$Timepoint)
+i8 <- grepl("C", em_counts$`SAMPLE ID`) & grepl("POST", em_counts$Timepoint)
+em_counts$Group <- NULL
+em_counts$Group[i5] <- "Naive PRE"
+em_counts$Group[i6] <- "Naive POST"
+em_counts$Group[i7] <- "Conv PRE"
+em_counts$Group[i8] <- "Conv POST"
+em_counts$Group <- factor(em_counts$Group, levels = c("Naive PRE", "Naive POST", "Conv PRE", "Conv POST"))
+```
+
+# Boxplots
+
+```{r}
+naive_pre_post_colors <- c("Naive PRE" = "#A6CEE3", "Naive POST" = "#1F78B4")
+
+conv_pre_post_colors <- c("Conv PRE" = "#FB9A99", "Conv POST" = "#E31A1C")
+
+pre_colors <- c("Naive PRE" = "#A6CEE3", "Conv PRE" = "#FB9A99")
+
+post_colors <- c("Naive POST" = "#1F78B4", "Conv POST" = "#E31A1C")
+```
+
+## HLADR+CD38+
+
+### Across Timepoint
+
+Naive PRE vs Naive POST
+
+```{r, fig.width=9, fig.height=4}
+naive_act_plot <- ggplot(act_counts %>% dplyr::filter(Infection_Status == "Naive"), aes(x = Group, y = Freq, fill = Group)) +
+  geom_boxplot(outlier.shape=NA, position = position_dodge2(preserve = "total")) +
+  stat_compare_means(method = "wilcox.test", paired = TRUE) +
+  geom_jitter(color="black", size=0.4, alpha=0.9) +
+  scale_fill_manual(values = naive_pre_post_colors) +
+  labs(title = "HLADR+CD38+", y = "% COMPASS-selected CD4+ T Cells") +
+  facet_wrap(vars(Stim), nrow = 1)
+
+naive_act_plot
+```
+
+Conv PRE vs Conv POST
+
+```{r, fig.width=9, fig.height=4}
+conv_act_plot <- ggplot(act_counts %>% dplyr::filter(Infection_Status == "Conv"), aes(x = Group, y = Freq, fill = Group)) +
+  geom_boxplot(outlier.shape=NA, position = position_dodge2(preserve = "total")) +
+  stat_compare_means(method = "wilcox.test", paired = TRUE) +
+  geom_jitter(color="black", size=0.4, alpha=0.9) +
+  scale_fill_manual(values = conv_pre_post_colors) +
+  labs(title = "HLADR+CD38+", y = "% COMPASS-selected CD4+ T Cells") +
+  facet_wrap(vars(Stim), nrow = 1)
+
+conv_act_plot
+```
+
+### Across infection status
+
+Naive PRE vs Conv PRE
+
+```{r, fig.width=9, fig.height=4}
+pre_act_plot <- ggplot(act_counts %>% dplyr::filter(Timepoint == "PRE"), aes(x = Group, y = Freq, fill = Group)) +
+  geom_boxplot(outlier.shape=NA, position = position_dodge2(preserve = "total")) +
+  stat_compare_means(method = "wilcox.test", paired = FALSE) +
+  geom_jitter(color="black", size=0.4, alpha=0.9) +
+  scale_fill_manual(values = pre_colors) +
+  labs(title = "HLADR+CD38+", y = "% COMPASS-selected CD4+ T Cells") +
+  facet_wrap(vars(Stim), nrow = 1)
+
+pre_act_plot
+```
+
+Naive POST vs Conv POST
+
+```{r, fig.width=9, fig.height=4}
+post_act_plot <- ggplot(act_counts %>% dplyr::filter(Timepoint == "POST"), aes(x = Group, y = Freq, fill = Group)) +
+  geom_boxplot(outlier.shape=NA, position = position_dodge2(preserve = "total")) +
+  stat_compare_means(method = "wilcox.test", paired = FALSE) +
+  geom_jitter(color="black", size=0.4, alpha=0.9) +
+  scale_fill_manual(values = post_colors) +
+  labs(title = "HLADR+CD38+", y = "% COMPASS-selected CD4+ T Cells") +
+  facet_wrap(vars(Stim), nrow = 1)
+
+post_act_plot
+```
+
+## CD38+
+
+### Across Timepoint
+
+Naive PRE vs Naive POST
+
+```{r, fig.width=9, fig.height=4}
+naive_cd38_plot <- ggplot(cd38_counts %>% dplyr::filter(Infection_Status == "Naive"), aes(x = Group, y = Freq, fill = Group)) +
+  geom_boxplot(outlier.shape=NA, position = position_dodge2(preserve = "total")) +
+  stat_compare_means(method = "wilcox.test", paired = TRUE) +
+  geom_jitter(color="black", size=0.4, alpha=0.9) +
+  scale_fill_manual(values = naive_pre_post_colors) +
+  labs(title = "CD38+", y = "% COMPASS-selected CD4+ T Cells") +
+  facet_wrap(vars(Stim), nrow = 1)
+
+naive_cd38_plot
+```
+
+Conv PRE vs Conv POST
+
+```{r, fig.width=9, fig.height=4}
+conv_cd38_plot <- ggplot(cd38_counts %>% dplyr::filter(Infection_Status == "Conv"), aes(x = Group, y = Freq, fill = Group)) +
+  geom_boxplot(outlier.shape=NA, position = position_dodge2(preserve = "total")) +
+  stat_compare_means(method = "wilcox.test", paired = TRUE) +
+  geom_jitter(color="black", size=0.4, alpha=0.9) +
+  scale_fill_manual(values = conv_pre_post_colors) +
+  labs(title = "CD38+", y = "% COMPASS-selected CD4+ T Cells") +
+  facet_wrap(vars(Stim), nrow = 1)
+
+conv_cd38_plot
+```
+
+### Across infection status
+
+Naive PRE vs Conv PRE
+
+```{r, fig.width=9, fig.height=4}
+pre_cd38_plot <- ggplot(cd38_counts %>% dplyr::filter(Timepoint == "PRE"), aes(x = Group, y = Freq, fill = Group)) +
+  geom_boxplot(outlier.shape=NA, position = position_dodge2(preserve = "total")) +
+  stat_compare_means(method = "wilcox.test", paired = FALSE) +
+  geom_jitter(color="black", size=0.4, alpha=0.9) +
+  scale_fill_manual(values = pre_colors) +
+  labs(title = "CD38+", y = "% COMPASS-selected CD4+ T Cells") +
+  facet_wrap(vars(Stim), nrow = 1)
+
+pre_cd38_plot
+```
+
+Naive POST vs Conv POST
+
+```{r, fig.width=9, fig.height=4}
+post_cd38_plot <- ggplot(cd38_counts %>% dplyr::filter(Timepoint == "POST"), aes(x = Group, y = Freq, fill = Group)) +
+  geom_boxplot(outlier.shape=NA, position = position_dodge2(preserve = "total")) +
+  stat_compare_means(method = "wilcox.test", paired = FALSE) +
+  geom_jitter(color="black", size=0.4, alpha=0.9) +
+  scale_fill_manual(values = post_colors) +
+  labs(title = "CD38+", y = "% COMPASS-selected CD4+ T Cells") +
+  facet_wrap(vars(Stim), nrow = 1)
+
+post_cd38_plot
+```
+
+## Central Memory
+
+### Across Timepoint
+
+Naive PRE vs Naive POST
+
+```{r, fig.width=9, fig.height=4}
+# Central memory
+naive_cm_plot <- ggplot(cm_counts %>% dplyr::filter(Infection_Status == "Naive"), aes(x = Group, y = Freq, fill = Group)) +
+  geom_boxplot(outlier.shape=NA, position = position_dodge2(preserve = "total")) +
+  stat_compare_means(method = "wilcox.test", paired = TRUE) +
+  geom_jitter(color="black", size=0.4, alpha=0.9) +
+  scale_fill_manual(values = naive_pre_post_colors) +
+  labs(title = "Central Memory", y = "% COMPASS-selected CD4+ T Cells") +
+  facet_wrap(vars(Stim), nrow = 1)
+
+naive_cm_plot
+```
+
+Conv PRE vs Conv POST
+
+```{r, fig.width=9, fig.height=4}
+# Central memory
+conv_cm_plot <- ggplot(cm_counts %>% dplyr::filter(Infection_Status == "Conv"), aes(x = Group, y = Freq, fill = Group)) +
+  geom_boxplot(outlier.shape=NA, position = position_dodge2(preserve = "total")) +
+  stat_compare_means(method = "wilcox.test", paired = TRUE) +
+  geom_jitter(color="black", size=0.4, alpha=0.9) +
+  scale_fill_manual(values = conv_pre_post_colors) +
+  labs(title = "Central Memory", y = "% COMPASS-selected CD4+ T Cells") +
+  facet_wrap(vars(Stim), nrow = 1)
+
+conv_cm_plot
+```
+
+### Across infection status
+
+Naive PRE vs Conv PRE
+
+```{r, fig.width=9, fig.height=4}
+# Central memory
+pre_cm_plot <- ggplot(cm_counts %>% dplyr::filter(Timepoint == "PRE"), aes(x = Group, y = Freq, fill = Group)) +
+  geom_boxplot(outlier.shape=NA, position = position_dodge2(preserve = "total")) +
+  stat_compare_means(method = "wilcox.test", paired = FALSE) +
+  geom_jitter(color="black", size=0.4, alpha=0.9) +
+  scale_fill_manual(values = pre_colors) +
+  labs(title = "Central Memory", y = "% COMPASS-selected CD4+ T Cells") +
+  facet_wrap(vars(Stim), nrow = 1)
+
+pre_cm_plot
+```
+
+Naive POST vs Conv POST
+
+```{r, fig.width=9, fig.height=4}
+# Central memory
+post_cm_plot <- ggplot(cm_counts %>% dplyr::filter(Timepoint == "POST"), aes(x = Group, y = Freq, fill = Group)) +
+  geom_boxplot(outlier.shape=NA, position = position_dodge2(preserve = "total")) +
+  stat_compare_means(method = "wilcox.test", paired = FALSE) +
+  geom_jitter(color="black", size=0.4, alpha=0.9) +
+  scale_fill_manual(values = post_colors) +
+  labs(title = "Central Memory", y = "% COMPASS-selected CD4+ T Cells") +
+  facet_wrap(vars(Stim), nrow = 1)
+
+post_cm_plot
+```
+
+## Effector Memory
+
+### Across Timepoint
+
+Naive PRE vs Naive POST
+
+```{r, fig.width=9, fig.height=4}
+# Effector memory
+naive_em_plot <- ggplot(em_counts %>% dplyr::filter(Infection_Status == "Naive"), aes(x = Group, y = Freq, fill = Group)) +
+  geom_boxplot(outlier.shape=NA, position = position_dodge2(preserve = "total")) +
+  stat_compare_means(method = "wilcox.test", paired = TRUE) +
+  geom_jitter(color="black", size=0.4, alpha=0.9) +
+  scale_fill_manual(values = naive_pre_post_colors) +
+  labs(title = "Effector Memory", y = "% COMPASS-selected CD4+ T Cells") +
+  facet_wrap(vars(Stim), nrow = 1)
+
+naive_em_plot
+```
+
+Conv PRE vs Conv POST
+
+```{r, fig.width=9, fig.height=4}
+# Effector memory
+conv_em_plot <- ggplot(em_counts %>% dplyr::filter(Infection_Status == "Conv"), aes(x = Group, y = Freq, fill = Group)) +
+  geom_boxplot(outlier.shape=NA, position = position_dodge2(preserve = "total")) +
+  stat_compare_means(method = "wilcox.test", paired = TRUE) +
+  geom_jitter(color="black", size=0.4, alpha=0.9) +
+  scale_fill_manual(values = conv_pre_post_colors) +
+  labs(title = "Effector Memory", y = "% COMPASS-selected CD4+ T Cells") +
+  facet_wrap(vars(Stim), nrow = 1)
+
+conv_em_plot
+```
+
+### Across infection status
+
+Naive PRE vs Conv PRE
+
+```{r, fig.width=9, fig.height=4}
+# Effector memory
+pre_em_plot <- ggplot(em_counts %>% dplyr::filter(Timepoint == "PRE"), aes(x = Group, y = Freq, fill = Group)) +
+  geom_boxplot(outlier.shape=NA, position = position_dodge2(preserve = "total")) +
+  stat_compare_means(method = "wilcox.test", paired = FALSE) +
+  geom_jitter(color="black", size=0.4, alpha=0.9) +
+  scale_fill_manual(values = pre_colors) +
+  labs(title = "Effector Memory", y = "% COMPASS-selected CD4+ T Cells") +
+  facet_wrap(vars(Stim), nrow = 1)
+
+pre_em_plot
+```
+
+Naive POST vs Conv POST
+
+```{r, fig.width=9, fig.height=4}
+# Effector memory
+post_em_plot <- ggplot(em_counts %>% dplyr::filter(Timepoint == "POST"), aes(x = Group, y = Freq, fill = Group)) +
+  geom_boxplot(outlier.shape=NA, position = position_dodge2(preserve = "total")) +
+  stat_compare_means(method = "wilcox.test", paired = FALSE) +
+  geom_jitter(color="black", size=0.4, alpha=0.9) +
+  scale_fill_manual(values = post_colors) +
+  labs(title = "Effector Memory", y = "% COMPASS-selected CD4+ T Cells") +
+  facet_wrap(vars(Stim), nrow = 1)
+
+post_em_plot
+```
