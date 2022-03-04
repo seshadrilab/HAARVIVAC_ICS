@@ -15,7 +15,7 @@ editor_options:
   chunk_output_type: console
 ---
 
-Plots frequencies of CD4+ T cells which express a COMPASS subset based on memory phenotype (TCM and TEM) and activation phenotype (HLADR+CD38+).
+Plots frequencies of CD4+ T cells which express a COMPASS subset based on activation phenotype (HLADR+CD38+ and CD38+, HLADR agnostic) and memory phenotype (TCM and TEM).
 
 Stratify by stim (S1, S2, NCAP, and DMSO).
 
