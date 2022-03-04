@@ -79,11 +79,6 @@ cd4_pre_bg_corr_boxplots <- readRDS(here::here("processed_data/CD4_pre_make_boxp
 Data can be extracted from the saved output of `make_boxplot_for_COMPASS_run()`. Note that the p-values have been bonferroni adjusted.
 
 ```{r}
-# gs_sub <- subset(gs, !(`SAMPLE ID` == "242C-2") &
-#                    !(`SAMPLE ID` == "54H-2" & Stim == "S2") &
-#                    !(`SAMPLE ID` == "161C-1" & Stim == "S2") &
-#                    !(`SAMPLE ID` == "161C-2" & Stim %in% c("S2", "NCAP")))
-
 plot_subset_vs_group <- function(bg_corr_boxplots, current_run,
                                  current_subset, group_colors,
                                  group_labs, group) {
