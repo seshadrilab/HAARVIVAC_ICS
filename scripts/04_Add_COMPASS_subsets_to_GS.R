@@ -2,7 +2,6 @@ library(here)
 library(tidyverse)
 library(flowWorkspace)
 library(flowCore)
-set.seed(123)
 
 # The counts for the COMPASS subsets are only stored in COMPASSResult objects if they were discovered by COMPASS for that stim,
 # so we have to manually add boolean gates for each subset to the GatingSets and then extract the count data later.
@@ -133,8 +132,7 @@ for (parent_path in c("/Time/CD3+/CD14-CD19-/Lymphocytes/Singlet/Live/CD4+/CD4_C
 
 for (parent_path in c("/Time/CD3+/CD14-CD19-/Lymphocytes/Singlet/Live/CD4+/CD4_COMPASS_Subsets",
                       "/Time/CD3+/CD14-CD19-/Lymphocytes/Singlet/Live/CD8+/CD8_COMPASS_Subsets")) {
-  gs_pop_add(gs, eval(substitute(flowWorkspace::booleanFilter(v),
-                                 list(v = as.symbol(cd3_cd38_path)))),
+  gs_pop_add(gs, lapply(gs, gh_pop_get_gate, y = cd3_cd38_path),
              parent = parent_path, name = "CD38+")
 }
 
