@@ -22,7 +22,8 @@ Stratify by stim (S1, S2, NCAP, and DMSO).
 Note: all p-values are unadjusted.
 
 ```{r setup, include = FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE,
+                      fig.width = 5, fig.height = 5)
 ```
 
 ```{r, message = FALSE}
@@ -31,12 +32,29 @@ library(flowWorkspace)
 library(dplyr)
 library(ggplot2)
 library(ggpubr)
+library(ggbeeswarm)
 ```
 
 # Load data
 
 ```{r}
 gs <- load_gs(here::here("out/GatingSets/HAARVIVAC_GatingSet_with_COMPASS_Subsets"))
+
+if(!dir.exists(here::here("out/post_compass_plots/activation_memory_plots"))) {
+    cat(sprintf("Creating folder %s\n", here::here("out/post_compass_plots/activation_memory_plots")))
+    dir.create(here::here("out/post_compass_plots/activation_memory_plots"), recursive = T)
+}
+```
+
+```{r}
+# Arial font setup. Downloaded afms from https://github.com/microsoft/microsoft-r-open/tree/ec3fd89e5fb5794bd8149905c134ad801bb61800
+Arial <- Type1Font(family = "Arial",
+                   metrics = c(here::here("data/Arial_afm/ArialMT.afm"),
+                               here::here("data/Arial_afm/ArialMT-Bold.afm"),
+                               here::here("data/Arial_afm/ArialMT-Italic.afm"),
+                               here::here("data/Arial_afm/ArialMT-BoldItalic.afm")))
+windowsFonts("Arial" = windowsFont("Arial"))
+pdfFonts(Arial = Arial)
 ```
 
 # Extract frequencies
@@ -212,13 +230,77 @@ em_counts$Group <- factor(em_counts$Group, levels = c("Naive PRE", "Naive POST",
 # Boxplots
 
 ```{r}
-naive_pre_post_colors <- c("Naive PRE" = "#A6CEE3", "Naive POST" = "#1F78B4")
+stims <- c("DMSO", "S1", "S2", "NCAP")
 
-conv_pre_post_colors <- c("Conv PRE" = "#FB9A99", "Conv POST" = "#E31A1C")
+fill_colors <- list("Naive" = c("Naive PRE" = "#A6CEE3", "Naive POST" = "#1F78B4"),
+                    "Conv" = c("Conv PRE" = "#FB9A99", "Conv POST" = "#E31A1C"),
+                    "PRE" = c("Naive PRE" = "#A6CEE3", "Conv PRE" = "#FB9A99"),
+                    "POST" = c("Naive POST" = "#1F78B4", "Conv POST" = "#E31A1C"))
 
-pre_colors <- c("Naive PRE" = "#A6CEE3", "Conv PRE" = "#FB9A99")
+outline_colors <- list("Naive" = c("Naive PRE" = "#7FB9D7", "Naive POST" = "#185b88"),
+                       "Conv" = c("Conv PRE" = "#F96968", "Conv POST" = "#B51516"),
+                       "PRE" = c("Naive PRE" = "#7FB9D7", "Conv PRE" = "#F96968"),
+                       "POST" = c("Naive POST" = "#185b88", "Conv POST" = "#B51516"))
+```
 
-post_colors <- c("Naive POST" = "#1F78B4", "Conv POST" = "#E31A1C")
+```{r}
+make_boxplots <- function(counts, compare_time, keep, current_stim,
+                          groups_compare, paired, fill_colors,
+                          outline_colors, subtitle) {
+  if(compare_time) {
+    counts <- counts %>%
+      dplyr::filter(Infection_Status == keep & Stim == current_stim)
+  } else
+    counts <- counts %>%
+      dplyr::filter(Timepoint == keep & Stim == current_stim)
+  
+  # P-values are unadjusted
+  if(paired) {
+    test <- wilcox.test(Freq ~ Group, data = counts, paired = TRUE)
+  } else {
+    test <- wilcox.test(Freq ~ Group, data = counts, paired = FALSE)
+  }
+
+test_df <- data.frame(p = as.numeric(unlist(test)["p.value"])) %>%
+  mutate(p.text = if_else(p < 0.001, "p<.001", paste0("p=", sub("0.", ".", round(p, 3)))))
+  
+  current_plot <- ggplot(counts, aes(x = Group, y = Freq, fill = Group)) +
+    theme_bw(base_size = 22) +
+      geom_hline(yintercept = 0, linetype="dashed", alpha = 0.5) +
+      geom_violin(aes(fill = Group), draw_quantiles = c(0.5),
+              # All violins have the same maximum width. Overrides default of equal area
+              scale="width", width=0.6) +
+      geom_violin(fill="transparent", draw_quantiles = c(0.25, 0.75), linetype = "dashed",
+                  scale="width", width=0.6) +
+      geom_violin(aes(color=Group), fill="transparent",
+                scale="width", width=0.6, size=1.1) +
+      geom_quasirandom(size=0.1, width=0.2, varwidth=T, method="quasirandom") +
+    theme(text = element_text(family="Arial"),
+          panel.grid.major = element_blank(),
+          panel.grid.minor = element_blank(),
+          panel.background = element_blank(),
+          axis.line = element_line(colour = "black"),
+          axis.title.x = element_blank(),
+          axis.title.y = element_text(size=15),
+          axis.text.y = element_text(color="black", size=17),
+          axis.text.x = element_text(color="black", size=20),
+          plot.title = element_text(hjust = 0.5, size=21),
+          plot.subtitle = element_text(hjust = 0.5, size=13),
+          legend.position = "none",
+          plot.margin = margin(0.3, 0.2, 0.1, 0.2, "cm")) +
+    scale_fill_manual(values = fill_colors[[keep]]) +
+    scale_color_manual(values = outline_colors[[keep]]) +
+    labs(title = as.character(current_stim),
+         subtitle = subtitle,
+         y = "% COMPASS-selected CD4+ T Cells")
+  
+  plot_ylims <- ggplot_build(current_plot)$layout$panel_params[[1]]$y.range
+  
+  current_plot <- current_plot + 
+    annotate("text", x = 1.5, y = plot_ylims[2] + 0.01*diff(plot_ylims),
+             label = test_df$p.text, size=5.5) +
+     coord_cartesian(ylim = c(plot_ylims[[1]], plot_ylims[[2]] + 0.09*diff(plot_ylims)))
+}
 ```
 
 ## HLADR+CD38+
@@ -227,60 +309,108 @@ post_colors <- c("Naive POST" = "#1F78B4", "Conv POST" = "#E31A1C")
 
 Naive PRE vs Naive POST
 
-```{r, fig.width=9, fig.height=4}
-naive_act_plot <- ggplot(act_counts %>% dplyr::filter(Infection_Status == "Naive"), aes(x = Group, y = Freq, fill = Group)) +
-  geom_boxplot(outlier.shape=NA, position = position_dodge2(preserve = "total")) +
-  stat_compare_means(method = "wilcox.test", paired = TRUE) +
-  geom_jitter(color="black", size=0.4, alpha=0.9) +
-  scale_fill_manual(values = naive_pre_post_colors) +
-  labs(title = "HLADR+CD38+", y = "% COMPASS-selected CD4+ T Cells") +
-  facet_wrap(vars(Stim), nrow = 1)
+```{r}
+naive_act_plots <- purrr::pmap(.l = list(stims),
+                               .f = function(n) {
+                                 make_boxplots(act_counts, current_stim = n, compare_time = TRUE, keep = "Naive", groups_compare = c("Naive PRE", "Naive POST"), paired = TRUE, fill_colors = fill_colors, outline_colors = outline_colors, subtitle = "HLADR+CD38+")
+                               })
+names(naive_act_plots) <- stims
+```
 
-naive_act_plot
+```{r}
+naive_act_plots[["DMSO"]]
+```
+
+```{r}
+naive_act_plots[["NCAP"]]
+```
+
+```{r}
+naive_act_plots[["S1"]]
+```
+
+```{r}
+naive_act_plots[["S2"]]
 ```
 
 Conv PRE vs Conv POST
 
-```{r, fig.width=9, fig.height=4}
-conv_act_plot <- ggplot(act_counts %>% dplyr::filter(Infection_Status == "Conv"), aes(x = Group, y = Freq, fill = Group)) +
-  geom_boxplot(outlier.shape=NA, position = position_dodge2(preserve = "total")) +
-  stat_compare_means(method = "wilcox.test", paired = TRUE) +
-  geom_jitter(color="black", size=0.4, alpha=0.9) +
-  scale_fill_manual(values = conv_pre_post_colors) +
-  labs(title = "HLADR+CD38+", y = "% COMPASS-selected CD4+ T Cells") +
-  facet_wrap(vars(Stim), nrow = 1)
+```{r}
+conv_act_plots <- purrr::pmap(.l = list(stims),
+                               .f = function(n) {
+                                 make_boxplots(act_counts, current_stim = n, compare_time = TRUE, keep = "Conv", groups_compare = c("Conv PRE", "Conv POST"), paired = TRUE, fill_colors = fill_colors, outline_colors = outline_colors, subtitle = "HLADR+CD38+")
+                               })
+names(conv_act_plots) <- stims
+```
 
-conv_act_plot
+```{r}
+conv_act_plots[["DMSO"]]
+```
+
+```{r}
+conv_act_plots[["NCAP"]]
+```
+
+```{r}
+conv_act_plots[["S1"]]
+```
+
+```{r}
+conv_act_plots[["S2"]]
 ```
 
 ### Across infection status
 
 Naive PRE vs Conv PRE
 
-```{r, fig.width=9, fig.height=4}
-pre_act_plot <- ggplot(act_counts %>% dplyr::filter(Timepoint == "PRE"), aes(x = Group, y = Freq, fill = Group)) +
-  geom_boxplot(outlier.shape=NA, position = position_dodge2(preserve = "total")) +
-  stat_compare_means(method = "wilcox.test", paired = FALSE) +
-  geom_jitter(color="black", size=0.4, alpha=0.9) +
-  scale_fill_manual(values = pre_colors) +
-  labs(title = "HLADR+CD38+", y = "% COMPASS-selected CD4+ T Cells") +
-  facet_wrap(vars(Stim), nrow = 1)
+```{r}
+pre_act_plots <- purrr::pmap(.l = list(stims),
+                               .f = function(n) {
+                                 make_boxplots(act_counts, current_stim = n, compare_time = FALSE, keep = "PRE", groups_compare = c("Naive PRE", "Conv PRE"), paired = FALSE, fill_colors = fill_colors, outline_colors = outline_colors, subtitle = "HLADR+CD38+")
+                               })
+names(pre_act_plots) <- stims
+```
 
-pre_act_plot
+```{r}
+pre_act_plots[["DMSO"]]
+```
+
+```{r}
+pre_act_plots[["NCAP"]]
+```
+
+```{r}
+pre_act_plots[["S1"]]
+```
+
+```{r}
+pre_act_plots[["S2"]]
 ```
 
 Naive POST vs Conv POST
 
-```{r, fig.width=9, fig.height=4}
-post_act_plot <- ggplot(act_counts %>% dplyr::filter(Timepoint == "POST"), aes(x = Group, y = Freq, fill = Group)) +
-  geom_boxplot(outlier.shape=NA, position = position_dodge2(preserve = "total")) +
-  stat_compare_means(method = "wilcox.test", paired = FALSE) +
-  geom_jitter(color="black", size=0.4, alpha=0.9) +
-  scale_fill_manual(values = post_colors) +
-  labs(title = "HLADR+CD38+", y = "% COMPASS-selected CD4+ T Cells") +
-  facet_wrap(vars(Stim), nrow = 1)
+```{r}
+post_act_plots <- purrr::pmap(.l = list(stims),
+                               .f = function(n) {
+                                 make_boxplots(act_counts, current_stim = n, compare_time = FALSE, keep = "POST", groups_compare = c("Naive POST", "Conv POST"), paired = FALSE, fill_colors = fill_colors, outline_colors = outline_colors, subtitle = "HLADR+CD38+")
+                               })
+names(post_act_plots) <- stims
+```
 
-post_act_plot
+```{r}
+post_act_plots[["DMSO"]]
+```
+
+```{r}
+post_act_plots[["NCAP"]]
+```
+
+```{r}
+post_act_plots[["S1"]]
+```
+
+```{r}
+post_act_plots[["S2"]]
 ```
 
 ## CD38+
@@ -289,60 +419,108 @@ post_act_plot
 
 Naive PRE vs Naive POST
 
-```{r, fig.width=9, fig.height=4}
-naive_cd38_plot <- ggplot(cd38_counts %>% dplyr::filter(Infection_Status == "Naive"), aes(x = Group, y = Freq, fill = Group)) +
-  geom_boxplot(outlier.shape=NA, position = position_dodge2(preserve = "total")) +
-  stat_compare_means(method = "wilcox.test", paired = TRUE) +
-  geom_jitter(color="black", size=0.4, alpha=0.9) +
-  scale_fill_manual(values = naive_pre_post_colors) +
-  labs(title = "CD38+", y = "% COMPASS-selected CD4+ T Cells") +
-  facet_wrap(vars(Stim), nrow = 1)
+```{r}
+naive_cd38_plots <- purrr::pmap(.l = list(stims),
+                               .f = function(n) {
+                                 make_boxplots(cd38_counts, current_stim = n, compare_time = TRUE, keep = "Naive", groups_compare = c("Naive PRE", "Naive POST"), paired = TRUE, fill_colors = fill_colors, outline_colors = outline_colors, subtitle = "CD38+")
+                               })
+names(naive_cd38_plots) <- stims
+```
 
-naive_cd38_plot
+```{r}
+naive_cd38_plots[["DMSO"]]
+```
+
+```{r}
+naive_cd38_plots[["NCAP"]]
+```
+
+```{r}
+naive_cd38_plots[["S1"]]
+```
+
+```{r}
+naive_cd38_plots[["S2"]]
 ```
 
 Conv PRE vs Conv POST
 
-```{r, fig.width=9, fig.height=4}
-conv_cd38_plot <- ggplot(cd38_counts %>% dplyr::filter(Infection_Status == "Conv"), aes(x = Group, y = Freq, fill = Group)) +
-  geom_boxplot(outlier.shape=NA, position = position_dodge2(preserve = "total")) +
-  stat_compare_means(method = "wilcox.test", paired = TRUE) +
-  geom_jitter(color="black", size=0.4, alpha=0.9) +
-  scale_fill_manual(values = conv_pre_post_colors) +
-  labs(title = "CD38+", y = "% COMPASS-selected CD4+ T Cells") +
-  facet_wrap(vars(Stim), nrow = 1)
+```{r}
+conv_cd38_plots <- purrr::pmap(.l = list(stims),
+                               .f = function(n) {
+                                 make_boxplots(cd38_counts, current_stim = n, compare_time = TRUE, keep = "Conv", groups_compare = c("Conv PRE", "Conv POST"), paired = TRUE, fill_colors = fill_colors, outline_colors = outline_colors, subtitle = "CD38+")
+                               })
+names(conv_cd38_plots) <- stims
+```
 
-conv_cd38_plot
+```{r}
+conv_cd38_plots[["DMSO"]]
+```
+
+```{r}
+conv_cd38_plots[["NCAP"]]
+```
+
+```{r}
+conv_cd38_plots[["S1"]]
+```
+
+```{r}
+conv_cd38_plots[["S2"]]
 ```
 
 ### Across infection status
 
 Naive PRE vs Conv PRE
 
-```{r, fig.width=9, fig.height=4}
-pre_cd38_plot <- ggplot(cd38_counts %>% dplyr::filter(Timepoint == "PRE"), aes(x = Group, y = Freq, fill = Group)) +
-  geom_boxplot(outlier.shape=NA, position = position_dodge2(preserve = "total")) +
-  stat_compare_means(method = "wilcox.test", paired = FALSE) +
-  geom_jitter(color="black", size=0.4, alpha=0.9) +
-  scale_fill_manual(values = pre_colors) +
-  labs(title = "CD38+", y = "% COMPASS-selected CD4+ T Cells") +
-  facet_wrap(vars(Stim), nrow = 1)
+```{r}
+pre_cd38_plots <- purrr::pmap(.l = list(stims),
+                               .f = function(n) {
+                                 make_boxplots(cd38_counts, current_stim = n, compare_time = FALSE, keep = "PRE", groups_compare = c("Naive PRE", "Conv PRE"), paired = FALSE, fill_colors = fill_colors, outline_colors = outline_colors, subtitle = "CD38+")
+                               })
+names(pre_cd38_plots) <- stims
+```
 
-pre_cd38_plot
+```{r}
+pre_cd38_plots[["DMSO"]]
+```
+
+```{r}
+pre_cd38_plots[["NCAP"]]
+```
+
+```{r}
+pre_cd38_plots[["S1"]]
+```
+
+```{r}
+pre_cd38_plots[["S2"]]
 ```
 
 Naive POST vs Conv POST
 
-```{r, fig.width=9, fig.height=4}
-post_cd38_plot <- ggplot(cd38_counts %>% dplyr::filter(Timepoint == "POST"), aes(x = Group, y = Freq, fill = Group)) +
-  geom_boxplot(outlier.shape=NA, position = position_dodge2(preserve = "total")) +
-  stat_compare_means(method = "wilcox.test", paired = FALSE) +
-  geom_jitter(color="black", size=0.4, alpha=0.9) +
-  scale_fill_manual(values = post_colors) +
-  labs(title = "CD38+", y = "% COMPASS-selected CD4+ T Cells") +
-  facet_wrap(vars(Stim), nrow = 1)
+```{r}
+post_cd38_plots <- purrr::pmap(.l = list(stims),
+                               .f = function(n) {
+                                 make_boxplots(cd38_counts, current_stim = n, compare_time = FALSE, keep = "POST", groups_compare = c("Naive POST", "Conv POST"), paired = FALSE, fill_colors = fill_colors, outline_colors = outline_colors, subtitle = "CD38+")
+                               })
+names(post_cd38_plots) <- stims
+```
 
-post_cd38_plot
+```{r}
+post_cd38_plots[["DMSO"]]
+```
+
+```{r}
+post_cd38_plots[["NCAP"]]
+```
+
+```{r}
+post_cd38_plots[["S1"]]
+```
+
+```{r}
+post_cd38_plots[["S2"]]
 ```
 
 ## Central Memory
@@ -351,64 +529,108 @@ post_cd38_plot
 
 Naive PRE vs Naive POST
 
-```{r, fig.width=9, fig.height=4}
-# Central memory
-naive_cm_plot <- ggplot(cm_counts %>% dplyr::filter(Infection_Status == "Naive"), aes(x = Group, y = Freq, fill = Group)) +
-  geom_boxplot(outlier.shape=NA, position = position_dodge2(preserve = "total")) +
-  stat_compare_means(method = "wilcox.test", paired = TRUE) +
-  geom_jitter(color="black", size=0.4, alpha=0.9) +
-  scale_fill_manual(values = naive_pre_post_colors) +
-  labs(title = "Central Memory", y = "% COMPASS-selected CD4+ T Cells") +
-  facet_wrap(vars(Stim), nrow = 1)
+```{r}
+naive_cm_plots <- purrr::pmap(.l = list(stims),
+                               .f = function(n) {
+                                 make_boxplots(cm_counts, current_stim = n, compare_time = TRUE, keep = "Naive", groups_compare = c("Naive PRE", "Naive POST"), paired = TRUE, fill_colors = fill_colors, outline_colors = outline_colors, subtitle = "Central Memory (CD45RA-CCR7+)")
+                               })
+names(naive_cm_plots) <- stims
+```
 
-naive_cm_plot
+```{r}
+naive_cm_plots[["DMSO"]]
+```
+
+```{r}
+naive_cm_plots[["NCAP"]]
+```
+
+```{r}
+naive_cm_plots[["S1"]]
+```
+
+```{r}
+naive_cm_plots[["S2"]]
 ```
 
 Conv PRE vs Conv POST
 
-```{r, fig.width=9, fig.height=4}
-# Central memory
-conv_cm_plot <- ggplot(cm_counts %>% dplyr::filter(Infection_Status == "Conv"), aes(x = Group, y = Freq, fill = Group)) +
-  geom_boxplot(outlier.shape=NA, position = position_dodge2(preserve = "total")) +
-  stat_compare_means(method = "wilcox.test", paired = TRUE) +
-  geom_jitter(color="black", size=0.4, alpha=0.9) +
-  scale_fill_manual(values = conv_pre_post_colors) +
-  labs(title = "Central Memory", y = "% COMPASS-selected CD4+ T Cells") +
-  facet_wrap(vars(Stim), nrow = 1)
+```{r}
+conv_cm_plots <- purrr::pmap(.l = list(stims),
+                               .f = function(n) {
+                                 make_boxplots(cm_counts, current_stim = n, compare_time = TRUE, keep = "Conv", groups_compare = c("Conv PRE", "Conv POST"), paired = TRUE, fill_colors = fill_colors, outline_colors = outline_colors, subtitle = "Central Memory (CD45RA-CCR7+)")
+                               })
+names(conv_cm_plots) <- stims
+```
 
-conv_cm_plot
+```{r}
+conv_cm_plots[["DMSO"]]
+```
+
+```{r}
+conv_cm_plots[["NCAP"]]
+```
+
+```{r}
+conv_cm_plots[["S1"]]
+```
+
+```{r}
+conv_cm_plots[["S2"]]
 ```
 
 ### Across infection status
 
 Naive PRE vs Conv PRE
 
-```{r, fig.width=9, fig.height=4}
-# Central memory
-pre_cm_plot <- ggplot(cm_counts %>% dplyr::filter(Timepoint == "PRE"), aes(x = Group, y = Freq, fill = Group)) +
-  geom_boxplot(outlier.shape=NA, position = position_dodge2(preserve = "total")) +
-  stat_compare_means(method = "wilcox.test", paired = FALSE) +
-  geom_jitter(color="black", size=0.4, alpha=0.9) +
-  scale_fill_manual(values = pre_colors) +
-  labs(title = "Central Memory", y = "% COMPASS-selected CD4+ T Cells") +
-  facet_wrap(vars(Stim), nrow = 1)
+```{r}
+pre_cm_plots <- purrr::pmap(.l = list(stims),
+                               .f = function(n) {
+                                 make_boxplots(cm_counts, current_stim = n, compare_time = FALSE, keep = "PRE", groups_compare = c("Naive PRE", "Conv PRE"), paired = FALSE, fill_colors = fill_colors, outline_colors = outline_colors, subtitle = "Central Memory (CD45RA-CCR7+)")
+                               })
+names(pre_cm_plots) <- stims
+```
 
-pre_cm_plot
+```{r}
+pre_cm_plots[["DMSO"]]
+```
+
+```{r}
+pre_cm_plots[["NCAP"]]
+```
+
+```{r}
+pre_cm_plots[["S1"]]
+```
+
+```{r}
+pre_cm_plots[["S2"]]
 ```
 
 Naive POST vs Conv POST
 
-```{r, fig.width=9, fig.height=4}
-# Central memory
-post_cm_plot <- ggplot(cm_counts %>% dplyr::filter(Timepoint == "POST"), aes(x = Group, y = Freq, fill = Group)) +
-  geom_boxplot(outlier.shape=NA, position = position_dodge2(preserve = "total")) +
-  stat_compare_means(method = "wilcox.test", paired = FALSE) +
-  geom_jitter(color="black", size=0.4, alpha=0.9) +
-  scale_fill_manual(values = post_colors) +
-  labs(title = "Central Memory", y = "% COMPASS-selected CD4+ T Cells") +
-  facet_wrap(vars(Stim), nrow = 1)
+```{r}
+post_cm_plots <- purrr::pmap(.l = list(stims),
+                               .f = function(n) {
+                                 make_boxplots(cm_counts, current_stim = n, compare_time = FALSE, keep = "POST", groups_compare = c("Naive POST", "Conv POST"), paired = FALSE, fill_colors = fill_colors, outline_colors = outline_colors, subtitle = "Central Memory (CD45RA-CCR7+)")
+                               })
+names(post_cm_plots) <- stims
+```
 
-post_cm_plot
+```{r}
+post_cm_plots[["DMSO"]]
+```
+
+```{r}
+post_cm_plots[["NCAP"]]
+```
+
+```{r}
+post_cm_plots[["S1"]]
+```
+
+```{r}
+post_cm_plots[["S2"]]
 ```
 
 ## Effector Memory
@@ -417,62 +639,106 @@ post_cm_plot
 
 Naive PRE vs Naive POST
 
-```{r, fig.width=9, fig.height=4}
-# Effector memory
-naive_em_plot <- ggplot(em_counts %>% dplyr::filter(Infection_Status == "Naive"), aes(x = Group, y = Freq, fill = Group)) +
-  geom_boxplot(outlier.shape=NA, position = position_dodge2(preserve = "total")) +
-  stat_compare_means(method = "wilcox.test", paired = TRUE) +
-  geom_jitter(color="black", size=0.4, alpha=0.9) +
-  scale_fill_manual(values = naive_pre_post_colors) +
-  labs(title = "Effector Memory", y = "% COMPASS-selected CD4+ T Cells") +
-  facet_wrap(vars(Stim), nrow = 1)
+```{r}
+naive_em_plots <- purrr::pmap(.l = list(stims),
+                               .f = function(n) {
+                                 make_boxplots(em_counts, current_stim = n, compare_time = TRUE, keep = "Naive", groups_compare = c("Naive PRE", "Naive POST"), paired = TRUE, fill_colors = fill_colors, outline_colors = outline_colors, subtitle = "Effector Memory (CD45RA-CCR7-)")
+                               })
+names(naive_em_plots) <- stims
+```
 
-naive_em_plot
+```{r}
+naive_em_plots[["DMSO"]]
+```
+
+```{r}
+naive_em_plots[["NCAP"]]
+```
+
+```{r}
+naive_em_plots[["S1"]]
+```
+
+```{r}
+naive_em_plots[["S2"]]
 ```
 
 Conv PRE vs Conv POST
 
-```{r, fig.width=9, fig.height=4}
-# Effector memory
-conv_em_plot <- ggplot(em_counts %>% dplyr::filter(Infection_Status == "Conv"), aes(x = Group, y = Freq, fill = Group)) +
-  geom_boxplot(outlier.shape=NA, position = position_dodge2(preserve = "total")) +
-  stat_compare_means(method = "wilcox.test", paired = TRUE) +
-  geom_jitter(color="black", size=0.4, alpha=0.9) +
-  scale_fill_manual(values = conv_pre_post_colors) +
-  labs(title = "Effector Memory", y = "% COMPASS-selected CD4+ T Cells") +
-  facet_wrap(vars(Stim), nrow = 1)
+```{r}
+conv_em_plots <- purrr::pmap(.l = list(stims),
+                               .f = function(n) {
+                                 make_boxplots(em_counts, current_stim = n, compare_time = TRUE, keep = "Conv", groups_compare = c("Conv PRE", "Conv POST"), paired = TRUE, fill_colors = fill_colors, outline_colors = outline_colors, subtitle = "Effector Memory (CD45RA-CCR7-)")
+                               })
+names(conv_em_plots) <- stims
+```
 
-conv_em_plot
+```{r}
+conv_em_plots[["DMSO"]]
+```
+
+```{r}
+conv_em_plots[["NCAP"]]
+```
+
+```{r}
+conv_em_plots[["S1"]]
+```
+
+```{r}
+conv_em_plots[["S2"]]
 ```
 
 ### Across infection status
 
 Naive PRE vs Conv PRE
 
-```{r, fig.width=9, fig.height=4}
-# Effector memory
-pre_em_plot <- ggplot(em_counts %>% dplyr::filter(Timepoint == "PRE"), aes(x = Group, y = Freq, fill = Group)) +
-  geom_boxplot(outlier.shape=NA, position = position_dodge2(preserve = "total")) +
-  stat_compare_means(method = "wilcox.test", paired = FALSE) +
-  geom_jitter(color="black", size=0.4, alpha=0.9) +
-  scale_fill_manual(values = pre_colors) +
-  labs(title = "Effector Memory", y = "% COMPASS-selected CD4+ T Cells") +
-  facet_wrap(vars(Stim), nrow = 1)
+```{r}
+pre_em_plots <- purrr::pmap(.l = list(stims),
+                               .f = function(n) {
+                                 make_boxplots(em_counts, current_stim = n, compare_time = FALSE, keep = "PRE", groups_compare = c("Naive PRE", "Conv PRE"), paired = FALSE, fill_colors = fill_colors, outline_colors = outline_colors, subtitle = "Effector Memory (CD45RA-CCR7-)")
+                               })
+names(pre_em_plots) <- stims
+```
 
-pre_em_plot
+```{r}
+pre_em_plots[["DMSO"]]
+```
+
+```{r}
+pre_em_plots[["NCAP"]]
+```
+
+```{r}
+pre_em_plots[["S1"]]
+```
+
+```{r}
+pre_em_plots[["S2"]]
 ```
 
 Naive POST vs Conv POST
 
-```{r, fig.width=9, fig.height=4}
-# Effector memory
-post_em_plot <- ggplot(em_counts %>% dplyr::filter(Timepoint == "POST"), aes(x = Group, y = Freq, fill = Group)) +
-  geom_boxplot(outlier.shape=NA, position = position_dodge2(preserve = "total")) +
-  stat_compare_means(method = "wilcox.test", paired = FALSE) +
-  geom_jitter(color="black", size=0.4, alpha=0.9) +
-  scale_fill_manual(values = post_colors) +
-  labs(title = "Effector Memory", y = "% COMPASS-selected CD4+ T Cells") +
-  facet_wrap(vars(Stim), nrow = 1)
+```{r}
+post_em_plots <- purrr::pmap(.l = list(stims),
+                               .f = function(n) {
+                                 make_boxplots(em_counts, current_stim = n, compare_time = FALSE, keep = "POST", groups_compare = c("Naive POST", "Conv POST"), paired = FALSE, fill_colors = fill_colors, outline_colors = outline_colors, subtitle = "Effector Memory (CD45RA-CCR7-)")
+                               })
+names(post_em_plots) <- stims
+```
 
-post_em_plot
+```{r}
+post_em_plots[["DMSO"]]
+```
+
+```{r}
+post_em_plots[["NCAP"]]
+```
+
+```{r}
+post_em_plots[["S1"]]
+```
+
+```{r}
+post_em_plots[["S2"]]
 ```
