@@ -264,35 +264,33 @@ make_boxplots <- function(counts, compare_time, keep, current_stim,
 test_df <- data.frame(p = as.numeric(unlist(test)["p.value"])) %>%
   mutate(p.text = if_else(p < 0.001, "p<.001", paste0("p=", sub("0.", ".", round(p, 3)))))
   
-  current_plot <- ggplot(counts, aes(x = Group, y = Freq, fill = Group)) +
+  current_plot <- ggplot(counts, aes(x = Group, y = Freq)) +
     theme_bw(base_size = 22) +
-      geom_hline(yintercept = 0, linetype="dashed", alpha = 0.5) +
-      geom_violin(aes(fill = Group), draw_quantiles = c(0.5),
+    geom_hline(yintercept = 0, linetype="dashed", alpha = 0.5) +
+    geom_violin(aes(fill = Group), draw_quantiles = c(0.5),
               # All violins have the same maximum width. Overrides default of equal area
               scale="width", width=0.6) +
-      geom_violin(fill="transparent", draw_quantiles = c(0.25, 0.75), linetype = "dashed",
+    geom_violin(fill="transparent", draw_quantiles = c(0.25, 0.75), linetype = "dashed",
                   scale="width", width=0.6) +
-      geom_violin(aes(color=Group), fill="transparent",
+    geom_violin(aes(color=Group), fill="transparent",
                 scale="width", width=0.6, size=1.1) +
-      geom_quasirandom(size=0.1, width=0.2, varwidth=T, method="quasirandom") +
+    geom_quasirandom(size=0.1, width=0.2, varwidth=T, method="quasirandom") +
     theme(text = element_text(family="Arial"),
-          panel.grid.major = element_blank(),
-          panel.grid.minor = element_blank(),
-          panel.background = element_blank(),
-          axis.line = element_line(colour = "black"),
           axis.title.x = element_blank(),
           axis.title.y = element_text(size=15),
           axis.text.y = element_text(color="black", size=17),
           axis.text.x = element_text(color="black", size=20),
           plot.title = element_text(hjust = 0.5, size=21),
           plot.subtitle = element_text(hjust = 0.5, size=13),
+          panel.grid = element_blank(),
           legend.position = "none",
           plot.margin = margin(0.3, 0.2, 0.1, 0.2, "cm")) +
-    scale_fill_manual(values = fill_colors[[keep]]) +
-    scale_color_manual(values = outline_colors[[keep]]) +
     labs(title = as.character(current_stim),
          subtitle = subtitle,
-         y = "% COMPASS-selected CD4+ T Cells")
+         y = "% COMPASS-selected CD4+ T Cells") +
+    scale_x_discrete(labels = groups_compare, expand = c(0.3, 0.3)) +
+    scale_fill_manual(values = fill_colors[[keep]]) +
+    scale_color_manual(values = outline_colors[[keep]]) 
   
   plot_ylims <- ggplot_build(current_plot)$layout$panel_params[[1]]$y.range
   
@@ -305,9 +303,7 @@ test_df <- data.frame(p = as.numeric(unlist(test)["p.value"])) %>%
 
 ## HLADR+CD38+
 
-### Across Timepoint
-
-Naive PRE vs Naive POST
+### Naive PRE vs Naive POST
 
 ```{r}
 naive_act_plots <- purrr::pmap(.l = list(stims),
@@ -333,7 +329,7 @@ naive_act_plots[["S1"]]
 naive_act_plots[["S2"]]
 ```
 
-Conv PRE vs Conv POST
+### Conv PRE vs Conv POST
 
 ```{r}
 conv_act_plots <- purrr::pmap(.l = list(stims),
@@ -359,9 +355,7 @@ conv_act_plots[["S1"]]
 conv_act_plots[["S2"]]
 ```
 
-### Across infection status
-
-Naive PRE vs Conv PRE
+### Naive PRE vs Conv PRE
 
 ```{r}
 pre_act_plots <- purrr::pmap(.l = list(stims),
@@ -387,7 +381,7 @@ pre_act_plots[["S1"]]
 pre_act_plots[["S2"]]
 ```
 
-Naive POST vs Conv POST
+### Naive POST vs Conv POST
 
 ```{r}
 post_act_plots <- purrr::pmap(.l = list(stims),
@@ -415,9 +409,7 @@ post_act_plots[["S2"]]
 
 ## CD38+
 
-### Across Timepoint
-
-Naive PRE vs Naive POST
+### Naive PRE vs Naive POST
 
 ```{r}
 naive_cd38_plots <- purrr::pmap(.l = list(stims),
@@ -443,7 +435,7 @@ naive_cd38_plots[["S1"]]
 naive_cd38_plots[["S2"]]
 ```
 
-Conv PRE vs Conv POST
+### Conv PRE vs Conv POST
 
 ```{r}
 conv_cd38_plots <- purrr::pmap(.l = list(stims),
@@ -469,9 +461,7 @@ conv_cd38_plots[["S1"]]
 conv_cd38_plots[["S2"]]
 ```
 
-### Across infection status
-
-Naive PRE vs Conv PRE
+### Naive PRE vs Conv PRE
 
 ```{r}
 pre_cd38_plots <- purrr::pmap(.l = list(stims),
@@ -497,7 +487,7 @@ pre_cd38_plots[["S1"]]
 pre_cd38_plots[["S2"]]
 ```
 
-Naive POST vs Conv POST
+### Naive POST vs Conv POST
 
 ```{r}
 post_cd38_plots <- purrr::pmap(.l = list(stims),
@@ -525,9 +515,7 @@ post_cd38_plots[["S2"]]
 
 ## Central Memory
 
-### Across Timepoint
-
-Naive PRE vs Naive POST
+### Naive PRE vs Naive POST
 
 ```{r}
 naive_cm_plots <- purrr::pmap(.l = list(stims),
@@ -553,7 +541,7 @@ naive_cm_plots[["S1"]]
 naive_cm_plots[["S2"]]
 ```
 
-Conv PRE vs Conv POST
+### Conv PRE vs Conv POST
 
 ```{r}
 conv_cm_plots <- purrr::pmap(.l = list(stims),
@@ -579,9 +567,7 @@ conv_cm_plots[["S1"]]
 conv_cm_plots[["S2"]]
 ```
 
-### Across infection status
-
-Naive PRE vs Conv PRE
+### Naive PRE vs Conv PRE
 
 ```{r}
 pre_cm_plots <- purrr::pmap(.l = list(stims),
@@ -607,7 +593,7 @@ pre_cm_plots[["S1"]]
 pre_cm_plots[["S2"]]
 ```
 
-Naive POST vs Conv POST
+### Naive POST vs Conv POST
 
 ```{r}
 post_cm_plots <- purrr::pmap(.l = list(stims),
@@ -635,9 +621,7 @@ post_cm_plots[["S2"]]
 
 ## Effector Memory
 
-### Across Timepoint
-
-Naive PRE vs Naive POST
+### Naive PRE vs Naive POST
 
 ```{r}
 naive_em_plots <- purrr::pmap(.l = list(stims),
@@ -663,7 +647,7 @@ naive_em_plots[["S1"]]
 naive_em_plots[["S2"]]
 ```
 
-Conv PRE vs Conv POST
+### Conv PRE vs Conv POST
 
 ```{r}
 conv_em_plots <- purrr::pmap(.l = list(stims),
@@ -689,9 +673,7 @@ conv_em_plots[["S1"]]
 conv_em_plots[["S2"]]
 ```
 
-### Across infection status
-
-Naive PRE vs Conv PRE
+### Naive PRE vs Conv PRE
 
 ```{r}
 pre_em_plots <- purrr::pmap(.l = list(stims),
@@ -717,7 +699,7 @@ pre_em_plots[["S1"]]
 pre_em_plots[["S2"]]
 ```
 
-Naive POST vs Conv POST
+### Naive POST vs Conv POST
 
 ```{r}
 post_em_plots <- purrr::pmap(.l = list(stims),
