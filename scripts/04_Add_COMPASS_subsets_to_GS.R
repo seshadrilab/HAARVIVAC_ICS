@@ -137,8 +137,7 @@ for (parent_path in c("/Time/CD3+/CD14-CD19-/Lymphocytes/Singlet/Live/CD4+/CD4_C
 }
 
 ## Recompute the gating set with the new gates ##
-live_gate <- "/Time/CD3+/CD14-CD19-/Lymphocytes/Singlet/Live/"
-flowWorkspace::recompute(gs, live_gate)
+flowWorkspace::recompute(gs)
 
 # Counts from CD4_COMPASS_Subsets (excluding SEB)
 cd4_compass_subsets_parentGate <- "/Time/CD3+/CD14-CD19-/Lymphocytes/Singlet/Live/CD4+/CD4_COMPASS_Subsets"
