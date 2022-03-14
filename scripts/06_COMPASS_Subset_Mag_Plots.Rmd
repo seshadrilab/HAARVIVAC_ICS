@@ -79,9 +79,24 @@ cd4_pre_bg_corr_boxplots <- readRDS(here::here("processed_data/CD4_pre_make_boxp
 Data can be extracted from the saved output of `make_boxplot_for_COMPASS_run()`. Note that the p-values have been bonferroni adjusted.
 
 ```{r}
+fill_colors <- list("Naive" = c("Naive PRE" = "#A6CEE3", "Naive POST" = "#1F78B4"),
+                    "Conv" = c("Conv PRE" = "#FB9A99", "Conv POST" = "#E31A1C"),
+                    "PRE" = c("Naive PRE" = "#A6CEE3", "Conv PRE" = "#FB9A99"))
+
+outline_colors <- list("Naive" = c("Naive PRE" = "#7FB9D7", "Naive POST" = "#185b88"),
+                       "Conv" = c("Conv PRE" = "#F96968", "Conv POST" = "#B51516"),
+                       "PRE" = c("Naive PRE" = "#7FB9D7", "Conv PRE" = "#F96968"))
+
+group_labs <- list("Naive" = c("Naive PRE" = "Naive PRE", "Naive POST" = "Naive POST"),
+                   "Conv" = c("Conv PRE" = "Conv PRE", "Conv POST" = "Conv POST"),
+                   "PRE" = c("Naive PRE" = "Naive PRE", "Conv PRE" = "Conv PRE"))
+```
+
+```{r}
 plot_subset_vs_group <- function(bg_corr_boxplots, current_run,
-                                 current_subset, group_colors,
-                                 group_labs, group) {
+                                 current_subset, current_group,
+                                 fill_colors, outline_colors,
+                                 group_labs, groups) {
   current_data <- bg_corr_boxplots[[current_run]]$BgCorrMagnitudes %>% dplyr::select(Individual, Group, !!as.symbol(current_subset)) %>% 
     mutate(BgCorr_Zeroed = ifelse(!!as.symbol(current_subset) < 0, 0, !!as.symbol(current_subset)),
            Group = factor(Group, levels = groups))
@@ -119,12 +134,12 @@ current_stim <- sub("[A-Z][A-Z][0-9]_(.*)", "\\1", current_run)
               legend.position = "none",
               plot.margin = margin(0.3, 0.2, 0.1, 0.2, "cm")) +
       scale_y_continuous(labels = function(x) paste0(x*100)) + 
-      scale_x_discrete(labels=group_labs, expand = c(0.3, 0.3)) +
+      scale_x_discrete(labels=group_labs[[current_group]], expand = c(0.3, 0.3)) +
       labs(y = sprintf("%% Responding %s T cells", current_coreceptor),
            title = current_stim,
            subtitle = current_subset_trunc) +
-      scale_fill_manual(values = group_colors) +
-    scale_color_manual(values = group_colors)
+      scale_fill_manual(values = fill_colors[[current_group]]) +
+    scale_color_manual(values = outline_colors[[current_group]])
   
   plot_ylims <- ggplot_build(current_plot)$layout$panel_params[[1]]$y.range
   current_plot <- current_plot + 
@@ -141,12 +156,11 @@ current_stim <- sub("[A-Z][A-Z][0-9]_(.*)", "\\1", current_run)
 IFNg+TNFa+IL2+CD154+
 
 ```{r, fig.width=5, fig.height=5}
-group_colors <- c("Naive PRE" = "#A6CEE3", "Naive POST" = "#1F78B4")
-group_labs <- c("Naive PRE" = "Naive PRE", "Naive POST", "Naive POST")
-groups <- c("Naive PRE", "Naive POST")
 cd4_s1_n_4 <- plot_subset_vs_group(cd4_naive_bg_corr_boxplots, "CD4_S1",
                      "IL2&!IL4_5_13&IFNg&TNFa&!IL17a&CD154&!CD107a",
-                     group_colors, group_labs, groups)
+                     fill_colors, outline_colors, group_labs,
+                     current_group = "Naive",
+                     groups = c("Naive PRE", "Naive POST"))
 
 cd4_s1_n_4
 ```
@@ -156,17 +170,17 @@ IFNg+TNFa+CD154+
 IFNg+CD107a+TNFa+IL2+CD154+
 
 ```{r, fig.width=5, fig.height=5}
-group_colors <- c("Conv PRE" = "#FB9A99", "Conv POST" = "#E31A1C")
-group_labs <- c("Conv PRE" = "Conv PRE", "Conv POST" = "Conv POST")
-groups <- c("Conv PRE", "Conv POST")
-
 cd4_s1_c_3 <- plot_subset_vs_group(cd4_conv_bg_corr_boxplots, "CD4_S1",
                      "!IL2&!IL4_5_13&IFNg&TNFa&!IL17a&CD154&!CD107a",
-                     group_colors, group_labs, groups)
+                     fill_colors, outline_colors, group_labs,
+                     current_group = "Conv",
+                     groups = c("Conv PRE", "Conv POST"))
 
 cd4_s1_c_5 <- plot_subset_vs_group(cd4_conv_bg_corr_boxplots, "CD4_S1",
                      "IL2&!IL4_5_13&IFNg&TNFa&!IL17a&CD154&CD107a",
-                     group_colors, group_labs, groups)
+                     fill_colors, outline_colors, group_labs,
+                     current_group = "Conv",
+                     groups = c("Conv PRE", "Conv POST"))
 
 cd4_s1_c_3
 cd4_s1_c_5
@@ -176,13 +190,11 @@ cd4_s1_c_5
 IFNg+TNFa+IL2+CD154+
 
 ```{r, fig.width=5, fig.height=5}
-group_colors <- c("Naive PRE" = "#A6CEE3", "Conv PRE" = "#FB9A99")
-group_labs <- c("Naive PRE" = "Naive PRE", "Conv PRE" = "Conv PRE")
-groups <- c("Naive PRE", "Conv PRE")
-
 cd4_s1_nc_4 <- plot_subset_vs_group(cd4_pre_bg_corr_boxplots, "CD4_S1",
                      "IL2&!IL4_5_13&IFNg&TNFa&!IL17a&CD154&!CD107a",
-                     group_colors, group_labs, groups)
+                     fill_colors, outline_colors, group_labs,
+                     current_group = "PRE",
+                     groups = c("Naive PRE", "Conv PRE"))
 cd4_s1_nc_4
 ```
 
@@ -194,21 +206,23 @@ IFNg+CD107a+TNFa+CD154+
 IFNg+CD107a+TNFa+IL2+CD154+
 
 ```{r, fig.width=5, fig.height=5}
-group_colors <- c("Conv PRE" = "#FB9A99", "Conv POST" = "#E31A1C")
-group_labs <- c("Conv PRE" = "Conv PRE", "Conv POST" = "Conv POST")
-groups <- c("Conv PRE", "Conv POST")
-
 cd4_s2_c_3 <- plot_subset_vs_group(cd4_conv_bg_corr_boxplots, "CD4_S2",
                      "!IL2&!IL4_5_13&IFNg&TNFa&!IL17a&CD154&!CD107a",
-                     group_colors, group_labs, groups)
+                     fill_colors, outline_colors, group_labs,
+                     current_group = "Conv",
+                     groups = c("Conv PRE", "Conv POST"))
 
 cd4_s2_c_4 <- plot_subset_vs_group(cd4_conv_bg_corr_boxplots, "CD4_S2",
                      "!IL2&!IL4_5_13&IFNg&TNFa&!IL17a&CD154&CD107a",
-                     group_colors, group_labs, groups)
+                     fill_colors, outline_colors, group_labs,
+                     current_group = "Conv",
+                     groups = c("Conv PRE", "Conv POST"))
 
 cd4_s2_c_5 <- plot_subset_vs_group(cd4_conv_bg_corr_boxplots, "CD4_S2",
                      "IL2&!IL4_5_13&IFNg&TNFa&!IL17a&CD154&CD107a",
-                     group_colors, group_labs, groups)
+                     fill_colors, outline_colors, group_labs,
+                     current_group = "Conv",
+                     groups = c("Conv PRE", "Conv POST"))
 
 cd4_s2_c_3
 cd4_s2_c_4
@@ -219,12 +233,10 @@ cd4_s2_c_5
 IFNg+TNFa+IL2+CD154+
 
 ```{r, fig.width=5, fig.height=5}
-group_colors <- c("Naive PRE" = "#A6CEE3", "Conv PRE" = "#FB9A99")
-group_labs <- c("Naive PRE" = "Naive PRE", "Conv PRE" = "Conv PRE")
-groups <- c("Naive PRE", "Conv PRE")
-
 cd4_s2_nc_4 <- plot_subset_vs_group(cd4_pre_bg_corr_boxplots, "CD4_S2",
                      "IL2&!IL4_5_13&IFNg&TNFa&!IL17a&CD154&!CD107a",
-                     group_colors, group_labs, groups)
+                     fill_colors, outline_colors, group_labs,
+                     current_group = "PRE",
+                     groups = c("Naive PRE", "Conv PRE"))
 cd4_s2_nc_4
 ```
