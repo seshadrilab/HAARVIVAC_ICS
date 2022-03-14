@@ -264,7 +264,7 @@ gg_themes <- ggplot(cd4_compass_subsets_w_umap, aes(x=x.umap, y=y.umap)) +
   scale_x_continuous(limits=range(cd4_compass_subsets_w_umap$x.umap)*1.16) +
   scale_y_continuous(limits=range(cd4_compass_subsets_w_umap$y.umap)*1.11) +
   theme_bw() +
-  theme(plot.title=element_text(hjust = 0.5, size=10, face="bold"),
+  theme(plot.title=element_text(hjust = 0.5, size=21),
         axis.text=element_blank(),
         axis.line=element_blank(),
         axis.ticks=element_blank(),
@@ -449,7 +449,18 @@ print(
 )
 ```
 
-# Memory stratified
+Just HLADR, CD38, and PolyF plots alone.
+
+```{r, fig.width=5, fig.height=5}
+print(hladr_bool_plot)
+print(cd38_bool_plot)
+```
+
+```{r, fig.width=10, fig.height=5}
+print(polyf_plot_unstrat | polyf_legend_vertical)
+```
+
+# Memory 
 
 Colored by gate membership (TEMRA, TEM, TCM, Naive)
 
@@ -485,7 +496,7 @@ naive_gg_themes <- ggplot(naive_data, aes(x=x.umap, y=y.umap)) +
   scale_x_continuous(limits=range(naive_data$x.umap)*1.16) +
   scale_y_continuous(limits=range(naive_data$y.umap)*1.11) +
   theme_bw() +
-  theme(plot.title=element_text(hjust = 0.5, size=10, face="bold"),
+  theme(plot.title=element_text(hjust = 0.5, size=21),
         axis.text=element_blank(),
         axis.line=element_blank(),
         axis.ticks=element_blank(),
@@ -499,7 +510,7 @@ naive_pre_gg_themes <- ggplot(naive_pre_data, aes(x=x.umap, y=y.umap)) +
   scale_x_continuous(limits=range(naive_pre_data$x.umap)*1.16) +
   scale_y_continuous(limits=range(naive_pre_data$y.umap)*1.11) +
   theme_bw() +
-  theme(plot.title=element_text(hjust = 0.5, size=10, face="bold"),
+  theme(plot.title=element_text(hjust = 0.5, size=21),
         axis.text=element_blank(),
         axis.line=element_blank(),
         axis.ticks=element_blank(),
@@ -513,7 +524,7 @@ naive_post_gg_themes <- ggplot(naive_post_data, aes(x=x.umap, y=y.umap)) +
   scale_x_continuous(limits=range(naive_post_data$x.umap)*1.16) +
   scale_y_continuous(limits=range(naive_post_data$y.umap)*1.11) +
   theme_bw() +
-  theme(plot.title=element_text(hjust = 0.5, size=10, face="bold"),
+  theme(plot.title=element_text(hjust = 0.5, size=21),
         axis.text=element_blank(),
         axis.line=element_blank(),
         axis.ticks=element_blank(),
@@ -527,7 +538,7 @@ conv_gg_themes <- ggplot(conv_data, aes(x=x.umap, y=y.umap)) +
   scale_x_continuous(limits=range(conv_data$x.umap)*1.16) +
   scale_y_continuous(limits=range(conv_data$y.umap)*1.11) +
   theme_bw() +
-  theme(plot.title=element_text(hjust = 0.5, size=10, face="bold"),
+  theme(plot.title=element_text(hjust = 0.5, size=21),
         axis.text=element_blank(),
         axis.line=element_blank(),
         axis.ticks=element_blank(),
@@ -541,7 +552,7 @@ conv_pre_gg_themes <- ggplot(conv_pre_data, aes(x=x.umap, y=y.umap)) +
   scale_x_continuous(limits=range(conv_pre_data$x.umap)*1.16) +
   scale_y_continuous(limits=range(conv_pre_data$y.umap)*1.11) +
   theme_bw() +
-  theme(plot.title=element_text(hjust = 0.5, size=10, face="bold"),
+  theme(plot.title=element_text(hjust = 0.5, size=21),
         axis.text=element_blank(),
         axis.line=element_blank(),
         axis.ticks=element_blank(),
@@ -555,7 +566,7 @@ conv_post_gg_themes <- ggplot(conv_post_data, aes(x=x.umap, y=y.umap)) +
   scale_x_continuous(limits=range(conv_post_data$x.umap)*1.16) +
   scale_y_continuous(limits=range(conv_post_data$y.umap)*1.11) +
   theme_bw() +
-  theme(plot.title=element_text(hjust = 0.5, size=10, face="bold"),
+  theme(plot.title=element_text(hjust = 0.5, size=21),
         axis.text=element_blank(),
         axis.line=element_blank(),
         axis.ticks=element_blank(),
@@ -563,6 +574,12 @@ conv_post_gg_themes <- ggplot(conv_post_data, aes(x=x.umap, y=y.umap)) +
         panel.grid = element_blank(),
         legend.position = "none",
         plot.margin = margin(1, 0, 0, 0, unit = "pt"))
+```
+
+## Unstratified
+
+```{r, fig.width=10, fig.height=5}
+print(mem_plot_colored_by_gate | mem_legend)
 ```
 
 ## By infection status
@@ -581,7 +598,7 @@ conv_mem_plot_colored_by_gate <- conv_gg_themes +
   scale_color_manual(values = memColorScheme)
 ```
 
-```{r, fig.width=10, fig.height=5}
+```{r, fig.width=15, fig.height=5}
 print(naive_mem_plot_colored_by_gate | conv_mem_plot_colored_by_gate | mem_legend)
 ```
 
@@ -617,7 +634,7 @@ conv_post_mem_plot_colored_by_gate <- conv_post_gg_themes +
 print((naive_pre_mem_plot_colored_by_gate | naive_post_mem_plot_colored_by_gate | plot_spacer()) / (conv_pre_mem_plot_colored_by_gate | conv_post_mem_plot_colored_by_gate | mem_legend))
 ```
 
-# Activation stratified
+# Activation 
 
 Colored by HLADR+CD38+ and HLADR-CD38-
 
@@ -684,7 +701,7 @@ act_legend <- as_ggplot(get_legend(act_plot_colored_by_gate +
                                      labs(colour="Activation")))
 ```
 
-```{r}
+```{r, fig.width=10, fig.height=5}
 print(act_plot_colored_by_gate | act_legend)
 ```
 
@@ -704,7 +721,7 @@ conv_act_plot_colored_by_gate <- conv_gg_themes +
   scale_color_manual(values = actColorScheme)
 ```
 
-```{r, fig.width=10, fig.height=5}
+```{r, fig.width=15, fig.height=5}
 print(naive_act_plot_colored_by_gate | conv_act_plot_colored_by_gate | act_legend)
 ```
 
@@ -738,4 +755,28 @@ conv_post_act_plot_colored_by_gate <- conv_post_gg_themes +
 
 ```{r, fig.width=9, fig.height=8}
 print((naive_pre_act_plot_colored_by_gate | naive_post_act_plot_colored_by_gate | plot_spacer()) / (conv_pre_act_plot_colored_by_gate | conv_post_act_plot_colored_by_gate | act_legend))
+```
+
+# PolyF
+
+## By infection status
+
+```{r}
+# Unstratified PolyF plot
+myPalette <- colorRampPalette(rev(brewer.pal(11, "Spectral")))
+sc_polyf <- scale_colour_gradientn(colours = myPalette(100), limits=c(1, 5))
+naive_polyf_plot <- naive_gg_themes +
+  geom_point_rast(aes(colour=naive_data[,"cytokine_degree"]), shape=20, alpha=0.8, size=pointSize) +
+  sc_polyf +
+  ggtitle("Naive")
+
+conv_polyf_plot <- conv_gg_themes +
+  geom_point_rast(aes(colour=conv_data[,"cytokine_degree"]), shape=20, alpha=0.8, size=pointSize) +
+  sc_polyf +
+  ggtitle("Conv")
+```
+
+```{r, fig.width=15, fig.height=5}
+print(naive_polyf_plot | polyf_legend_vertical)
+print(conv_polyf_plot | polyf_legend_vertical)
 ```
