@@ -66,6 +66,8 @@ cd4_compass_act_parent <- "/Time/CD3+/CD14-CD19-/Lymphocytes/Singlet/Live/CD4+/C
 
 cd4_compass_cd38_parent <- "/Time/CD3+/CD14-CD19-/Lymphocytes/Singlet/Live/CD4+/CD4_COMPASS_Subsets/CD38+"
 
+cd4_compass_hladr_parent <- "/Time/CD3+/CD14-CD19-/Lymphocytes/Singlet/Live/CD4+/CD4_COMPASS_Subsets/HLADR+"
+
 cd4_compass_cm_parent <- "/Time/CD3+/CD14-CD19-/Lymphocytes/Singlet/Live/CD4+/CD4_COMPASS_Subsets/TCM"
 
 cd4_compass_em_parent <- "/Time/CD3+/CD14-CD19-/Lymphocytes/Singlet/Live/CD4+/CD4_COMPASS_Subsets/TEM"
@@ -147,6 +149,45 @@ cd38_counts$Group[i6] <- "Naive POST"
 cd38_counts$Group[i7] <- "Conv PRE"
 cd38_counts$Group[i8] <- "Conv POST"
 cd38_counts$Group <- factor(cd38_counts$Group, levels = c("Naive PRE", "Naive POST", "Conv PRE", "Conv POST"))
+```
+
+## HLADR+
+
+```{r}
+hladr_counts <- pData(gs) %>%
+  tibble::rownames_to_column("rowname") %>%
+  left_join(gs_pop_get_count_fast(gs, subpopulations = cd4_compass_hladr_parent), by = c("rowname" = "name")) %>%
+  dplyr::rename(CD4_PolyF = Count) %>%
+  dplyr::select(rowname, "SAMPLE ID", "EXPERIMENT NAME", Stim, Group, CD4_PolyF, ParentCount) %>%
+  dplyr::filter(Stim != "SEB") %>%
+  mutate(Freq = (CD4_PolyF/ParentCount)*100) 
+
+# Add infection status column
+i1 <- grepl("H", hladr_counts$`SAMPLE ID`) 
+i2 <- grepl("C", hladr_counts$`SAMPLE ID`) 
+hladr_counts$Infection_Status <- NULL
+hladr_counts$Infection_Status[i1] <- "Naive"
+hladr_counts$Infection_Status[i2] <- "Conv"
+hladr_counts$Infection_Status <- factor(hladr_counts$Infection_Status, levels = c("Naive", "Conv"))
+
+# Add "Timepoint" column
+i3 <- grepl("-1", hladr_counts$`SAMPLE ID`) 
+i4 <- grepl("-2", hladr_counts$`SAMPLE ID`) 
+hladr_counts$Timepoint <- NULL
+hladr_counts$Timepoint[i3] <- "PRE"
+hladr_counts$Timepoint[i4] <- "POST"
+
+# Add column to pData indicating sample group (Naive vs. Conv and PRE vs. POST)
+i5 <- grepl("H", hladr_counts$`SAMPLE ID`) & grepl("PRE", hladr_counts$Timepoint)
+i6 <- grepl("H", hladr_counts$`SAMPLE ID`) & grepl("POST", hladr_counts$Timepoint)
+i7 <- grepl("C", hladr_counts$`SAMPLE ID`) & grepl("PRE", hladr_counts$Timepoint)
+i8 <- grepl("C", hladr_counts$`SAMPLE ID`) & grepl("POST", hladr_counts$Timepoint)
+hladr_counts$Group <- NULL
+hladr_counts$Group[i5] <- "Naive PRE"
+hladr_counts$Group[i6] <- "Naive POST"
+hladr_counts$Group[i7] <- "Conv PRE"
+hladr_counts$Group[i8] <- "Conv POST"
+hladr_counts$Group <- factor(hladr_counts$Group, levels = c("Naive PRE", "Naive POST", "Conv PRE", "Conv POST"))
 ```
 
 ## Central memory
@@ -511,6 +552,112 @@ post_cd38_plots[["S1"]]
 
 ```{r}
 post_cd38_plots[["S2"]]
+```
+
+## HLADR+
+
+### Naive PRE vs Naive POST
+
+```{r}
+naive_hladr_plots <- purrr::pmap(.l = list(stims),
+                               .f = function(n) {
+                                 make_boxplots(hladr_counts, current_stim = n, compare_time = TRUE, keep = "Naive", groups_compare = c("Naive PRE", "Naive POST"), paired = TRUE, fill_colors = fill_colors, outline_colors = outline_colors, subtitle = "HLADR+")
+                               })
+names(naive_hladr_plots) <- stims
+```
+
+```{r}
+naive_hladr_plots[["DMSO"]]
+```
+
+```{r}
+naive_hladr_plots[["NCAP"]]
+```
+
+```{r}
+naive_hladr_plots[["S1"]]
+```
+
+```{r}
+naive_hladr_plots[["S2"]]
+```
+
+### Conv PRE vs Conv POST
+
+```{r}
+conv_hladr_plots <- purrr::pmap(.l = list(stims),
+                               .f = function(n) {
+                                 make_boxplots(hladr_counts, current_stim = n, compare_time = TRUE, keep = "Conv", groups_compare = c("Conv PRE", "Conv POST"), paired = TRUE, fill_colors = fill_colors, outline_colors = outline_colors, subtitle = "HLADR+")
+                               })
+names(conv_hladr_plots) <- stims
+```
+
+```{r}
+conv_hladr_plots[["DMSO"]]
+```
+
+```{r}
+conv_hladr_plots[["NCAP"]]
+```
+
+```{r}
+conv_hladr_plots[["S1"]]
+```
+
+```{r}
+conv_hladr_plots[["S2"]]
+```
+
+### Naive PRE vs Conv PRE
+
+```{r}
+pre_hladr_plots <- purrr::pmap(.l = list(stims),
+                               .f = function(n) {
+                                 make_boxplots(hladr_counts, current_stim = n, compare_time = FALSE, keep = "PRE", groups_compare = c("Naive PRE", "Conv PRE"), paired = FALSE, fill_colors = fill_colors, outline_colors = outline_colors, subtitle = "HLADR+")
+                               })
+names(pre_hladr_plots) <- stims
+```
+
+```{r}
+pre_hladr_plots[["DMSO"]]
+```
+
+```{r}
+pre_hladr_plots[["NCAP"]]
+```
+
+```{r}
+pre_hladr_plots[["S1"]]
+```
+
+```{r}
+pre_hladr_plots[["S2"]]
+```
+
+### Naive POST vs Conv POST
+
+```{r}
+post_hladr_plots <- purrr::pmap(.l = list(stims),
+                               .f = function(n) {
+                                 make_boxplots(hladr_counts, current_stim = n, compare_time = FALSE, keep = "POST", groups_compare = c("Naive POST", "Conv POST"), paired = FALSE, fill_colors = fill_colors, outline_colors = outline_colors, subtitle = "HLADR+")
+                               })
+names(post_hladr_plots) <- stims
+```
+
+```{r}
+post_hladr_plots[["DMSO"]]
+```
+
+```{r}
+post_hladr_plots[["NCAP"]]
+```
+
+```{r}
+post_hladr_plots[["S1"]]
+```
+
+```{r}
+post_hladr_plots[["S2"]]
 ```
 
 ## Central Memory
