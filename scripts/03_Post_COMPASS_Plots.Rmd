@@ -16,8 +16,10 @@ editor_options:
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(echo = TRUE, warning = FALSE)
 ```
+
+# Load libraries
 
 ```{r, message=F}
 library(here)
@@ -110,6 +112,7 @@ First, set cytokine order and colors for labels.
 
 ```{r}
 cytokine_order_for_annotation = c("CD154", "IL2", "TNFa", "CD107a", "IL4_5_13", "IL17a", "IFNg")
+cytokine_row_name_text = c("CD154", "IL-2", paste0("TNF", "\U03B1"), "CD107a", "IL-4/5/13", "IL17a", paste0("IFN", "\U03B3")) # make sure this is in the same order as "cytokine_order_for_annotation"
 group_colors <- c("Naive PRE" = "#A6CEE3", "Naive POST" = "#1F78B4", "Conv PRE" = "#FB9A99", "Conv POST" = "#E31A1C")
 stim_colors <- c("S1" = "#8dd3c7", "S2" = "#ffffb3", "NCAP" = "#bebada") 
 row_ann_colors <- list(`Stim` = stim_colors, `Group` = group_colors)
@@ -146,6 +149,7 @@ cd4_naive_heatmap <- plot.COMPASSResult.ComplexHeatmap(cr = cd4_merged_COMPASSRe
                                                        subset_keep = "H-",
                                   row_annotation = c("Stim", "Group"),
                                   cytokine_order_for_annotation = cytokine_order_for_annotation,
+                                  cytokine_row_name_text <- cytokine_row_name_text,
                                   dichotomize_by_cytokine = NULL,
                                   dichotomize_by_cytokine_color = "#999999",
                                   row_annotation_colors = row_ann_colors,
@@ -159,6 +163,7 @@ cd4_conv_heatmap <- plot.COMPASSResult.ComplexHeatmap(cr = cd4_merged_COMPASSRes
                                                        subset_keep = "C-",
                                   row_annotation = c("Stim", "Group"),
                                   cytokine_order_for_annotation = cytokine_order_for_annotation,
+                                  cytokine_row_name_text <- cytokine_row_name_text,
                                   dichotomize_by_cytokine = NULL,
                                   dichotomize_by_cytokine_color = "#999999",
                                   row_annotation_colors = row_ann_colors,
@@ -194,6 +199,7 @@ cd8_naive_heatmap <- plot.COMPASSResult.ComplexHeatmap(cr = cd8_merged_COMPASSRe
                                                        subset_keep = "H-",
                                   row_annotation = c("Stim", "Group"),
                                   cytokine_order_for_annotation = cytokine_order_for_annotation,
+                                  cytokine_row_name_text <- cytokine_row_name_text,
                                   dichotomize_by_cytokine = NULL,
                                   dichotomize_by_cytokine_color = "#999999",
                                   row_annotation_colors = row_ann_colors,
@@ -207,6 +213,7 @@ cd8_conv_heatmap <- plot.COMPASSResult.ComplexHeatmap(cr = cd8_merged_COMPASSRes
                                                        subset_keep = "C-",
                                   row_annotation = c("Stim", "Group"),
                                   cytokine_order_for_annotation = cytokine_order_for_annotation,
+                                  cytokine_row_name_text <- cytokine_row_name_text,
                                   dichotomize_by_cytokine = NULL,
                                   dichotomize_by_cytokine_color = "#999999",
                                   row_annotation_colors = row_ann_colors,
@@ -218,9 +225,12 @@ draw(cd8_conv_heatmap, gap = unit(0.1, "in"), merge_legends = T)
 
 # Boxplots by infection status
 
+Note: all p-values are unadjusted.
+
 ```{r}
 # Set cytokine order and colors for labels
 cytokine_order_for_annotation = c("CD154", "IL2", "TNFa", "CD107a", "IL4_5_13", "IL17a", "IFNg")
+cytokine_row_name_text = c("CD154", "IL-2", paste0("TNF", "\U03B1"), "CD107a", "IL-4/5/13", "IL17a", paste0("IFN", "\U03B3")) # make sure this is in the same order as "cytokine_order_for_annotation"
 naive_group_colors <- c("Naive PRE" = "#A6CEE3", "Naive POST" = "#1F78B4")
 conv_group_colors <- c("Conv PRE" = "#FB9A99", "Conv POST" = "#E31A1C")
 ```
@@ -232,7 +242,7 @@ conv_group_colors <- c("Conv PRE" = "#FB9A99", "Conv POST" = "#E31A1C")
 cd4_naive_bg_corr_boxplots <- pmap(.l = list(CD4RunNames, 
                                    c("CD4+", "CD4+", "CD4+"),
                                    list(c(-0.0015, 0.003), c(-0.0015, 0.005), c(-0.0015, 0.004)),
-                                   c(4, 4, 4),
+                                   c(7, 7, 7),
                                    c(1.3, 1.3, 1.3),
                                    list(NULL, NULL, NULL),
                                    c("Spike 1", "Spike 2", "NCAP")),
@@ -242,6 +252,7 @@ cd4_naive_bg_corr_boxplots <- pmap(.l = list(CD4RunNames,
                            make_boxplot_for_COMPASS_run(crList[[n]], subset_keep = "H-", n, parentSubset = p, add_legend = T, paired = TRUE, 
                                                         current_ylim = y, include_0_line=T, 
                                                         cytokine_order_for_annotation=cytokine_order_for_annotation,
+                                                        cytokine_row_name_text = cytokine_row_name_text, 
                                                         p_text_size=p_text_size,
                                                         group_by_order=c("Naive PRE", "Naive POST"),
                                                         group_by_colors=naive_group_colors,
@@ -250,7 +261,7 @@ cd4_naive_bg_corr_boxplots <- pmap(.l = list(CD4RunNames,
                                                         zeroed_BgCorr_stats = FALSE, zeroed_BgCorr_plot = FALSE,
                                                         dichotomize_by_cytokine = dichotomize_by_cytokine, dichotomize_by_cytokine_color="#999999",
                                                         cats_heatmap_left_padding=left_cats_heatmap_padding, main_title = main_title,
-                                                        save_test_results=TRUE, output_folder=here::here("processed_data"))
+                                                        save_test_results=TRUE, output_folder=here::here("processed_data"), adj_pval = FALSE)
                          })
 names(cd4_naive_bg_corr_boxplots) <- CD4RunNames
 
@@ -262,7 +273,7 @@ if(save_output) {
 cd4_conv_bg_corr_boxplots <- pmap(.l = list(CD4RunNames, 
                                    c("CD4+", "CD4+", "CD4+"),
                                    list(c(-0.0015, 0.003), c(-0.0015, 0.005), c(-0.0015, 0.004)),
-                                   c(4, 4, 4),
+                                   c(7, 7, 7),
                                    c(1.3, 1.3, 1.3),
                                    list(NULL, NULL, NULL),
                                    c("Spike 1", "Spike 2", "NCAP")),
@@ -272,6 +283,7 @@ cd4_conv_bg_corr_boxplots <- pmap(.l = list(CD4RunNames,
                            make_boxplot_for_COMPASS_run(crList[[n]], subset_keep = "C-", n, parentSubset = p, add_legend = T, paired = TRUE,
                                                         current_ylim = y, include_0_line=T, 
                                                         cytokine_order_for_annotation=cytokine_order_for_annotation,
+                                                        cytokine_row_name_text = cytokine_row_name_text, 
                                                         p_text_size=p_text_size,
                                                         group_by_order=c("Conv PRE", "Conv POST"),
                                                         group_by_colors=conv_group_colors,
@@ -280,7 +292,7 @@ cd4_conv_bg_corr_boxplots <- pmap(.l = list(CD4RunNames,
                                                         zeroed_BgCorr_stats = FALSE, zeroed_BgCorr_plot = FALSE,
                                                         dichotomize_by_cytokine = dichotomize_by_cytokine, dichotomize_by_cytokine_color="#999999",
                                                         cats_heatmap_left_padding=left_cats_heatmap_padding, main_title = main_title,
-                                                        save_test_results=TRUE, output_folder=here::here("processed_data"))
+                                                        save_test_results=TRUE, output_folder=here::here("processed_data"), adj_pval = FALSE)
                          })
 names(cd4_conv_bg_corr_boxplots) <- CD4RunNames
 if(save_output) {
@@ -319,7 +331,7 @@ grid.draw(cd4_conv_bg_corr_boxplots[["CD4_NCAP"]]$Plot)
 cd8_naive_bg_corr_boxplots <- pmap(.l = list(CD8RunNames,
                                    c("CD8+", "CD8+", "CD8+"),
                                    list(c(-0.0015, 0.003), c(-0.0015, 0.0025), c(-0.0015, 0.003)),
-                                   c(4, 4, 4),
+                                   c(7, 7, 7),
                                    c(1.3, 1.3, 1.3),
                                    list(NULL, NULL, NULL),
                                    c("Spike 1", "Spike 2", "NCAP")),
@@ -329,6 +341,7 @@ cd8_naive_bg_corr_boxplots <- pmap(.l = list(CD8RunNames,
                            make_boxplot_for_COMPASS_run(crList[[n]], subset_keep = "H-", n, parentSubset = p, add_legend = T, paired = TRUE,
                                                         current_ylim = y, include_0_line=T, 
                                                         cytokine_order_for_annotation=cytokine_order_for_annotation,
+                                                        cytokine_row_name_text = cytokine_row_name_text, 
                                                         p_text_size=p_text_size,
                                                         group_by_order=c("Naive PRE", "Naive POST"),
                                                         group_by_colors=naive_group_colors,
@@ -337,7 +350,7 @@ cd8_naive_bg_corr_boxplots <- pmap(.l = list(CD8RunNames,
                                                         zeroed_BgCorr_stats = FALSE, zeroed_BgCorr_plot = FALSE,
                                                         dichotomize_by_cytokine = dichotomize_by_cytokine, dichotomize_by_cytokine_color="#999999",
                                                         cats_heatmap_left_padding=left_cats_heatmap_padding, main_title = main_title,
-                                                        save_test_results=TRUE, output_folder=here::here("processed_data"))
+                                                        save_test_results=TRUE, output_folder=here::here("processed_data"), adj_pval = FALSE)
                          })
 names(cd8_naive_bg_corr_boxplots) <- CD8RunNames
 
@@ -345,7 +358,7 @@ names(cd8_naive_bg_corr_boxplots) <- CD8RunNames
 cd8_conv_bg_corr_boxplots <- pmap(.l = list(CD8RunNames,
                                    c("CD8+", "CD8+", "CD8+"),
                                    list(c(-0.0015, 0.003), c(-0.0015, 0.0025), c(-0.0015, 0.003)),
-                                   c(4, 4, 4),
+                                   c(7, 7, 7),
                                    c(1.3, 1.3, 1.3),
                                    list(NULL, NULL, NULL),
                                    c("Spike 1", "Spike 2", "NCAP")),
@@ -355,6 +368,7 @@ cd8_conv_bg_corr_boxplots <- pmap(.l = list(CD8RunNames,
                            make_boxplot_for_COMPASS_run(crList[[n]], subset_keep = "C-", n, parentSubset = p, add_legend = T, paired = TRUE,
                                                         current_ylim = y, include_0_line=T, 
                                                         cytokine_order_for_annotation=cytokine_order_for_annotation,
+                                                        cytokine_row_name_text = cytokine_row_name_text, 
                                                         p_text_size=p_text_size,
                                                         group_by_order=c("Conv PRE", "Conv POST"),
                                                         group_by_colors=conv_group_colors,
@@ -363,7 +377,7 @@ cd8_conv_bg_corr_boxplots <- pmap(.l = list(CD8RunNames,
                                                         zeroed_BgCorr_stats = FALSE, zeroed_BgCorr_plot = FALSE,
                                                         dichotomize_by_cytokine = dichotomize_by_cytokine, dichotomize_by_cytokine_color="#999999",
                                                         cats_heatmap_left_padding=left_cats_heatmap_padding, main_title = main_title,
-                                                        save_test_results=TRUE, output_folder=here::here("processed_data"))
+                                                        save_test_results=TRUE, output_folder=here::here("processed_data"), adj_pval = FALSE)
                          })
 names(cd8_conv_bg_corr_boxplots) <- CD8RunNames
 ```
@@ -394,9 +408,12 @@ grid.draw(cd8_conv_bg_corr_boxplots[["CD8_NCAP"]]$Plot)
 
 # Boxplots comparing PRE
 
+Note: all p-values are unadjusted.
+
 ```{r}
 # Set cytokine order and colors for labels
 cytokine_order_for_annotation = c("CD154", "IL2", "TNFa", "CD107a", "IL4_5_13", "IL17a", "IFNg")
+cytokine_row_name_text = c("CD154", "IL-2", paste0("TNF", "\U03B1"), "CD107a", "IL-4/5/13", "IL17a", paste0("IFN", "\U03B3")) # make sure this is in the same order as "cytokine_order_for_annotation"
 pre_group_colors <- c("Naive PRE" = "#A6CEE3", "Conv PRE" = "#FB9A99")
 ```
 
@@ -407,7 +424,7 @@ pre_group_colors <- c("Naive PRE" = "#A6CEE3", "Conv PRE" = "#FB9A99")
 cd4_pre_bg_corr_boxplots <- pmap(.l = list(CD4RunNames, 
                                    c("CD4+", "CD4+", "CD4+"),
                                    list(c(-0.0015, 0.003), c(-0.0015, 0.0035), c(-0.0015, 0.004)),
-                                   c(4, 4, 4),
+                                   c(7, 7, 7),
                                    c(1.3, 1.3, 1.3),
                                    list(NULL, NULL, NULL),
                                    c("Spike 1", "Spike 2", "NCAP")),
@@ -417,6 +434,7 @@ cd4_pre_bg_corr_boxplots <- pmap(.l = list(CD4RunNames,
                            make_boxplot_for_COMPASS_run(crList[[n]], subset_keep = "H-1|C-1", n, parentSubset = p, add_legend = T, paired = FALSE,
                                                         current_ylim = y, include_0_line=T, 
                                                         cytokine_order_for_annotation=cytokine_order_for_annotation,
+                                                        cytokine_row_name_text = cytokine_row_name_text, 
                                                         p_text_size=p_text_size,
                                                         group_by_order=c("Naive PRE", "Conv PRE"),
                                                         group_by_colors=pre_group_colors,
@@ -425,7 +443,7 @@ cd4_pre_bg_corr_boxplots <- pmap(.l = list(CD4RunNames,
                                                         zeroed_BgCorr_stats = FALSE, zeroed_BgCorr_plot = FALSE,
                                                         dichotomize_by_cytokine = dichotomize_by_cytokine, dichotomize_by_cytokine_color="#999999",
                                                         cats_heatmap_left_padding=left_cats_heatmap_padding, main_title = main_title,
-                                                        save_test_results=TRUE, output_folder=here::here("processed_data"))
+                                                        save_test_results=TRUE, output_folder=here::here("processed_data"), adj_pval = FALSE)
                          })
 names(cd4_pre_bg_corr_boxplots) <- CD4RunNames
 if(save_output) {
@@ -452,7 +470,7 @@ grid.draw(cd4_pre_bg_corr_boxplots[["CD4_NCAP"]]$Plot)
 cd8_pre_bg_corr_boxplots <- pmap(.l = list(CD8RunNames,
                                    c("CD8+", "CD8+", "CD8+"),
                                    list(c(-0.0015, 0.003), c(-0.0015, 0.0025), c(-0.0015, 0.003)),
-                                   c(4, 4, 4),
+                                   c(7, 7, 7),
                                    c(1.3, 1.3, 1.3),
                                    list(NULL, NULL, NULL),
                                    c("Spike 1", "Spike 2", "NCAP")),
@@ -462,6 +480,7 @@ cd8_pre_bg_corr_boxplots <- pmap(.l = list(CD8RunNames,
                            make_boxplot_for_COMPASS_run(crList[[n]], subset_keep = "H-1|C-1", n, parentSubset = p, add_legend = T, paired = FALSE,
                                                         current_ylim = y, include_0_line=T, 
                                                         cytokine_order_for_annotation=cytokine_order_for_annotation,
+                                                        cytokine_row_name_text = cytokine_row_name_text, 
                                                         p_text_size=p_text_size,
                                                         group_by_order=c("Naive PRE", "Conv PRE"),
                                                         group_by_colors=pre_group_colors,
@@ -470,7 +489,7 @@ cd8_pre_bg_corr_boxplots <- pmap(.l = list(CD8RunNames,
                                                         zeroed_BgCorr_stats = FALSE, zeroed_BgCorr_plot = FALSE,
                                                         dichotomize_by_cytokine = dichotomize_by_cytokine, dichotomize_by_cytokine_color="#999999",
                                                         cats_heatmap_left_padding=left_cats_heatmap_padding, main_title = main_title,
-                                                        save_test_results=TRUE, output_folder=here::here("processed_data"))
+                                                        save_test_results=TRUE, output_folder=here::here("processed_data"), adj_pval = FALSE)
                          })
 names(cd8_pre_bg_corr_boxplots) <- CD8RunNames
 ```
@@ -489,9 +508,12 @@ grid.draw(cd8_pre_bg_corr_boxplots[["CD8_NCAP"]]$Plot)
 
 # Boxplots comparing POST
 
+Note: all p-values are unadjusted.
+
 ```{r}
 # Set cytokine order and colors for labels
 cytokine_order_for_annotation = c("CD154", "IL2", "TNFa", "CD107a", "IL4_5_13", "IL17a", "IFNg")
+cytokine_row_name_text = c("CD154", "IL-2", paste0("TNF", "\U03B1"), "CD107a", "IL-4/5/13", "IL17a", paste0("IFN", "\U03B3")) # make sure this is in the same order as "cytokine_order_for_annotation"
 post_group_colors <- c("Naive POST" = "#1F78B4", "Conv POST" = "#E31A1C")
 ```
 
@@ -502,7 +524,7 @@ post_group_colors <- c("Naive POST" = "#1F78B4", "Conv POST" = "#E31A1C")
 cd4_post_bg_corr_boxplots <- pmap(.l = list(CD4RunNames, 
                                    c("CD4+", "CD4+", "CD4+"),
                                    list(c(-0.0015, 0.003), c(-0.0015, 0.005), c(-0.0015, 0.004)),
-                                   c(4, 4, 4),
+                                   c(7, 7, 7),
                                    c(1.3, 1.3, 1.3),
                                    list(NULL, NULL, NULL),
                                    c("Spike 1", "Spike 2", "NCAP")),
@@ -512,6 +534,7 @@ cd4_post_bg_corr_boxplots <- pmap(.l = list(CD4RunNames,
                            make_boxplot_for_COMPASS_run(crList[[n]], subset_keep = "H-2|C-2", n, parentSubset = p, add_legend = T, paired = FALSE,
                                                         current_ylim = y, include_0_line=T, 
                                                         cytokine_order_for_annotation=cytokine_order_for_annotation,
+                                                        cytokine_row_name_text = cytokine_row_name_text, 
                                                         p_text_size=p_text_size,
                                                         group_by_order=c("Naive POST", "Conv POST"),
                                                         group_by_colors=post_group_colors,
@@ -520,7 +543,7 @@ cd4_post_bg_corr_boxplots <- pmap(.l = list(CD4RunNames,
                                                         zeroed_BgCorr_stats = FALSE, zeroed_BgCorr_plot = FALSE,
                                                         dichotomize_by_cytokine = dichotomize_by_cytokine, dichotomize_by_cytokine_color="#999999",
                                                         cats_heatmap_left_padding=left_cats_heatmap_padding, main_title = main_title,
-                                                        save_test_results=TRUE, output_folder=here::here("processed_data"))
+                                                        save_test_results=TRUE, output_folder=here::here("processed_data"), adj_pval = FALSE)
                          })
 names(cd4_post_bg_corr_boxplots) <- CD4RunNames
 ```
@@ -544,7 +567,7 @@ grid.draw(cd4_post_bg_corr_boxplots[["CD4_NCAP"]]$Plot)
 cd8_post_bg_corr_boxplots <- pmap(.l = list(CD8RunNames,
                                    c("CD8+", "CD8+", "CD8+"),
                                    list(c(-0.0015, 0.003), c(-0.0015, 0.0025), c(-0.0015, 0.003)),
-                                   c(4, 4, 4),
+                                   c(7, 7, 7),
                                    c(1.3, 1.3, 1.3),
                                    list(NULL, NULL, NULL),
                                    c("Spike 1", "Spike 2", "NCAP")),
@@ -554,6 +577,7 @@ cd8_post_bg_corr_boxplots <- pmap(.l = list(CD8RunNames,
                            make_boxplot_for_COMPASS_run(crList[[n]], subset_keep = "H-2|C-2", n, parentSubset = p, add_legend = T, paired = FALSE,
                                                         current_ylim = y, include_0_line=T, 
                                                         cytokine_order_for_annotation=cytokine_order_for_annotation,
+                                                        cytokine_row_name_text = cytokine_row_name_text, 
                                                         p_text_size=p_text_size,
                                                         group_by_order=c("Naive POST", "Conv POST"),
                                                         group_by_colors=post_group_colors,
@@ -562,7 +586,7 @@ cd8_post_bg_corr_boxplots <- pmap(.l = list(CD8RunNames,
                                                         zeroed_BgCorr_stats = FALSE, zeroed_BgCorr_plot = FALSE,
                                                         dichotomize_by_cytokine = dichotomize_by_cytokine, dichotomize_by_cytokine_color="#999999",
                                                         cats_heatmap_left_padding=left_cats_heatmap_padding, main_title = main_title,
-                                                        save_test_results=TRUE, output_folder=here::here("processed_data"))
+                                                        save_test_results=TRUE, output_folder=here::here("processed_data"), adj_pval = FALSE)
                          })
 names(cd8_post_bg_corr_boxplots) <- CD8RunNames
 ```
@@ -620,33 +644,28 @@ if(save_output) {
 }
 ```
 
-Use Wilcoxon signed-rank test to compare across time within a patient and
-Wilcoxon rank-sum test to compare across patient groups within a timepoint. 
+Use Wilcoxon signed-rank test to compare across stims within a donor. 
 Show the medians in each group.
-Note: all p-values unadjusted
+Note: all p-values are unadjusted.
 
 ## FS Plots
 
 ```{r}
-fs_plots <- pmap(list(rep(c("S1", "S2", "NCAP"), times = 2),
-                           rep(c("CD4", "CD8"), each = 3)),
-                           function(current_stim, cd4_or_cd8) {
-                             fs_pfs_plot("FS", current_stim, cd4_or_cd8)
-                           })
-names(fs_plots) <- paste0(rep(c("CD4", "CD8"), each = 3), "_", rep(c("S1", "S2", "NCAP"), times = 2))
-fs_plots
+naive_pre_fs_plot <- fs_pfs_plot(df = fs_pfs_df, FS_or_PFS = "FS", cd4_or_cd8 = "CD4", group = "Naive PRE")
+naive_pre_fs_plot
+
+conv_pre_fs_plot <- fs_pfs_plot(df = fs_pfs_df, FS_or_PFS = "FS", cd4_or_cd8 = "CD4", group = "Conv PRE")
+conv_pre_fs_plot
 ```
 
 ## PFS Plots
 
 ```{r}
-pfs_plots <- pmap(list(rep(c("S1", "S2", "NCAP"), times = 2),
-                           rep(c("CD4", "CD8"), each = 3)),
-                           function(current_stim, cd4_or_cd8) {
-                             fs_pfs_plot("PFS", current_stim, cd4_or_cd8)
-                           })
-names(pfs_plots) <- paste0(rep(c("CD4", "CD8"), each = 3), "_", rep(c("S1", "S2", "NCAP"), times = 2))
-pfs_plots
+naive_pre_pfs_plot <- fs_pfs_plot(df = fs_pfs_df, FS_or_PFS = "PFS", cd4_or_cd8 = "CD4", group = "Naive PRE")
+naive_pre_pfs_plot
+
+conv_pre_pfs_plot <- fs_pfs_plot(df = fs_pfs_df, FS_or_PFS = "PFS", cd4_or_cd8 = "CD4", group = "Conv PRE")
+conv_pre_pfs_plot
 ```
 
 # Split FS plots
@@ -865,6 +884,16 @@ if(save_output) {
 
 ```{r save split FS plots pdf}
 if(save_output) {
+  cairo_pdf(file=here::here("out/post_compass_plots/fs_plots/naive_pre_fs_plots.pdf"), width=6, height=5,
+        onefile = TRUE, bg = "transparent", family = "Arial") # default unit is inches, default font is Helvetica.
+  print(naive_pre_fs_plot)
+  dev.off()
+  
+  cairo_pdf(file=here::here("out/post_compass_plots/fs_plots/conv_pre_fs_plots.pdf"), width=6, height=5,
+        onefile = TRUE, bg = "transparent", family = "Arial") # default unit is inches, default font is Helvetica.
+  print(conv_pre_fs_plot)
+  dev.off()
+  
   cairo_pdf(file=here::here("out/post_compass_plots/fs_plots/naive_fs_plots.pdf"), width=4, height=5,
         onefile = TRUE, bg = "transparent", family = "Arial") # default unit is inches, default font is Helvetica.
   print(n_fs_plots)

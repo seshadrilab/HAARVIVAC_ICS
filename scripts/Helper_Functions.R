@@ -208,280 +208,18 @@ runCompassOnce <- function(gs,
 
 ############################################################################################################################
 
-# Dotplot of background-corrected subset percents out of the parent population
-# cr is the COMPASSResult object
-make_dotplot_for_COMPASS_run <- function(cr, run_name, output_folder=NA, current_ylim=NULL, add_legend=FALSE, legend_position=c(0.16, 0),
-                                         save_test_results=TRUE, p_text_size=5, include_0_line=FALSE, zeroed_BgCorr_stats = FALSE, zeroed_BgCorr_plot = FALSE, 
-                                         plot_width=7, plot_height=6, dichotomize_by_cytokine=NA, group_by_colname="Cohort",
-                                         group_by_order=c("Naive PRE", "Naive POST", "Conv PRE", "Conv POST"), 
-                                         group_by_colors=c("Naive PRE" = "#b7e3dc", "Naive POST" = "#49b7a6", "Conv PRE" = "#e9d5a6", "Conv POST" = "#d0a540"),
-                                         return_output=FALSE, parentSubset="CD4+", point_size=0.3, cytokine_order_for_annotation=NULL) {
-  # zeroed_BgCorr_stats If TRUE, the returned magnitude values and statistics are calculated using zeroed values
-  # zeroed_BgCorr_plot If TRUE, the points on the plot are zeroed (regardless of zeroed_BgCorr_stats)
-  library(cowplot) # among others
-  library(ggbeeswarm)
-  
-  mean_gamma <- cr$fit$mean_gamma
-  cats <- as.data.frame(cr$fit$categories[, -ncol(cr$fit$categories),drop=FALSE]) # drop the "Counts" column
-  numMarkers <- ncol(cats)
-  rownames(cats) <- colnames(mean_gamma)
-  
-  # Filter the subsets to those where the average mean_gamma is greater than the threshold (default in heatmap and this function is 0.01)
-  compassSubsetsFiltered <- names(which(apply(mean_gamma, 2, function(x) { mean(x, na.rm = TRUE) }) > 0.01))
-  # Note that we don't need mean_gamma anymore for this task
-  # And remove the subset with 0 positive markers
-  compassSubsetsFiltered <- compassSubsetsFiltered[lengths(regmatches(compassSubsetsFiltered, gregexpr("!", compassSubsetsFiltered))) != numMarkers]
-  
-  # Subset the cats rows to compassSubsetsFiltered, and put the columns in the order of cytokine_order_for_annotation
-  cats <- cats[compassSubsetsFiltered,]
-  if(!is.null(cytokine_order_for_annotation)) {
-    cats <- cats[, cytokine_order_for_annotation]
-  }
-  
-  stim_counts <- as.data.frame(cr$data$n_s) %>%
-    mutate(Individual = rownames(cr$data$n_s)) %>%
-    dplyr::select(c("Individual", all_of(compassSubsetsFiltered))) %>% 
-    dplyr::left_join(cr$data$counts_s %>%
-                       stack() %>%
-                       rename("ParentCount" = "values", "Individual" = "ind"),
-                     by = "Individual") %>%
-    dplyr::left_join(cr$data$meta %>% 
-                       dplyr::select(!!as.symbol(cr$data$individual_id), !!as.symbol(group_by_colname)),
-                     by = c("Individual"=cr$data$individual_id)) %>% 
-    mutate(Stim = "Dummy_Stim_Name")
-  
-  bg_counts <- as.data.frame(cr$data$n_u) %>%
-    mutate(Individual = rownames(cr$data$n_u)) %>%
-    dplyr::select(c("Individual", all_of(compassSubsetsFiltered))) %>% 
-    dplyr::left_join(cr$data$counts_u %>%
-                       stack() %>%
-                       rename("ParentCount" = "values", "Individual" = "ind"),
-                     by = "Individual") %>%
-    dplyr::left_join(cr$data$meta %>% 
-                       dplyr::select(!!as.symbol(cr$data$individual_id), !!as.symbol(group_by_colname)),
-                     by = c("Individual"=cr$data$individual_id)) %>% 
-    mutate(Stim = "DMSO")
-  
-  dat_bgCorr_long <- bind_rows(bg_counts, stim_counts) %>% 
-    mutate_at(.vars = compassSubsetsFiltered, `/`, quote(ParentCount)) %>%  # convert counts to proportions
-    dplyr::select(-ParentCount) %>% 
-    tidyr::pivot_longer(cols = -c("Individual", "Stim", !!as.symbol(group_by_colname)),
-                        names_to = "BooleanSubset",
-                        values_to = "Proportion") %>% 
-    tidyr::pivot_wider(id_cols = c("Individual", !!as.symbol(group_by_colname), "BooleanSubset"),
-                       names_from = Stim,
-                       values_from = Proportion) %>% 
-    drop_na() %>% # Filter out rows with NA
-    mutate(BgCorr = if(zeroed_BgCorr_stats) {pmax(0, Dummy_Stim_Name - DMSO)} else {Dummy_Stim_Name - DMSO},
-           BgCorr_plot = if(zeroed_BgCorr_plot) {pmax(0, Dummy_Stim_Name - DMSO)} else {Dummy_Stim_Name - DMSO},
-           !!as.symbol(group_by_colname) := factor(!!as.symbol(group_by_colname), levels = group_by_order)) %>% 
-    dplyr::select(-c(DMSO, Dummy_Stim_Name))
-  
-  dat_bgCorr_wide <- dat_bgCorr_long %>% 
-    tidyr::pivot_wider(id_cols = c("Individual", !!as.symbol(group_by_colname)),
-                       names_from = BooleanSubset,
-                       values_from = BgCorr)
-  
-  tests <- lapply(compassSubsetsFiltered, function(boolSubset) {
-    kruskal.test(as.formula(sprintf("`%s` ~ %s", boolSubset, group_by_colname)), data=dat_bgCorr_wide)
-  })
-  pvals_df <- data.frame(BooleanSubset = compassSubsetsFiltered,
-                         p = unlist(lapply(tests, function(x) {x$p.value}))) %>% 
-    mutate(p.adj = p.adjust(p, method = "bonferroni")) %>% # Strict
-    mutate(p.adj.text = if_else(p.adj < 0.001, "p<.001", paste0("p=", sub("0.", ".", round(p.adj, 3)))))
-  
-  # Before plotting, put the categories data frame rows in the desired order (columns were already re-ordered above)
-  # This is essentially the same code I added to the pheatmap function
-  cats <- cats[rev(do.call(order, cats)),,drop=FALSE]
-  # And order the cats df rows by degrees (number of cytokines in subset)
-  ckr<-apply(cats,1,function(x)sum(as.numeric(as.character(x))))
-  cats = cats[order(ckr),]
-  if(!is.na(dichotomize_by_cytokine)) {
-    # And then dichotomize the cats df rows so that all subsets containing the cytokine in dichotomize_by_cytokine (e.g. "IFNg") appear last
-    cats <- cats[order(cats[,dichotomize_by_cytokine]),]
-  }
-  
-  # Use the cats df row order to order the boolean subsets in dat_bgCorr_long and pvals_df
-  dat_bgCorr_long$BooleanSubset <- factor(dat_bgCorr_long$BooleanSubset, levels = rownames(cats))
-  pvals_df$BooleanSubset <- factor(pvals_df$BooleanSubset, levels = rownames(cats))
-  
-  # Calculate medians of each group for each subset
-  dat_bgCorr_medians <- dat_bgCorr_long %>%
-    dplyr::group_by(!!as.symbol(group_by_colname), BooleanSubset) %>%
-    dplyr::summarise(BgCorr = median(BgCorr),
-                     BgCorr_plot = median(BgCorr_plot))
-  
-  if(save_test_results) {
-    # Save some form of the test results to disk so it doesn't only exist in the plot as adjusted p-values
-    pvals_df_for_file <- cats %>% rownames_to_column("BooleanSubset") %>% 
-      dplyr::left_join(pvals_df) %>% 
-      dplyr::left_join(dat_bgCorr_medians %>%
-                         pivot_wider(id_cols = "BooleanSubset",
-                                     names_from = !!as.symbol(group_by_colname),
-                                     values_from = BgCorr,
-                                     names_prefix = "med_")) %>% 
-      arrange(p.adj)
-    
-    if(!is.na(output_folder)) {
-      test_results_file_path <- file.path(output_folder,
-                                          sprintf("%s_%s_BooleanSubsets_BgCorrProps_KruskalWallis.tsv",
-                                                  run_name, if(zeroed_BgCorr_stats) {"Zeroed"} else {"NotZeroed"}))
-      write.table(pvals_df_for_file,
-                  file = test_results_file_path,
-                  sep = "\t", row.names = FALSE, quote = FALSE)
-    }
-  }
-  
-  # Draw the dotplot
-  p_dotplot <- ggplot(dat_bgCorr_long, aes(x = !!as.symbol(group_by_colname), y = BgCorr_plot, fill = !!as.symbol(group_by_colname), group = !!as.symbol(group_by_colname)))
-  if(include_0_line) {
-    p_dotplot <- p_dotplot + geom_hline(yintercept = 0, linetype="dashed", alpha = 0.5)
-  }
-  p_dotplot <- p_dotplot +
-    # geom_jitter(aes(fill = !!as.symbol(group_by_colname)), pch = 21, width = 0.2, size=point_size) +
-    geom_quasirandom(aes(fill = !!as.symbol(group_by_colname)), pch = 21, width = 0.3, size=point_size) +
-    geom_errorbarh(data = dat_bgCorr_medians,
-                   aes(y = BgCorr_plot,
-                       xmax = 1.5 + 0.8,
-                       xmin = 1.5 - 0.8, height = 0),
-                   position=position_dodge(width=0.25), color = "black") +
-    facet_grid(. ~ BooleanSubset) +
-    theme(axis.title.x=element_blank(),
-          axis.text.x=element_blank(),
-          axis.ticks.x=element_blank(),
-          strip.background = element_blank(),
-          strip.text.x = element_blank(),
-          axis.text = element_text(color="black", size=18),
-          axis.title = element_text(size=25),
-          text = element_text(family="Arial"),
-          panel.grid.major = element_blank(),
-          panel.grid.minor = element_blank(),
-          panel.background = element_blank(),
-          axis.line = element_line(colour = "black")) +
-    labs(y=sprintf("%% Responding %s T cells", sub("+", "", parentSubset, fixed=T)))
-  if(!is.na(group_by_colors)) {
-    p_dotplot <- p_dotplot + scale_fill_manual(values=group_by_colors)
-  }
-  
-  # Adjust ylim here manually if specified
-  if(is.null(current_ylim)) {
-    p_dotplot <- p_dotplot +
-      scale_y_continuous(labels = function(x) paste0(x*100))
-  } else {
-    p_dotplot <- p_dotplot +
-      scale_y_continuous(labels = function(x) paste0(x*100), limits=current_ylim)
-  }
-  
-  if(add_legend) {
-    p_dotplot <- p_dotplot +
-      theme(legend.justification = c(1,1),
-            legend.position = legend_position,
-            legend.text=element_text(size=16)) +
-      guides(color=guide_legend(title=NULL), fill = FALSE)
-  } else {
-    p_dotplot <- p_dotplot +
-      theme(legend.position = "none")
-  }
-  
-  showSignificanceBracket <- TRUE
-  p_alpha <- 0.05
-  onlyShowPBelowAlpha <- TRUE
-  if(showSignificanceBracket) {
-    
-    # TODO rewrite this
-    get_y_pos <- function(boolSubsets) {
-      sapply(boolSubsets, function(boolSubset) {
-        boolSubset <- as.character(boolSubset)
-        find_y_max_in_visible_range <- function(x) {ifelse(is.null(current_ylim), max(x), max(subset(x, x < current_ylim[[2]])))}
-        y_visible_max <- dat_bgCorr_wide %>%
-          group_by(!!as.symbol(group_by_colname)) %>%
-          summarise(y_visible_max = find_y_max_in_visible_range(!!as.symbol(boolSubset))) %>% 
-          dplyr::pull(y_visible_max) %>% 
-          max()
-        y_visible_max + if(is.null(current_ylim)) {max(dat_bgCorr_long$BgCorr)/20} else {current_ylim[[2]]/20}
-      })
-      
-    }
-    
-    annotation_df <- pvals_df %>% 
-      mutate(start = group_by_order[[1]],
-             end = group_by_order[[2]],
-             y_pos = get_y_pos(BooleanSubset))
-    if(onlyShowPBelowAlpha) {
-      annotation_df <- annotation_df %>% dplyr::filter(p.adj < p_alpha)
-    }
-    
-    # If I don't use the full path for ggsignif::geom_signif, it may try to use a global environment variable GeomSignif and ignore manual = T. Odd.
-    p_dotplot <- p_dotplot +
-      ggsignif::geom_signif(inherit.aes=F,data=annotation_df,
-                            aes_string(xmin="start", xmax="end", annotations="p.adj.text", y_position="y_pos"), # , family="Arial"
-                            tip_length = c(0.005, 0.005),
-                            textsize=p_text_size,
-                            manual = TRUE)
-  }
-  
-  # Now make the categories legend
-  
-  # Set the order of the cytokines and subsets once the categories df is in long format. Then plot.
-  cats_long <- as.data.frame(cats) %>%
-    rownames_to_column("BooleanSubset") %>%
-    gather(Cytokine, Membership, -BooleanSubset) %>%
-    mutate(Membership = dplyr::recode(Membership, "0" = "-", "1" = "+")) %>% 
-    mutate(BooleanSubset = factor(BooleanSubset, levels = rownames(cats)),
-           Cytokine = factor(Cytokine, levels = colnames(cats)))
-  
-  cats_plot <- ggplot(cats_long,
-                      aes(x = BooleanSubset, y = Cytokine)) +
-    geom_tile(fill="white") +
-    geom_text(aes(label=Membership), color="black", size=7) +
-    theme(axis.ticks.y = element_blank(),
-          axis.ticks.x = element_blank(),
-          axis.text.x = element_blank(),
-          axis.title = element_blank(),
-          axis.text.y = element_text(color="black", size=14),
-          panel.border=element_blank(),
-          panel.grid = element_blank(),
-          panel.background = element_blank(),
-          plot.margin = unit(c(0,0,0,0), "cm")) + 
-    scale_y_discrete(expand=c(0,0)) + 
-    scale_x_discrete(expand=c(0,0))
-  
-  dotplot_with_cats <- plot_grid(p_dotplot, cats_plot, ncol = 1, axis = "lr", align = "v", rel_heights = c(1, 0.3))
-  
-  if(!is.na(output_folder)) {
-    p_base_path <- file.path(output_folder, sprintf("%s_%s_%s_Dotplot%s%s", run_name,
-                                                    if(zeroed_BgCorr_stats) {"ZeroedStats"} else {"NotZeroedStats"},
-                                                    if(zeroed_BgCorr_plot) {"ZeroedPoints"} else {"NotZeroedPoints"},
-                                                    if(!is.null(current_ylim)) { paste0("_ylim_", paste0(paste0(c("min", "max"), current_ylim), collapse="")) } else {""},
-                                                    if(include_0_line) { "_with0line" } else { "" }))
-    ggsave(filename=paste0(p_base_path, ".png"), plot=dotplot_with_cats, width=plot_width, height=plot_height, dpi=300)
-    ggsave(filename=paste0(p_base_path, ".pdf"), plot=dotplot_with_cats, width=plot_width, height=plot_height, units = "in",
-           onefile = TRUE, bg = "transparent", family = "Arial", fonts = "Arial")
-  }
-  
-  if(return_output) {
-    to_return <- list("Dotplot" = dotplot_with_cats,
-                      "BgCorrMagnitudes" = dat_bgCorr_wide)
-    if(save_test_results) {
-      to_return$Test_Results <- pvals_df_for_file
-    }
-    to_return
-  }
-}
-
-############################################################################################################################
-
 # Like plot.COMPASSResult, but using the ComplexHeatmap package
 # The argument "subsets_keep" specifies which samples to keep based on Run_SAMPLE_ID
 plot.COMPASSResult.ComplexHeatmap <- function(cr,
-                                               subset_keep = NULL,
-                                               row_annotation = NULL,
-                                               cytokine_order_for_annotation = NULL,
-                                               dichotomize_by_cytokine = NULL,
-                                               dichotomize_by_cytokine_color = NULL,
-                                               row_annotation_colors = NULL,
-                                               staircase_cytokine_annotation = TRUE,
-                                               row_gap = unit(0, "in")) {
+                                              subset_keep = NULL,
+                                              row_annotation = NULL,
+                                              cytokine_order_for_annotation = NULL,
+                                              cytokine_row_name_text = NULL,
+                                              dichotomize_by_cytokine = NULL,
+                                              dichotomize_by_cytokine_color = NULL,
+                                              row_annotation_colors = NULL,
+                                              staircase_cytokine_annotation = TRUE,
+                                              row_gap = unit(0, "in")) {
   library(tidyverse)
   library(ComplexHeatmap)
   library(COMPASS)
@@ -577,7 +315,9 @@ plot.COMPASSResult.ComplexHeatmap <- function(cr,
                           height = unit(5, "in"),
                           row_gap = row_gap)
   # draw(heatmap_main)
-  
+  if(!is.null(cytokine_order_for_annotation)) {
+    colnames(cats) <- cytokine_row_name_text
+  }
   heatmap_cats <- Heatmap(cats %>% dplyr::select(rev(everything())) %>% t(),
                           cluster_rows = FALSE, 
                           show_row_dend = FALSE, 
@@ -611,8 +351,8 @@ make_boxplot_for_COMPASS_run <- function(cr, subset_keep = NULL, run_name, outpu
                                          group_by_order=c("Hospitalized", "Non-hospitalized"),
                                          group_by_colors=c("Hospitalized" = "#757bbcb2", "Non-hospitalized" = "#b0d2c8bf"),
                                          group_by_labels = c("Conv Hosp", "Conv Non-Hosp"),
-                                         parentSubset="CD4+", cytokine_order_for_annotation=NULL,
-                                         cats_heatmap_left_padding = 3, main_title = NULL, onlyShowPBelowAlpha = TRUE) {
+                                         parentSubset="CD4+", cytokine_order_for_annotation=NULL, cytokine_row_name_text=NULL,
+                                         cats_heatmap_left_padding = 3, main_title = NULL, onlyShowPBelowAlpha = TRUE, adj_pval = FALSE) {
   # zeroed_BgCorr_stats If TRUE, the returned magnitude values and statistics are calculated using zeroed values
   # zeroed_BgCorr_plot If TRUE, the points on the plot are zeroed (regardless of zeroed_BgCorr_stats)
   library(ComplexHeatmap)
@@ -719,10 +459,17 @@ make_boxplot_for_COMPASS_run <- function(cr, subset_keep = NULL, run_name, outpu
       wilcox.test(as.formula(sprintf("`%s` ~ %s", boolSubset, group_by_colname)), data=dat_bgCorr_wide)
     }) 
   }
-  pvals_df <- data.frame(BooleanSubset = compassSubsetsFiltered,
-                         p = unlist(lapply(tests, function(x) {x$p.value}))) %>% 
-    mutate(p.adj = p.adjust(p, method = "bonferroni")) %>% # Strict
-    mutate(p.adj.text = if_else(p.adj < 0.001, "p<.001", paste0("p=", sub("0.", ".", round(p.adj, 3)))))
+  
+  if(adj_pval) {
+    pvals_df <- data.frame(BooleanSubset = compassSubsetsFiltered,
+                           p = unlist(lapply(tests, function(x) {x$p.value}))) %>% 
+      mutate(p.adj = p.adjust(p, method = "bonferroni")) %>% # Strict
+      mutate(p.adj.text = if_else(p.adj < 0.001, "p<.001", paste0("p=", sub("0.", ".", round(p.adj, 3))))) 
+  } else {
+    pvals_df <- data.frame(BooleanSubset = compassSubsetsFiltered,
+                           p = unlist(lapply(tests, function(x) {x$p.value}))) %>% 
+      mutate(p.text = if_else(p < 0.05, "*", paste0("p=", sub("0.", ".", round(p, 3)))))
+  }
   
   # Before plotting, put the categories data frame rows in the desired order (columns were already re-ordered above)
   # This is essentially the same code I added to the pheatmap function
@@ -761,8 +508,13 @@ make_boxplot_for_COMPASS_run <- function(cr, subset_keep = NULL, run_name, outpu
                          pivot_wider(id_cols = "BooleanSubset",
                                      names_from = !!as.symbol(group_by_colname),
                                      values_from = BgCorr,
-                                     names_prefix = "med_")) %>% 
-      arrange(p.adj)
+                                     names_prefix = "med_")) 
+    
+    if(adj_pval) {
+      pvals_df_for_file <- arrange(pvals_df_for_file, p.adj)
+    } else {
+      pvals_df_for_file <- arrange(pvals_df_for_file, p)
+    }
     
     if(!is.na(output_folder)) {
       test_results_file_path <- file.path(output_folder,
@@ -789,13 +541,15 @@ make_boxplot_for_COMPASS_run <- function(cr, subset_keep = NULL, run_name, outpu
   )
   
   # Draw the boxplot
-  p_boxplot <- ggplot(dat_bgCorr_long, aes(x = !!as.symbol(group_by_colname), y = BgCorr_plot, fill = !!as.symbol(group_by_colname), group = !!as.symbol(group_by_colname)))
+  p_boxplot <- ggplot(dat_bgCorr_long, aes(x = !!as.symbol(group_by_colname), y = BgCorr_plot,
+                                           #fill = !!as.symbol(group_by_colname),
+                                           group = !!as.symbol(group_by_colname)))
   if(include_0_line) {
     p_boxplot <- p_boxplot + geom_hline(yintercept = 0, linetype="dashed", alpha = 0.5)
   }
   p_boxplot <- p_boxplot +
     geom_boxplot(outlier.shape=NA, position = position_dodge2(preserve = "total")) +
-    geom_jitter(color="black", size=0.4, alpha=0.9) +
+    geom_quasirandom(size=1.25, shape = 16, width = 0.2, aes(color=!!as.symbol(group_by_colname))) +
     facet_grid(. ~ BooleanSubset) +
     theme(axis.title.x=element_blank(),
           axis.text.x=element_blank(),
@@ -826,15 +580,15 @@ make_boxplot_for_COMPASS_run <- function(cr, subset_keep = NULL, run_name, outpu
   
   if(!is.null(main_title)) {
     p_boxplot <- p_boxplot +
-      theme(plot.title = element_text(hjust=0.5, size=26, face = "bold")) +
+      theme(plot.title = element_text(hjust=0.5, size=26)) +
       labs(title = main_title)
   }
   if(!is.null(group_by_colors)) {
     p_boxplot <- p_boxplot + if(is.null(group_by_labels)) {
-      scale_fill_manual(values=group_by_colors) 
+      scale_color_manual(values=group_by_colors)
     } else {
-      scale_fill_manual(values=group_by_colors,
-                        labels=group_by_labels) 
+      scale_color_manual(values=group_by_colors,
+                        labels=group_by_labels)
     }
   }
   
@@ -887,21 +641,41 @@ make_boxplot_for_COMPASS_run <- function(cr, subset_keep = NULL, run_name, outpu
       mutate(start = group_by_order[[1]],
              end = group_by_order[[2]],
              y_pos = get_y_pos(BooleanSubset))
+    
     if(onlyShowPBelowAlpha) {
-      annotation_df <- annotation_df %>% dplyr::filter(p.adj < p_alpha)
+      if(adj_pval) {
+        annotation_df <- annotation_df %>% dplyr::filter(p.adj < p_alpha) 
+      } else {
+        annotation_df <- annotation_df %>% dplyr::filter(p < p_alpha)
+      }
     }
     
     # If I don't use the full path for ggsignif::geom_signif, it may try to use a global environment variable GeomSignif and ignore manual = T. Odd.
-    p_boxplot <- p_boxplot +
-      ggsignif::geom_signif(inherit.aes=F,data=annotation_df,
-                            aes_string(xmin="start", xmax="end", annotations="p.adj.text", y_position="y_pos"), # , family="Arial"
-                            tip_length = c(0.005, 0.005),
-                            textsize=p_text_size,
-                            manual = TRUE)
+    if(adj_pval) {
+      p_boxplot <- p_boxplot +
+        ggsignif::geom_signif(inherit.aes=F,data=annotation_df,
+                              aes_string(xmin="start", xmax="end", annotations="p.adj.text", y_position="y_pos"), # , family="Arial"
+                              tip_length = c(0, 0),
+                              fontface = "bold",
+                              textsize=p_text_size,
+                              size = 1,
+                              manual = TRUE)
+    } else {
+      p_boxplot <- p_boxplot +
+        ggsignif::geom_signif(inherit.aes=F,data=annotation_df,
+                              aes_string(xmin="start", xmax="end", annotations="p.text", y_position="y_pos"), # , family="Arial"
+                              tip_length = c(0, 0),
+                              fontface = "bold",
+                              textsize=p_text_size,
+                              size = 0.75,
+                              manual = TRUE)
+    }
   }
   
   # Now make the categories legend
-  
+  if(!is.null(cytokine_order_for_annotation)) {
+    colnames(cats) <- cytokine_row_name_text
+  }
   heatmap_cats <- Heatmap(cats %>% dplyr::select(rev(everything())) %>% t(),
                           cluster_rows = FALSE, 
                           show_row_dend = FALSE, 
@@ -933,43 +707,33 @@ make_boxplot_for_COMPASS_run <- function(cr, subset_keep = NULL, run_name, outpu
 
 ############################################################################################################################
 
-# Plots of functionality scores and polyfunctionality scores
-# Use Wilcoxon signed-rank test to compare across time within a patient and
-# Wilcoxon rank-sum test to compare across patient groups within a timepoint.
+# Plots of functionality scores and polyfunctionality scores for all stims for a given timepoint and infection status group
+# Use Wilcoxon signed-rank test to compare across stim within a donor.
 # Show the medians in each group.
 # Note: all p-values unadjusted
 
-fs_pfs_plot <- function(FS_or_PFS = "FS", current_stim = "S1", cd4_or_cd8 = "CD4") {
-  d <- fs_pfs_df %>% dplyr::filter(Stim == current_stim & parent == cd4_or_cd8)
-  d_pre <- d %>% dplyr::filter(Timepoint == "PRE")
-  d_post <- d %>% dplyr::filter(Timepoint == "POST")
+fs_pfs_plot <- function(df, FS_or_PFS = "FS", cd4_or_cd8 = "CD4", group = "Naive PRE") {
+  d <- df %>% dplyr::filter(parent == cd4_or_cd8 & Group == group)
   
   d_wide <- d %>%  
-    pivot_wider(id_cols = c(`PATIENT ID`, Infection_Status), names_from = Timepoint, values_from = !!as.name(FS_or_PFS)) %>%
-    na.omit() # can't perform signed-rank test with missing data
-  d_wide_naive <- d_wide %>% dplyr::filter(Infection_Status == "Naive")
-  d_wide_conv <- d_wide %>% dplyr::filter(Infection_Status == "Conv")
+    pivot_wider(id_cols = c(`PATIENT ID`, Group), names_from = Stim, values_from = !!as.name(FS_or_PFS)) %>%
+    na.omit() # can't perform signed-rank test with missing data 
   
-  # Signed rank test for Naive, pre-to-post-vax
-  naive_signed_rank_result <- wilcox.test(d_wide_naive$PRE, d_wide_naive$POST, paired = T)
-  # Signed rank test for Convalescent, pre-to-post-vax
-  conv_signed_rank_result <- wilcox.test(d_wide_conv$PRE, d_wide_conv$POST, paired = T)
+  # Signed rank test
+  n_s1_signed_rank_result <- wilcox.test(d_wide$NCAP, d_wide$S1, paired = T)
+  s1_s2_signed_rank_result <- wilcox.test(d_wide$S1, d_wide$S2, paired = T)
+  n_s2_signed_rank_result <- wilcox.test(d_wide$NCAP, d_wide$S2, paired = T)
   
-  # mann-whitney/wilcoxon rank-sum test for PRE, across infection status group
-  pre_mann_whitney_result <- wilcox.test(d_pre %>% dplyr::pull(!!FS_or_PFS) ~ as.factor(d_pre %>% dplyr::pull("Infection_Status")))
-  # mann-whitney/wilcoxon rank-sum test for POST, across infection status group
-  post_mann_whitney_result <- wilcox.test(d_post %>% dplyr::pull(!!FS_or_PFS) ~ as.factor(d_post %>% dplyr::pull("Infection_Status")))
-  
-  timepoint_infection_status_x_order <- 1:4
-  names(timepoint_infection_status_x_order) <- levels(d$Group)
-  test_results_df <- data.frame(group1 = c("Naive PRE", "Conv PRE", "Naive PRE", "Naive POST"),
-                                group2 = c("Naive POST", "Conv POST", "Conv PRE", "Conv POST"),
-                                p.val = c(naive_signed_rank_result$p.value,
-                                          conv_signed_rank_result$p.value,
-                                          pre_mann_whitney_result$p.value,
-                                          post_mann_whitney_result$p.value)) %>% 
-    mutate(group1.xloc = unname(timepoint_infection_status_x_order[group1]),
-           group2.xloc = unname(timepoint_infection_status_x_order[group2]),
+  stim_x_order <- 1:3
+  d$Stim <- factor(d$Stim, levels = c("NCAP", "S1", "S2"))
+  names(stim_x_order) <- levels(d$Stim)
+  test_results_df <- data.frame(group1 = c("NCAP", "S1", "NCAP"),
+                                group2 = c("S1", "S2", "S2"),
+                                p.val = c(n_s1_signed_rank_result$p.value,
+                                          s1_s2_signed_rank_result$p.value,
+                                          n_s2_signed_rank_result$p.value)) %>% 
+    mutate(group1.xloc = unname(stim_x_order[group1]),
+           group2.xloc = unname(stim_x_order[group2]),
            p_val_text = sapply(p.val, function(p) {
              if(p < 0.001) {
                "p<0.001"
@@ -977,31 +741,29 @@ fs_pfs_plot <- function(FS_or_PFS = "FS", current_stim = "S1", cd4_or_cd8 = "CD4
                paste0("p=", round(p, 3))
              }
            }),
-           y_pos = c(d %>% dplyr::filter(Group %in% c("Naive PRE", "Naive POST")) %>%
+           y_pos = c(d %>% dplyr::filter(Stim %in% c("NCAP", "S1")) %>%
                        dplyr::pull(!!FS_or_PFS) %>% max() + 0.1*diff(range(d %>% dplyr::pull(!!FS_or_PFS))),
-                     d %>% dplyr::filter(Group %in% c("Conv PRE", "Conv POST")) %>%
+                     d %>% dplyr::filter(Stim %in% c("S1", "S2")) %>%
                        dplyr::pull(!!FS_or_PFS) %>% max() + 0.1*diff(range(d %>% dplyr::pull(!!FS_or_PFS))),
-                     d %>% dplyr::filter(Group %in% c("Naive PRE", "Naive POST", "Conv PRE")) %>%
-                       dplyr::pull(!!FS_or_PFS) %>% max() + 0.25*diff(range(d %>% dplyr::pull(!!FS_or_PFS))),
-                     d %>% dplyr::filter(Group %in% c("Naive PRE", "Naive POST", "Conv PRE", "Conv POST")) %>%
-                       dplyr::pull(!!FS_or_PFS) %>% max() + 0.4*diff(range(d %>% dplyr::pull(!!FS_or_PFS)))),
+                     d %>% dplyr::filter(Stim %in% c("NCAP", "S1", "S2")) %>%
+                       dplyr::pull(!!FS_or_PFS) %>% max() + 0.25*diff(range(d %>% dplyr::pull(!!FS_or_PFS)))),
            geom_signif_group = paste0(group1, group2))
   
-  medians <- d %>% group_by(Group, Infection_Status, Timepoint) %>%
+  medians <- d %>% group_by(Group, Infection_Status, Timepoint, Stim) %>%
     summarise(med = median(!!as.name(FS_or_PFS))) %>% ungroup() %>% 
-    mutate(x.min.segment = 1:4 - 0.1,
-           x.end.segment = 1:4 + 0.1)
+    mutate(x.min.segment = 1:3 - 0.1,
+           x.end.segment = 1:3 + 0.1)
   
-  ggplot(d, aes(Group, !!as.name(FS_or_PFS))) +
-    geom_line(aes(group = `PATIENT ID`), color = "grey") +
-    geom_point(color="grey") +
+  ggplot(d, aes(Stim, !!as.name(FS_or_PFS))) +
+    #geom_line(aes(group = `PATIENT ID`), color = "grey") +
+    geom_quasirandom(fill = "grey", color = "grey", width = 0.1, size = 1.25) +
     geom_segment(data = medians,
                  aes(x=x.min.segment, xend=x.end.segment, y=med, yend=med),
                  inherit.aes=FALSE, size = 1.3) +
     labs(y = if(FS_or_PFS == "FS") {"Functionality Score"} else if(FS_or_PFS == "PFS") {"Polyfunctionality Score"},
          title = sprintf("%s %s",
                          cd4_or_cd8,
-                         current_stim)) +
+                         group)) +
     theme_bw() +
     theme(axis.title.x = element_blank(),
           axis.title.y = element_text(size=20),
@@ -1013,15 +775,14 @@ fs_pfs_plot <- function(FS_or_PFS = "FS", current_stim = "S1", cd4_or_cd8 = "CD4
           legend.position = "none",
           plot.margin = margin(0.3, 0.2, 0.1, 0.2, "cm")) +
     scale_x_discrete(expand = c(0.1, 0.1),
-                     labels = c("Naive PRE" = "Naive\nPRE", "Naive POST" = "Naive\nPOST",
-                                "Conv PRE" = "Conv\nPRE", "Conv POST" = "Conv\nPOST")) + 
+                     labels = c("NCAP", "S1", "S2")) + 
     ggsignif::geom_signif(inherit.aes=F,data=test_results_df,
                           aes_string(xmin="group1.xloc", xmax="group2.xloc",
                                      annotations="p_val_text", y_position="y_pos",
-                                     # https://github.com/const-ae/ggsignif/issues/63
                                      group="geom_signif_group"), # , family="Arial"
-                          tip_length = c(0.005, 0.005),
+                          tip_length = c(0, 0),
                           textsize=5,
+                          size = 0.75,
                           manual = TRUE) +
     coord_cartesian(ylim = c(NA, max(test_results_df$y_pos) + 0.1*diff(range(d %>% dplyr::pull(!!FS_or_PFS)))))
 }
@@ -1190,14 +951,15 @@ split_fs_pfs_plot <- function(FS_or_PFS = "FS", current_stim = "S1",
                                      annotations="p_val_text", y_position="y_pos",
                                      # https://github.com/const-ae/ggsignif/issues/63
                                      group="geom_signif_group"), # , family="Arial"
-                          tip_length = c(0.005, 0.005),
+                          tip_length = c(0, 0),
                           textsize=5,
+                          size = 0.75,
                           manual = TRUE) +
     coord_cartesian(ylim = c(NA, max(test_results_df$y_pos) + 0.1*diff(range(d %>% dplyr::pull(!!FS_or_PFS)))))
   
   if(compare_intra){
     plot + geom_point(color = "grey")
   } else {
-    plot + geom_quasirandom(fill = "grey", color = "grey", width = 0.1)
+    plot + geom_quasirandom(fill = "grey", color = "grey", width = 0.1, size = 1.25)
   }
 }
