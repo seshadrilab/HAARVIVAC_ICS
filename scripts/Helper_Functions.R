@@ -712,7 +712,7 @@ make_boxplot_for_COMPASS_run <- function(cr, subset_keep = NULL, run_name, outpu
 # Show the medians in each group.
 # Note: all p-values unadjusted
 
-fs_pfs_plot <- function(df, FS_or_PFS = "FS", cd4_or_cd8 = "CD4", group = "Naive PRE") {
+fs_pfs_plot <- function(df, FS_or_PFS = "FS", cd4_or_cd8 = "CD4", group = "Naive PRE", fill_colors = NULL, group_by_colname = NULL) {
   d <- df %>% dplyr::filter(parent == cd4_or_cd8 & Group == group)
   
   d_wide <- d %>%  
@@ -755,11 +755,8 @@ fs_pfs_plot <- function(df, FS_or_PFS = "FS", cd4_or_cd8 = "CD4", group = "Naive
            x.end.segment = 1:3 + 0.1)
   
   ggplot(d, aes(Stim, !!as.name(FS_or_PFS))) +
-    #geom_line(aes(group = `PATIENT ID`), color = "grey") +
-    geom_quasirandom(fill = "grey", color = "grey", width = 0.1, size = 1.25) +
-    geom_segment(data = medians,
-                 aes(x=x.min.segment, xend=x.end.segment, y=med, yend=med),
-                 inherit.aes=FALSE, size = 1.3) +
+    geom_boxplot(outlier.shape=NA, position = position_dodge2(preserve = "total")) +
+    geom_quasirandom(size=3, shape = 16, width = 0.3, aes(color=!!as.symbol(group_by_colname))) +
     labs(y = if(FS_or_PFS == "FS") {"Functionality Score"} else if(FS_or_PFS == "PFS") {"Polyfunctionality Score"},
          title = sprintf("%s %s",
                          cd4_or_cd8,
@@ -774,8 +771,9 @@ fs_pfs_plot <- function(df, FS_or_PFS = "FS", cd4_or_cd8 = "CD4", group = "Naive
           panel.grid.major.x = element_blank(),
           legend.position = "none",
           plot.margin = margin(0.3, 0.2, 0.1, 0.2, "cm")) +
-    scale_x_discrete(expand = c(0.1, 0.1),
-                     labels = c("NCAP", "S1", "S2")) + 
+    scale_x_discrete(expand = c(0.15, 0.15),
+                     labels = c("NCAP", "S1", "S2")) +
+    scale_color_manual(values = fill_colors[[group]]) +
     ggsignif::geom_signif(inherit.aes=F,data=test_results_df,
                           aes_string(xmin="group1.xloc", xmax="group2.xloc",
                                      annotations="p_val_text", y_position="y_pos",
@@ -789,11 +787,12 @@ fs_pfs_plot <- function(df, FS_or_PFS = "FS", cd4_or_cd8 = "CD4", group = "Naive
 
 ############################################################################################################################
 
-split_fs_pfs_plot <- function(FS_or_PFS = "FS", current_stim = "S1",
+split_fs_pfs_plot <- function(df, FS_or_PFS = "FS", current_stim = "S1",
                               cd4_or_cd8 = "CD4", compare_naive = FALSE,
                               compare_conv = FALSE, compare_POST = FALSE,
-                              compare_PRE = FALSE, compare_intra = FALSE) {
-  d <- fs_pfs_df %>% 
+                              compare_PRE = FALSE, compare_intra = FALSE,
+                              group_by_colname = NULL, groups_to_compare = NULL, fill_colors = NULL) {
+  d <- df %>% 
     dplyr::filter(Stim == current_stim & parent == cd4_or_cd8)
   d_pre <- d %>% 
     dplyr::filter(Timepoint == "PRE")
@@ -833,14 +832,14 @@ split_fs_pfs_plot <- function(FS_or_PFS = "FS", current_stim = "S1",
                paste0("p=", round(p, 3))
              }
            }),
-           y_pos = c(d %>% dplyr::filter(Group %in% c("Naive PRE", "Naive POST")) %>%
-                       dplyr::pull(!!FS_or_PFS) %>% max() + 0.1*diff(range(d %>% dplyr::pull(!!FS_or_PFS))),
-                     d %>% dplyr::filter(Group %in% c("Conv PRE", "Conv POST")) %>%
-                       dplyr::pull(!!FS_or_PFS) %>% max() + 0.1*diff(range(d %>% dplyr::pull(!!FS_or_PFS))),
-                     d %>% dplyr::filter(Group %in% c("Naive PRE", "Naive POST", "Conv PRE")) %>%
-                       dplyr::pull(!!FS_or_PFS) %>% max() + 0.25*diff(range(d %>% dplyr::pull(!!FS_or_PFS))),
-                     d %>% dplyr::filter(Group %in% c("Naive PRE", "Naive POST", "Conv PRE", "Conv POST")) %>%
-                       dplyr::pull(!!FS_or_PFS) %>% max() + 0.4*diff(range(d %>% dplyr::pull(!!FS_or_PFS)))),
+           # y_pos = c(d %>% dplyr::filter(Group %in% c("Naive PRE", "Naive POST")) %>%
+           #             dplyr::pull(!!FS_or_PFS) %>% max() + 0.1*diff(range(d %>% dplyr::pull(!!FS_or_PFS))),
+           #           d %>% dplyr::filter(Group %in% c("Conv PRE", "Conv POST")) %>%
+           #             dplyr::pull(!!FS_or_PFS) %>% max() + 0.1*diff(range(d %>% dplyr::pull(!!FS_or_PFS))),
+           #           d %>% dplyr::filter(Group %in% c("Naive PRE", "Naive POST", "Conv PRE")) %>%
+           #             dplyr::pull(!!FS_or_PFS) %>% max() + 0.25*diff(range(d %>% dplyr::pull(!!FS_or_PFS))),
+           #           d %>% dplyr::filter(Group %in% c("Naive PRE", "Naive POST", "Conv PRE", "Conv POST")) %>%
+           #             dplyr::pull(!!FS_or_PFS) %>% max() + 0.4*diff(range(d %>% dplyr::pull(!!FS_or_PFS)))),
            geom_signif_group = paste0(group1, group2))
   
   medians <- d %>% group_by(Group, Infection_Status, Timepoint) %>%
@@ -925,11 +924,27 @@ split_fs_pfs_plot <- function(FS_or_PFS = "FS", current_stim = "S1",
       mutate(group2.xloc = replace(group2.xloc, group2.xloc != 2, 2))
   }
   
-  plot <- ggplot(d, aes(Group, !!as.name(FS_or_PFS))) +
-    geom_line(aes(group = `PATIENT ID`), color = "grey") +
-    geom_segment(data = medians,
-                 aes(x=x.min.segment, xend=x.end.segment, y=med, yend=med),
-                 inherit.aes=FALSE, size = 1.3) +
+  if(compare_intra) {
+    plot <- ggplot(d, aes(Group, !!as.name(FS_or_PFS))) +
+      geom_line(aes(group = `PATIENT ID`), color = fill_colors[[groups_to_compare]][1], size = 0.6, alpha = 0.5) +
+      geom_segment(data = medians,
+                   aes(x=x.min.segment, xend=x.end.segment, y=med, yend=med),
+                   inherit.aes=FALSE, size = 1) +
+      geom_point(size = 3, shape = 21, stroke = 1.5, aes(fill=!!as.symbol(group_by_colname), color=!!as.symbol(group_by_colname))) +
+      scale_color_manual(values = fill_colors[[groups_to_compare]]) +
+      scale_fill_manual(values = ggplot2::alpha(fill_colors[[groups_to_compare]], 0.3)) +
+      scale_x_discrete(expand = c(0.1, 0.1),
+                       labels = group_lab) 
+  } else {
+    plot <- ggplot(d, aes(Group, !!as.name(FS_or_PFS))) +
+      geom_boxplot(outlier.shape=NA, position = position_dodge2(preserve = "total")) +
+      geom_quasirandom(size=3, shape = 16, width = 0.3, aes(color=!!as.symbol(group_by_colname))) +
+      scale_color_manual(values = fill_colors[[groups_to_compare]]) +
+      scale_x_discrete(expand = c(0.3, 0.3),
+                       labels = group_lab) 
+  }
+  
+  plot <- plot +
     labs(y = if(FS_or_PFS == "FS") {"Functionality Score"} else if(FS_or_PFS == "PFS") {"Polyfunctionality Score"},
          title = sprintf("%s %s",
                          cd4_or_cd8,
@@ -943,23 +958,22 @@ split_fs_pfs_plot <- function(FS_or_PFS = "FS", current_stim = "S1",
           # panel.grid = element_blank(),
           panel.grid.major.x = element_blank(),
           legend.position = "none",
-          plot.margin = margin(0.3, 0.2, 0.1, 0.2, "cm")) +
-    scale_x_discrete(expand = c(0.1, 0.1),
-                     labels = group_lab) + 
-    ggsignif::geom_signif(inherit.aes=F,data=test_results_df,
-                          aes_string(xmin="group1.xloc", xmax="group2.xloc",
-                                     annotations="p_val_text", y_position="y_pos",
-                                     # https://github.com/const-ae/ggsignif/issues/63
-                                     group="geom_signif_group"), # , family="Arial"
-                          tip_length = c(0, 0),
-                          textsize=5,
-                          size = 0.75,
-                          manual = TRUE) +
-    coord_cartesian(ylim = c(NA, max(test_results_df$y_pos) + 0.1*diff(range(d %>% dplyr::pull(!!FS_or_PFS)))))
+          plot.margin = margin(0.3, 0.2, 0.1, 0.2, "cm")) #+
+    # ggsignif::geom_signif(inherit.aes=F,data=test_results_df,
+    #                       aes_string(xmin="group1.xloc", xmax="group2.xloc",
+    #                                  annotations="p_val_text", y_position="y_pos",
+    #                                  # https://github.com/const-ae/ggsignif/issues/63
+    #                                  group="geom_signif_group"), # , family="Arial"
+    #                       tip_length = c(0, 0),
+    #                       textsize=5,
+    #                       size = 0.75,
+    #                       manual = TRUE) +
+    #coord_cartesian(ylim = c(NA, max(test_results_df$y_pos) + 0.1*diff(range(d %>% dplyr::pull(!!FS_or_PFS)))))
   
-  if(compare_intra){
-    plot + geom_point(color = "grey")
-  } else {
-    plot + geom_quasirandom(fill = "grey", color = "grey", width = 0.1, size = 1.25)
-  }
+  plot_ylims <- ggplot_build(plot)$layout$panel_params[[1]]$y.range
+  
+  plot <- plot + 
+    annotate("text", x = 1.5, y = plot_ylims[2] + 0.01*diff(plot_ylims),
+             label = test_results_df$p_val_text, size=5.5) +
+    coord_cartesian(ylim = c(plot_ylims[[1]], plot_ylims[[2]] + 0.09*diff(plot_ylims)))
 }
