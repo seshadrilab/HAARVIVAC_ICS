@@ -107,7 +107,7 @@ First, set cytokine order and colors for labels.
 
 ```{r}
 cytokine_order_for_annotation = c("CD154", "IL2", "TNFa", "CD107a", "IL4_5_13", "IL17a", "IFNg")
-cytokine_row_name_text = c("CD154", "IL-2", paste0("TNF", "\U03B1"), "CD107a", "IL-4/5/13", "IL17a", paste0("IFN", "\U03B3")) # make sure this is in the same order as "cytokine_order_for_annotation"
+cytokine_row_name_text = c("CD154", "IL-2", paste0("TNF", "\U03B1"), "CD107a", "IL-4/5/13", "IL-17a", paste0("IFN", "\U03B3")) # make sure this is in the same order as "cytokine_order_for_annotation"
 group_colors <- c("Naive PRE" = "#54A8E1", "Naive POST" = "#196293", "Conv PRE" = "#EB4D4F", "Conv POST" = "#9D1213")
 stim_colors <- c("S1" = "#8dd3c7", "S2" = "#ffffb3", "NCAP" = "#bebada") 
 row_ann_colors <- list(`Stim` = stim_colors, `Group` = group_colors)
@@ -225,7 +225,7 @@ Note: all p-values are unadjusted.
 ```{r}
 # Set cytokine order and colors for labels
 cytokine_order_for_annotation = c("CD154", "IL2", "TNFa", "CD107a", "IL4_5_13", "IL17a", "IFNg")
-cytokine_row_name_text = c("CD154", "IL-2", paste0("TNF", "\U03B1"), "CD107a", "IL-4/5/13", "IL17a", paste0("IFN", "\U03B3")) # make sure this is in the same order as "cytokine_order_for_annotation"
+cytokine_row_name_text = c("CD154", "IL-2", paste0("TNF", "\U03B1"), "CD107a", "IL-4/5/13", "IL-17a", paste0("IFN", "\U03B3")) # make sure this is in the same order as "cytokine_order_for_annotation"
 naive_group_colors <- c("Naive PRE" = "#54A8E1", "Naive POST" = "#196293")
 conv_group_colors <- c("Conv PRE" = "#EB4D4F", "Conv POST" = "#9D1213")
 ```
@@ -408,7 +408,7 @@ Note: all p-values are unadjusted.
 ```{r}
 # Set cytokine order and colors for labels
 cytokine_order_for_annotation = c("CD154", "IL2", "TNFa", "CD107a", "IL4_5_13", "IL17a", "IFNg")
-cytokine_row_name_text = c("CD154", "IL-2", paste0("TNF", "\U03B1"), "CD107a", "IL-4/5/13", "IL17a", paste0("IFN", "\U03B3")) # make sure this is in the same order as "cytokine_order_for_annotation"
+cytokine_row_name_text = c("CD154", "IL-2", paste0("TNF", "\U03B1"), "CD107a", "IL-4/5/13", "IL-17a", paste0("IFN", "\U03B3")) # make sure this is in the same order as "cytokine_order_for_annotation"
 pre_group_colors <- c("Naive PRE" = "#54A8E1", "Conv PRE" = "#EB4D4F")
 ```
 
@@ -508,7 +508,7 @@ Note: all p-values are unadjusted.
 ```{r}
 # Set cytokine order and colors for labels
 cytokine_order_for_annotation = c("CD154", "IL2", "TNFa", "CD107a", "IL4_5_13", "IL17a", "IFNg")
-cytokine_row_name_text = c("CD154", "IL-2", paste0("TNF", "\U03B1"), "CD107a", "IL-4/5/13", "IL17a", paste0("IFN", "\U03B3")) # make sure this is in the same order as "cytokine_order_for_annotation"
+cytokine_row_name_text = c("CD154", "IL-2", paste0("TNF", "\U03B1"), "CD107a", "IL-4/5/13", "IL-17a", paste0("IFN", "\U03B3")) # make sure this is in the same order as "cytokine_order_for_annotation"
 post_group_colors <- c("Naive POST" = "#196293", "Conv POST" = "#9D1213")
 ```
 
@@ -764,123 +764,59 @@ if(save_output) {
 
 ```{r save boxplots pdf}
 if(save_output) {
-  cairo_pdf(file=here::here("out/post_compass_plots/magnitude_plots/CD4_naive_s1_boxplot.pdf"), width=10, height=7,
+  cairo_pdf(file=here::here("out/post_compass_plots/magnitude_plots/CD4_naive_boxplots.pdf"), width=10, height=7,
         onefile = TRUE, bg = "transparent", family = "Arial") # default unit is inches, default font is Helvetica.
   print(grid.draw(cd4_naive_bg_corr_boxplots[["CD4_S1"]]$Plot))
-  dev.off()
-  
-  cairo_pdf(file=here::here("out/post_compass_plots/magnitude_plots/CD4_naive_s2_boxplot.pdf"), width=10, height=7,
-        onefile = TRUE, bg = "transparent", family = "Arial") # default unit is inches, default font is Helvetica
   print(grid.draw(cd4_naive_bg_corr_boxplots[["CD4_S2"]]$Plot))
-  dev.off()
-  
-  cairo_pdf(file=here::here("out/post_compass_plots/magnitude_plots/CD4_naive_ncap_boxplot.pdf"), width=10, height=7,
-        onefile = TRUE, bg = "transparent", family = "Arial") # default unit is inches, default font is Helvetica
   print(grid.draw(cd4_naive_bg_corr_boxplots[["CD4_NCAP"]]$Plot))
   dev.off()
   
-    cairo_pdf(file=here::here("out/post_compass_plots/magnitude_plots/CD4_conv_s1_boxplot.pdf"), width=10, height=7,
+    cairo_pdf(file=here::here("out/post_compass_plots/magnitude_plots/CD4_conv_boxplots.pdf"), width=10, height=7,
         onefile = TRUE, bg = "transparent", family = "Arial") # default unit is inches, default font is Helvetica.
   print(grid.draw(cd4_conv_bg_corr_boxplots[["CD4_S1"]]$Plot))
-  dev.off()
-  
-  cairo_pdf(file=here::here("out/post_compass_plots/magnitude_plots/CD4_conv_s2_boxplot.pdf"), width=10, height=7,
-        onefile = TRUE, bg = "transparent", family = "Arial") # default unit is inches, default font is Helvetica
   print(grid.draw(cd4_conv_bg_corr_boxplots[["CD4_S2"]]$Plot))
-  dev.off()
-  
-  cairo_pdf(file=here::here("out/post_compass_plots/magnitude_plots/CD4_conv_ncap_boxplot.pdf"), width=10, height=7,
-        onefile = TRUE, bg = "transparent", family = "Arial") # default unit is inches, default font is Helvetica
   print(grid.draw(cd4_conv_bg_corr_boxplots[["CD4_NCAP"]]$Plot))
   dev.off()
   
-    cairo_pdf(file=here::here("out/post_compass_plots/magnitude_plots/CD8_naive_s1_boxplot.pdf"), width=10, height=7,
+    cairo_pdf(file=here::here("out/post_compass_plots/magnitude_plots/CD8_naive_boxplots.pdf"), width=10, height=7,
         onefile = TRUE, bg = "transparent", family = "Arial") # default unit is inches, default font is Helvetica.
   print(grid.draw(cd8_naive_bg_corr_boxplots[["CD8_S1"]]$Plot))
-  dev.off()
-  
-  cairo_pdf(file=here::here("out/post_compass_plots/magnitude_plots/CD8_naive_s2_boxplot.pdf"), width=10, height=7,
-        onefile = TRUE, bg = "transparent", family = "Arial") # default unit is inches, default font is Helvetica
   print(grid.draw(cd8_naive_bg_corr_boxplots[["CD8_S2"]]$Plot))
-  dev.off()
-  
-  cairo_pdf(file=here::here("out/post_compass_plots/magnitude_plots/CD8_naive_ncap_boxplot.pdf"), width=10, height=7,
-        onefile = TRUE, bg = "transparent", family = "Arial") # default unit is inches, default font is Helvetica
   print(grid.draw(cd8_naive_bg_corr_boxplots[["CD8_NCAP"]]$Plot))
   dev.off()
   
-    cairo_pdf(file=here::here("out/post_compass_plots/magnitude_plots/CD8_conv_s1_boxplot.pdf"), width=10, height=7,
+    cairo_pdf(file=here::here("out/post_compass_plots/magnitude_plots/CD8_conv_boxplots.pdf"), width=10, height=7,
         onefile = TRUE, bg = "transparent", family = "Arial") # default unit is inches, default font is Helvetica.
   print(grid.draw(cd8_conv_bg_corr_boxplots[["CD8_S1"]]$Plot))
-  dev.off()
-  
-  cairo_pdf(file=here::here("out/post_compass_plots/magnitude_plots/CD8_conv_s2_boxplot.pdf"), width=10, height=7,
-        onefile = TRUE, bg = "transparent", family = "Arial") # default unit is inches, default font is Helvetica
   print(grid.draw(cd8_conv_bg_corr_boxplots[["CD8_S2"]]$Plot))
-  dev.off()
-  
-  cairo_pdf(file=here::here("out/post_compass_plots/magnitude_plots/CD8_conv_ncap_boxplot.pdf"), width=10, height=7,
-        onefile = TRUE, bg = "transparent", family = "Arial") # default unit is inches, default font is Helvetica
   print(grid.draw(cd8_conv_bg_corr_boxplots[["CD8_NCAP"]]$Plot))
   dev.off()
-  
-    cairo_pdf(file=here::here("out/post_compass_plots/magnitude_plots/CD4_pre_s1_boxplot.pdf"), width=10, height=7,
+
+    cairo_pdf(file=here::here("out/post_compass_plots/magnitude_plots/CD4_pre_boxplots.pdf"), width=10, height=7,
         onefile = TRUE, bg = "transparent", family = "Arial") # default unit is inches, default font is Helvetica.
   print(grid.draw(cd4_pre_bg_corr_boxplots[["CD4_S1"]]$Plot))
-  dev.off()
-  
-  cairo_pdf(file=here::here("out/post_compass_plots/magnitude_plots/CD4_pre_s2_boxplot.pdf"), width=10, height=7,
-        onefile = TRUE, bg = "transparent", family = "Arial") # default unit is inches, default font is Helvetica
   print(grid.draw(cd4_pre_bg_corr_boxplots[["CD4_S2"]]$Plot))
-  dev.off()
-  
-  cairo_pdf(file=here::here("out/post_compass_plots/magnitude_plots/CD4_pre_ncap_boxplot.pdf"), width=10, height=7,
-        onefile = TRUE, bg = "transparent", family = "Arial") # default unit is inches, default font is Helvetica
   print(grid.draw(cd4_pre_bg_corr_boxplots[["CD4_NCAP"]]$Plot))
   dev.off()
   
-    cairo_pdf(file=here::here("out/post_compass_plots/magnitude_plots/CD8_pre_s1_boxplot.pdf"), width=10, height=7,
+    cairo_pdf(file=here::here("out/post_compass_plots/magnitude_plots/CD8_pre_boxplots.pdf"), width=10, height=7,
         onefile = TRUE, bg = "transparent", family = "Arial") # default unit is inches, default font is Helvetica.
   print(grid.draw(cd8_pre_bg_corr_boxplots[["CD8_S1"]]$Plot))
-  dev.off()
-  
-  cairo_pdf(file=here::here("out/post_compass_plots/magnitude_plots/CD8_pre_s2_boxplot.pdf"), width=10, height=7,
-        onefile = TRUE, bg = "transparent", family = "Arial") # default unit is inches, default font is Helvetica
   print(grid.draw(cd8_pre_bg_corr_boxplots[["CD8_S2"]]$Plot))
-  dev.off()
-  
-  cairo_pdf(file=here::here("out/post_compass_plots/magnitude_plots/CD8_pre_ncap_boxplot.pdf"), width=10, height=7,
-        onefile = TRUE, bg = "transparent", family = "Arial") # default unit is inches, default font is Helvetica
   print(grid.draw(cd8_pre_bg_corr_boxplots[["CD8_NCAP"]]$Plot))
   dev.off()
   
-      cairo_pdf(file=here::here("out/post_compass_plots/magnitude_plots/CD4_post_s1_boxplot.pdf"), width=10, height=7,
+      cairo_pdf(file=here::here("out/post_compass_plots/magnitude_plots/CD4_post_boxplot.pdf"), width=10, height=7,
         onefile = TRUE, bg = "transparent", family = "Arial") # default unit is inches, default font is Helvetica.
   print(grid.draw(cd4_post_bg_corr_boxplots[["CD4_S1"]]$Plot))
-  dev.off()
-  
-  cairo_pdf(file=here::here("out/post_compass_plots/magnitude_plots/CD4_post_s2_boxplot.pdf"), width=10, height=7,
-        onefile = TRUE, bg = "transparent", family = "Arial") # default unit is inches, default font is Helvetica
   print(grid.draw(cd4_post_bg_corr_boxplots[["CD4_S2"]]$Plot))
-  dev.off()
-  
-  cairo_pdf(file=here::here("out/post_compass_plots/magnitude_plots/CD4_post_ncap_boxplot.pdf"), width=10, height=7,
-        onefile = TRUE, bg = "transparent", family = "Arial") # default unit is inches, default font is Helvetica
   print(grid.draw(cd4_post_bg_corr_boxplots[["CD4_NCAP"]]$Plot))
   dev.off()
   
-    cairo_pdf(file=here::here("out/post_compass_plots/magnitude_plots/CD8_post_s1_boxplot.pdf"), width=10, height=7,
+    cairo_pdf(file=here::here("out/post_compass_plots/magnitude_plots/CD8_post_boxplot.pdf"), width=10, height=7,
         onefile = TRUE, bg = "transparent", family = "Arial") # default unit is inches, default font is Helvetica.
   print(grid.draw(cd8_post_bg_corr_boxplots[["CD8_S1"]]$Plot))
-  dev.off()
-  
-  cairo_pdf(file=here::here("out/post_compass_plots/magnitude_plots/CD8_post_s2_boxplot.pdf"), width=10, height=7,
-        onefile = TRUE, bg = "transparent", family = "Arial") # default unit is inches, default font is Helvetica
   print(grid.draw(cd8_post_bg_corr_boxplots[["CD8_S2"]]$Plot))
-  dev.off()
-  
-  cairo_pdf(file=here::here("out/post_compass_plots/magnitude_plots/CD8_post_ncap_boxplot.pdf"), width=10, height=7,
-        onefile = TRUE, bg = "transparent", family = "Arial") # default unit is inches, default font is Helvetica
   print(grid.draw(cd8_post_bg_corr_boxplots[["CD8_NCAP"]]$Plot))
   dev.off()
 }
