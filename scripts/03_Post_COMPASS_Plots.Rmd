@@ -38,13 +38,12 @@ library(purrr)
 library(flowWorkspace)
 library(GGally)
 library(patchwork)
-library(RColorBrewer)
 library(ComplexHeatmap)
 library(ggbeeswarm)
 source(here::here("scripts/Helper_Functions.R"))
 ```
 
-# Font and colors
+# Set font
 
 ```{r}
 save_output <- TRUE
@@ -57,12 +56,8 @@ Arial <- Type1Font(family = "Arial",
 windowsFonts("Arial" = windowsFont("Arial"))
 pdfFonts(Arial = Arial)
 
-display.brewer.pal(n = 12, name = 'Paired')
-dev.off()
-brewer.pal(n = 12, name = 'Paired')
-brewer.pal(n = 12, name = 'Paired')[c(1:2, 5:6)]
-# Naive PRE is light blue, Naive POST is dark blue. "#A6CEE3" "#1F78B4"
-# Conv PRE is light red, Conv POST is dark red "#FB9A99" "#E31A1C"
+# Naive PRE is light blue, Naive POST is dark blue. "#54A8E1" "#196293"
+# Conv PRE is light red, Conv POST is dark red "#EB4D4F" "#9D1213"
 ```
 
 # Read in data
@@ -113,7 +108,7 @@ First, set cytokine order and colors for labels.
 ```{r}
 cytokine_order_for_annotation = c("CD154", "IL2", "TNFa", "CD107a", "IL4_5_13", "IL17a", "IFNg")
 cytokine_row_name_text = c("CD154", "IL-2", paste0("TNF", "\U03B1"), "CD107a", "IL-4/5/13", "IL17a", paste0("IFN", "\U03B3")) # make sure this is in the same order as "cytokine_order_for_annotation"
-group_colors <- c("Naive PRE" = "#A6CEE3", "Naive POST" = "#1F78B4", "Conv PRE" = "#FB9A99", "Conv POST" = "#E31A1C")
+group_colors <- c("Naive PRE" = "#54A8E1", "Naive POST" = "#196293", "Conv PRE" = "#EB4D4F", "Conv POST" = "#9D1213")
 stim_colors <- c("S1" = "#8dd3c7", "S2" = "#ffffb3", "NCAP" = "#bebada") 
 row_ann_colors <- list(`Stim` = stim_colors, `Group` = group_colors)
 
@@ -122,7 +117,7 @@ mergeMatricesForPlotCOMPASSResultStack_tmp <- utils::getFromNamespace("mergeMatr
 
 ## CD4
 
-```{r, fig.width=9, fig.height=8}
+```{r, fig.width=7, fig.height=8}
 # CD4 runs
 cd4_data2plot <- mergeMatricesForPlotCOMPASSResultStack_tmp(crList[CD4RunNames],
                                    threshold=0.01,
@@ -175,7 +170,7 @@ draw(cd4_conv_heatmap, gap = unit(0.1, "in"), merge_legends = T)
 
 ## CD8
 
-```{r, fig.width=9, fig.height=8}
+```{r, fig.width=7, fig.height=8}
 cd8_data2plot <- mergeMatricesForPlotCOMPASSResultStack_tmp(crList[CD8RunNames],
                                    threshold=0.01,
                                    minimum_dof=1,
@@ -231,8 +226,8 @@ Note: all p-values are unadjusted.
 # Set cytokine order and colors for labels
 cytokine_order_for_annotation = c("CD154", "IL2", "TNFa", "CD107a", "IL4_5_13", "IL17a", "IFNg")
 cytokine_row_name_text = c("CD154", "IL-2", paste0("TNF", "\U03B1"), "CD107a", "IL-4/5/13", "IL17a", paste0("IFN", "\U03B3")) # make sure this is in the same order as "cytokine_order_for_annotation"
-naive_group_colors <- c("Naive PRE" = "#A6CEE3", "Naive POST" = "#1F78B4")
-conv_group_colors <- c("Conv PRE" = "#FB9A99", "Conv POST" = "#E31A1C")
+naive_group_colors <- c("Naive PRE" = "#54A8E1", "Naive POST" = "#196293")
+conv_group_colors <- c("Conv PRE" = "#EB4D4F", "Conv POST" = "#9D1213")
 ```
 
 ## CD4 
@@ -300,27 +295,27 @@ if(save_output) {
 }
 ```
 
-```{r, fig.width=10, fig.height=8}
+```{r, fig.width=10, fig.height=7}
 grid.draw(cd4_naive_bg_corr_boxplots[["CD4_S1"]]$Plot)
 ```
 
-```{r, fig.width=10, fig.height=8}
+```{r, fig.width=10, fig.height=7}
 grid.draw(cd4_conv_bg_corr_boxplots[["CD4_S1"]]$Plot)
 ```
 
-```{r, fig.width=10, fig.height=8}
+```{r, fig.width=10, fig.height=7}
 grid.draw(cd4_naive_bg_corr_boxplots[["CD4_S2"]]$Plot)
 ```
 
-```{r, fig.width=10, fig.height=8}
+```{r, fig.width=10, fig.height=7}
 grid.draw(cd4_conv_bg_corr_boxplots[["CD4_S2"]]$Plot)
 ```
 
-```{r, fig.width=10, fig.height=8}
+```{r, fig.width=10, fig.height=7}
 grid.draw(cd4_naive_bg_corr_boxplots[["CD4_NCAP"]]$Plot)
 ```
 
-```{r, fig.width=10, fig.height=8}
+```{r, fig.width=10, fig.height=7}
 grid.draw(cd4_conv_bg_corr_boxplots[["CD4_NCAP"]]$Plot)
 ```
 
@@ -382,27 +377,27 @@ cd8_conv_bg_corr_boxplots <- pmap(.l = list(CD8RunNames,
 names(cd8_conv_bg_corr_boxplots) <- CD8RunNames
 ```
 
-```{r, fig.width=10, fig.height=8}
+```{r, fig.width=10, fig.height=7}
 grid.draw(cd8_naive_bg_corr_boxplots[["CD8_S1"]]$Plot)
 ```
 
-```{r, fig.width=10, fig.height=8}
+```{r, fig.width=10, fig.height=7}
 grid.draw(cd8_conv_bg_corr_boxplots[["CD8_S1"]]$Plot)
 ```
 
-```{r, fig.width=10, fig.height=8}
+```{r, fig.width=10, fig.height=7}
 grid.draw(cd8_naive_bg_corr_boxplots[["CD8_S2"]]$Plot)
 ```
 
-```{r, fig.width=10, fig.height=8}
+```{r, fig.width=10, fig.height=7}
 grid.draw(cd8_conv_bg_corr_boxplots[["CD8_S2"]]$Plot)
 ```
 
-```{r, fig.width=10, fig.height=8}
+```{r, fig.width=10, fig.height=7}
 grid.draw(cd8_naive_bg_corr_boxplots[["CD8_NCAP"]]$Plot)
 ```
 
-```{r, fig.width=10, fig.height=8}
+```{r, fig.width=10, fig.height=7}
 grid.draw(cd8_conv_bg_corr_boxplots[["CD8_NCAP"]]$Plot)
 ```
 
@@ -414,7 +409,7 @@ Note: all p-values are unadjusted.
 # Set cytokine order and colors for labels
 cytokine_order_for_annotation = c("CD154", "IL2", "TNFa", "CD107a", "IL4_5_13", "IL17a", "IFNg")
 cytokine_row_name_text = c("CD154", "IL-2", paste0("TNF", "\U03B1"), "CD107a", "IL-4/5/13", "IL17a", paste0("IFN", "\U03B3")) # make sure this is in the same order as "cytokine_order_for_annotation"
-pre_group_colors <- c("Naive PRE" = "#A6CEE3", "Conv PRE" = "#FB9A99")
+pre_group_colors <- c("Naive PRE" = "#54A8E1", "Conv PRE" = "#EB4D4F")
 ```
 
 ## CD4
@@ -451,15 +446,15 @@ if(save_output) {
 }
 ```
 
-```{r, fig.width=10, fig.height=8}
+```{r, fig.width=10, fig.height=7}
 grid.draw(cd4_pre_bg_corr_boxplots[["CD4_S1"]]$Plot)
 ```
 
-```{r, fig.width=10, fig.height=8}
+```{r, fig.width=10, fig.height=7}
 grid.draw(cd4_pre_bg_corr_boxplots[["CD4_S2"]]$Plot)
 ```
 
-```{r, fig.width=10, fig.height=8}
+```{r, fig.width=10, fig.height=7}
 grid.draw(cd4_pre_bg_corr_boxplots[["CD4_NCAP"]]$Plot)
 ```
 
@@ -494,15 +489,15 @@ cd8_pre_bg_corr_boxplots <- pmap(.l = list(CD8RunNames,
 names(cd8_pre_bg_corr_boxplots) <- CD8RunNames
 ```
 
-```{r, fig.width=10, fig.height=8}
+```{r, fig.width=10, fig.height=7}
 grid.draw(cd8_pre_bg_corr_boxplots[["CD8_S1"]]$Plot)
 ```
 
-```{r, fig.width=10, fig.height=8}
+```{r, fig.width=10, fig.height=7}
 grid.draw(cd8_pre_bg_corr_boxplots[["CD8_S2"]]$Plot)
 ```
 
-```{r, fig.width=10, fig.height=8}
+```{r, fig.width=10, fig.height=7}
 grid.draw(cd8_pre_bg_corr_boxplots[["CD8_NCAP"]]$Plot)
 ```
 
@@ -514,7 +509,7 @@ Note: all p-values are unadjusted.
 # Set cytokine order and colors for labels
 cytokine_order_for_annotation = c("CD154", "IL2", "TNFa", "CD107a", "IL4_5_13", "IL17a", "IFNg")
 cytokine_row_name_text = c("CD154", "IL-2", paste0("TNF", "\U03B1"), "CD107a", "IL-4/5/13", "IL17a", paste0("IFN", "\U03B3")) # make sure this is in the same order as "cytokine_order_for_annotation"
-post_group_colors <- c("Naive POST" = "#1F78B4", "Conv POST" = "#E31A1C")
+post_group_colors <- c("Naive POST" = "#196293", "Conv POST" = "#9D1213")
 ```
 
 ## CD4
@@ -548,15 +543,15 @@ cd4_post_bg_corr_boxplots <- pmap(.l = list(CD4RunNames,
 names(cd4_post_bg_corr_boxplots) <- CD4RunNames
 ```
 
-```{r, fig.width=10, fig.height=8}
+```{r, fig.width=10, fig.height=7}
 grid.draw(cd4_post_bg_corr_boxplots[["CD4_S1"]]$Plot)
 ```
 
-```{r, fig.width=10, fig.height=8}
+```{r, fig.width=10, fig.height=7}
 grid.draw(cd4_post_bg_corr_boxplots[["CD4_S2"]]$Plot)
 ```
 
-```{r, fig.width=10, fig.height=8}
+```{r, fig.width=10, fig.height=7}
 grid.draw(cd4_post_bg_corr_boxplots[["CD4_NCAP"]]$Plot)
 ```
 
@@ -591,15 +586,15 @@ cd8_post_bg_corr_boxplots <- pmap(.l = list(CD8RunNames,
 names(cd8_post_bg_corr_boxplots) <- CD8RunNames
 ```
 
-```{r, fig.width=10, fig.height=8}
+```{r, fig.width=10, fig.height=7}
 grid.draw(cd8_post_bg_corr_boxplots[["CD8_S1"]]$Plot)
 ```
 
-```{r, fig.width=10, fig.height=8}
+```{r, fig.width=10, fig.height=7}
 grid.draw(cd8_post_bg_corr_boxplots[["CD8_S2"]]$Plot)
 ```
 
-```{r, fig.width=10, fig.height=8}
+```{r, fig.width=10, fig.height=7}
 grid.draw(cd8_post_bg_corr_boxplots[["CD8_NCAP"]]$Plot)
 ```
 
@@ -644,6 +639,17 @@ if(save_output) {
 }
 ```
 
+Set colors 
+
+```{r}
+fill_colors <- list("Naive" = c("Naive PRE" = "#54A8E1", "Naive POST" = "#196293"),
+                    "Conv" = c("Conv PRE" = "#EB4D4F", "Conv POST" = "#9D1213"),
+                    "PRE" = c("Naive PRE" = "#54A8E1", "Conv PRE" = "#EB4D4F"),
+                    "POST" = c("Naive POST" = "#196293", "Conv POST" = "#9D1213"),
+                    "Naive PRE" = c("Naive PRE" = "#54A8E1"),
+                    "Conv PRE" = c("Conv PRE" = "#EB4D4F"))
+```
+
 Use Wilcoxon signed-rank test to compare across stims within a donor. 
 Show the medians in each group.
 Note: all p-values are unadjusted.
@@ -651,26 +657,28 @@ Note: all p-values are unadjusted.
 ## FS Plots
 
 ```{r}
-naive_pre_fs_plot <- fs_pfs_plot(df = fs_pfs_df, FS_or_PFS = "FS", cd4_or_cd8 = "CD4", group = "Naive PRE")
+naive_pre_fs_plot <- fs_pfs_plot(df = fs_pfs_df, FS_or_PFS = "FS", cd4_or_cd8 = "CD4",
+                                 group = "Naive PRE", fill_colors = fill_colors, group_by_colname = "Group")
 naive_pre_fs_plot
 
-conv_pre_fs_plot <- fs_pfs_plot(df = fs_pfs_df, FS_or_PFS = "FS", cd4_or_cd8 = "CD4", group = "Conv PRE")
+conv_pre_fs_plot <- fs_pfs_plot(df = fs_pfs_df, FS_or_PFS = "FS", cd4_or_cd8 = "CD4", 
+                                group = "Conv PRE", fill_colors = fill_colors, group_by_colname = "Group")
 conv_pre_fs_plot
 ```
 
 ## PFS Plots
 
 ```{r}
-naive_pre_pfs_plot <- fs_pfs_plot(df = fs_pfs_df, FS_or_PFS = "PFS", cd4_or_cd8 = "CD4", group = "Naive PRE")
+naive_pre_pfs_plot <- fs_pfs_plot(df = fs_pfs_df, FS_or_PFS = "PFS", cd4_or_cd8 = "CD4",
+                                  group = "Naive PRE", fill_colors = fill_colors, group_by_colname = "Group")
 naive_pre_pfs_plot
 
-conv_pre_pfs_plot <- fs_pfs_plot(df = fs_pfs_df, FS_or_PFS = "PFS", cd4_or_cd8 = "CD4", group = "Conv PRE")
+conv_pre_pfs_plot <- fs_pfs_plot(df = fs_pfs_df, FS_or_PFS = "PFS", cd4_or_cd8 = "CD4",
+                                 group = "Conv PRE", fill_colors = fill_colors, group_by_colname = "Group")
 conv_pre_pfs_plot
 ```
 
 # Split FS plots
-
-Same as previous plots, except split up by infection status or timepoint
 
 ## Naive
 
@@ -678,9 +686,8 @@ Same as previous plots, except split up by infection status or timepoint
 n_fs_plots <- pmap(list(rep(c("S1", "S2", "NCAP"), times = 2),
                            rep(c("CD4", "CD8"), each = 3)),
                            function(current_stim, cd4_or_cd8) {
-                             split_fs_pfs_plot("FS", current_stim, cd4_or_cd8,
-                                         compare_naive = TRUE,
-                                         compare_intra = TRUE)
+                             split_fs_pfs_plot(df = fs_pfs_df, "FS", current_stim, cd4_or_cd8, compare_naive = TRUE, compare_intra = TRUE,
+                                               fill_colors = fill_colors, group_by_colname = "Group", groups_to_compare = "Naive")
                            })
 names(n_fs_plots) <- paste0(rep(c("CD4", "CD8"), each = 3), "_", rep(c("S1", "S2", "NCAP"), times = 2))
 n_fs_plots
@@ -692,9 +699,8 @@ n_fs_plots
 c_fs_plots <- pmap(list(rep(c("S1", "S2", "NCAP"), times = 2),
                            rep(c("CD4", "CD8"), each = 3)),
                            function(current_stim, cd4_or_cd8) {
-                             split_fs_pfs_plot("FS", current_stim, cd4_or_cd8,
-                                         compare_conv = TRUE,
-                                         compare_intra = TRUE)
+                             split_fs_pfs_plot(df = fs_pfs_df, "FS", current_stim, cd4_or_cd8, compare_conv = TRUE, compare_intra = TRUE,
+                                               fill_colors = fill_colors, group_by_colname = "Group", groups_to_compare = "Conv")
                            })
 names(c_fs_plots) <- paste0(rep(c("CD4", "CD8"), each = 3), "_", rep(c("S1", "S2", "NCAP"), times = 2))
 c_fs_plots
@@ -706,8 +712,8 @@ c_fs_plots
 pre_fs_plots <- pmap(list(rep(c("S1", "S2", "NCAP"), times = 2),
                            rep(c("CD4", "CD8"), each = 3)),
                            function(current_stim, cd4_or_cd8) {
-                             split_fs_pfs_plot("FS", current_stim, cd4_or_cd8,
-                                         compare_PRE = TRUE)
+                             split_fs_pfs_plot(df = fs_pfs_df, "FS", current_stim, cd4_or_cd8, compare_PRE = TRUE, 
+                                               fill_colors = fill_colors, group_by_colname = "Group", groups_to_compare = "PRE")
                            })
 names(pre_fs_plots) <- paste0(rep(c("CD4", "CD8"), each = 3), "_", rep(c("S1", "S2", "NCAP"), times = 2))
 pre_fs_plots
@@ -719,8 +725,8 @@ pre_fs_plots
 post_fs_plots <- pmap(list(rep(c("S1", "S2", "NCAP"), times = 2),
                            rep(c("CD4", "CD8"), each = 3)),
                            function(current_stim, cd4_or_cd8) {
-                             split_fs_pfs_plot("FS", current_stim, cd4_or_cd8,
-                                         compare_POST = TRUE)
+                             split_fs_pfs_plot(df = fs_pfs_df, "FS", current_stim, cd4_or_cd8, compare_POST = TRUE, 
+                                               fill_colors = fill_colors, group_by_colname = "Group", groups_to_compare = "POST")
                            })
 names(post_fs_plots) <- paste0(rep(c("CD4", "CD8"), each = 3), "_", rep(c("S1", "S2", "NCAP"), times = 2))
 post_fs_plots
@@ -732,22 +738,22 @@ post_fs_plots
 
 ```{r save heatmaps pdf}
 if(save_output) {
-  cairo_pdf(file=here::here("out/post_compass_plots/CD4_naive_COMPASS_Heatmap.pdf"), width=9, height=8,
+  cairo_pdf(file=here::here("out/post_compass_plots/CD4_naive_COMPASS_Heatmap.pdf"), width=7, height=8,
         onefile = TRUE, bg = "transparent", family = "Arial") # default unit is inches, default font is Helvetica.
   print(draw(cd4_naive_heatmap, gap = unit(0.1, "in"), merge_legends = T))
   dev.off()
   
-  cairo_pdf(file=here::here("out/post_compass_plots/CD4_conv_COMPASS_Heatmap.pdf"), width=9, height=8,
+  cairo_pdf(file=here::here("out/post_compass_plots/CD4_conv_COMPASS_Heatmap.pdf"), width=7, height=8,
         onefile = TRUE, bg = "transparent", family = "Arial") # default unit is inches, default font is Helvetica
   print(draw(cd4_conv_heatmap, gap = unit(0.1, "in"), merge_legends = T))
   dev.off()
   
-  cairo_pdf(file=here::here("out/post_compass_plots/CD8_naive_COMPASS_Heatmap.pdf"), width=9, height=8,
+  cairo_pdf(file=here::here("out/post_compass_plots/CD8_naive_COMPASS_Heatmap.pdf"), width=7, height=8,
         onefile = TRUE, bg = "transparent", family = "Arial") # default unit is inches, default font is Helvetica
   print(draw(cd8_naive_heatmap, gap = unit(0.1, "in"), merge_legends = T))
   dev.off()
   
-  cairo_pdf(file=here::here("out/post_compass_plots/CD8_conv_COMPASS_Heatmap.pdf"), width=9, height=8,
+  cairo_pdf(file=here::here("out/post_compass_plots/CD8_conv_COMPASS_Heatmap.pdf"), width=7, height=8,
         onefile = TRUE, bg = "transparent", family = "Arial") # default unit is inches, default font is Helvetica
   print(draw(cd8_conv_heatmap, gap = unit(0.1, "in"), merge_legends = T))
   dev.off()
@@ -884,12 +890,12 @@ if(save_output) {
 
 ```{r save split FS plots pdf}
 if(save_output) {
-  cairo_pdf(file=here::here("out/post_compass_plots/fs_plots/naive_pre_fs_plots.pdf"), width=6, height=5,
+  cairo_pdf(file=here::here("out/post_compass_plots/fs_plots/naive_pre_fs_plots.pdf"), width=7, height=5,
         onefile = TRUE, bg = "transparent", family = "Arial") # default unit is inches, default font is Helvetica.
   print(naive_pre_fs_plot)
   dev.off()
   
-  cairo_pdf(file=here::here("out/post_compass_plots/fs_plots/conv_pre_fs_plots.pdf"), width=6, height=5,
+  cairo_pdf(file=here::here("out/post_compass_plots/fs_plots/conv_pre_fs_plots.pdf"), width=7, height=5,
         onefile = TRUE, bg = "transparent", family = "Arial") # default unit is inches, default font is Helvetica.
   print(conv_pre_fs_plot)
   dev.off()
