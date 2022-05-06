@@ -1062,16 +1062,17 @@ make_mag_plots <- function(counts, compare_time, keep, current_stim,
     labs(title = as.character(current_stim),
          subtitle = subtitle,
          y = y_axis_text)
-  
+    
   if(!is.null(ylim)) {
     current_plot <- current_plot + 
-      scale_y_continuous(limits = ylim)
-  }
-  
-  plot_ylims <- ggplot_build(current_plot)$layout$panel_params[[1]]$y.range
-  
-  current_plot <- current_plot + 
-    annotate("text", x = 1.5, y = plot_ylims[2] + 0.01*diff(plot_ylims),
-             label = test_df$p_val_text, size=5.5) +
-    coord_cartesian(ylim = c(plot_ylims[[1]], plot_ylims[[2]] + 0.09*diff(plot_ylims)))
+      coord_cartesian(ylim = ylim) +
+      annotate("text", x = 1.5, y = ylim[2] - 0.09*diff(ylim),
+               label = test_df$p_val_text, size=5.5)
+  } else {
+    plot_ylims <- ggplot_build(current_plot)$layout$panel_params[[1]]$y.range
+    current_plot <- current_plot + 
+      annotate("text", x = 1.5, y = plot_ylims[2] + 0.01*diff(plot_ylims),
+               label = test_df$p_val_text, size=5.5) +
+      coord_cartesian(ylim = c(plot_ylims[[1]], plot_ylims[[2]] + 0.09*diff(plot_ylims)))
+  } 
 }
