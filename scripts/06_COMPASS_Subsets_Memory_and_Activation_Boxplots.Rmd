@@ -86,10 +86,10 @@ cd4_compass_em_parent <- "/Time/CD3+/CD14-CD19-/Lymphocytes/Singlet/Live/CD4+/CD
 act_counts <- pData(gs) %>%
   tibble::rownames_to_column("rowname") %>%
   left_join(gs_pop_get_count_fast(gs, subpopulations = cd4_compass_act_parent), by = c("rowname" = "name")) %>%
-  dplyr::rename(CD4_PolyF = Count) %>%
-  dplyr::select(rowname, "SAMPLE ID", "EXPERIMENT NAME", "PATIENT ID", Stim, Group, CD4_PolyF, ParentCount) %>%
+  dplyr::rename(Subpop = Count) %>%
+  dplyr::select(rowname, "SAMPLE ID", "EXPERIMENT NAME", "PATIENT ID", Stim, Group, Timepoint, Subpop, ParentCount) %>%
   dplyr::filter(Stim != "SEB") %>%
-  mutate(Freq = (CD4_PolyF/ParentCount)*100) 
+  mutate(Freq = (Subpop/ParentCount)*100) 
 
 # Add infection status column
 i1 <- grepl("H", act_counts$`SAMPLE ID`) 
@@ -99,23 +99,6 @@ act_counts$Infection_Status[i1] <- "Naive"
 act_counts$Infection_Status[i2] <- "Conv"
 act_counts$Infection_Status <- factor(act_counts$Infection_Status, levels = c("Naive", "Conv"))
 
-# Add "Timepoint" column
-i3 <- grepl("-1", act_counts$`SAMPLE ID`) 
-i4 <- grepl("-2", act_counts$`SAMPLE ID`) 
-act_counts$Timepoint <- NULL
-act_counts$Timepoint[i3] <- "PRE"
-act_counts$Timepoint[i4] <- "POST"
-
-# Add column to pData indicating sample group (Naive vs. Conv and PRE vs. POST)
-i5 <- grepl("H", act_counts$`SAMPLE ID`) & grepl("PRE", act_counts$Timepoint)
-i6 <- grepl("H", act_counts$`SAMPLE ID`) & grepl("POST", act_counts$Timepoint)
-i7 <- grepl("C", act_counts$`SAMPLE ID`) & grepl("PRE", act_counts$Timepoint)
-i8 <- grepl("C", act_counts$`SAMPLE ID`) & grepl("POST", act_counts$Timepoint)
-act_counts$Group <- NULL
-act_counts$Group[i5] <- "Naive PRE"
-act_counts$Group[i6] <- "Naive POST"
-act_counts$Group[i7] <- "Conv PRE"
-act_counts$Group[i8] <- "Conv POST"
 act_counts$Group <- factor(act_counts$Group, levels = c("Naive PRE", "Naive POST", "Conv PRE", "Conv POST"))
 ```
 
@@ -125,10 +108,10 @@ act_counts$Group <- factor(act_counts$Group, levels = c("Naive PRE", "Naive POST
 cd38_counts <- pData(gs) %>%
   tibble::rownames_to_column("rowname") %>%
   left_join(gs_pop_get_count_fast(gs, subpopulations = cd4_compass_cd38_parent), by = c("rowname" = "name")) %>%
-  dplyr::rename(CD4_PolyF = Count) %>%
-  dplyr::select(rowname, "SAMPLE ID", "EXPERIMENT NAME", "PATIENT ID", Stim, Group, CD4_PolyF, ParentCount) %>%
+  dplyr::rename(Subpop = Count) %>%
+  dplyr::select(rowname, "SAMPLE ID", "EXPERIMENT NAME", "PATIENT ID", Stim, Group, Timepoint, Subpop, ParentCount) %>%
   dplyr::filter(Stim != "SEB") %>%
-  mutate(Freq = (CD4_PolyF/ParentCount)*100) 
+  mutate(Freq = (Subpop/ParentCount)*100) 
 
 # Add infection status column
 i1 <- grepl("H", cd38_counts$`SAMPLE ID`) 
@@ -138,23 +121,6 @@ cd38_counts$Infection_Status[i1] <- "Naive"
 cd38_counts$Infection_Status[i2] <- "Conv"
 cd38_counts$Infection_Status <- factor(cd38_counts$Infection_Status, levels = c("Naive", "Conv"))
 
-# Add "Timepoint" column
-i3 <- grepl("-1", cd38_counts$`SAMPLE ID`) 
-i4 <- grepl("-2", cd38_counts$`SAMPLE ID`) 
-cd38_counts$Timepoint <- NULL
-cd38_counts$Timepoint[i3] <- "PRE"
-cd38_counts$Timepoint[i4] <- "POST"
-
-# Add column to pData indicating sample group (Naive vs. Conv and PRE vs. POST)
-i5 <- grepl("H", cd38_counts$`SAMPLE ID`) & grepl("PRE", cd38_counts$Timepoint)
-i6 <- grepl("H", cd38_counts$`SAMPLE ID`) & grepl("POST", cd38_counts$Timepoint)
-i7 <- grepl("C", cd38_counts$`SAMPLE ID`) & grepl("PRE", cd38_counts$Timepoint)
-i8 <- grepl("C", cd38_counts$`SAMPLE ID`) & grepl("POST", cd38_counts$Timepoint)
-cd38_counts$Group <- NULL
-cd38_counts$Group[i5] <- "Naive PRE"
-cd38_counts$Group[i6] <- "Naive POST"
-cd38_counts$Group[i7] <- "Conv PRE"
-cd38_counts$Group[i8] <- "Conv POST"
 cd38_counts$Group <- factor(cd38_counts$Group, levels = c("Naive PRE", "Naive POST", "Conv PRE", "Conv POST"))
 ```
 
@@ -164,10 +130,10 @@ cd38_counts$Group <- factor(cd38_counts$Group, levels = c("Naive PRE", "Naive PO
 hladr_counts <- pData(gs) %>%
   tibble::rownames_to_column("rowname") %>%
   left_join(gs_pop_get_count_fast(gs, subpopulations = cd4_compass_hladr_parent), by = c("rowname" = "name")) %>%
-  dplyr::rename(CD4_PolyF = Count) %>%
-  dplyr::select(rowname, "SAMPLE ID", "EXPERIMENT NAME", "PATIENT ID", Stim, Group, CD4_PolyF, ParentCount) %>%
+  dplyr::rename(Subpop = Count) %>%
+  dplyr::select(rowname, "SAMPLE ID", "EXPERIMENT NAME", "PATIENT ID", Stim, Group, Timepoint, Subpop, ParentCount) %>%
   dplyr::filter(Stim != "SEB") %>%
-  mutate(Freq = (CD4_PolyF/ParentCount)*100) 
+  mutate(Freq = (Subpop/ParentCount)*100) 
 
 # Add infection status column
 i1 <- grepl("H", hladr_counts$`SAMPLE ID`) 
@@ -177,23 +143,6 @@ hladr_counts$Infection_Status[i1] <- "Naive"
 hladr_counts$Infection_Status[i2] <- "Conv"
 hladr_counts$Infection_Status <- factor(hladr_counts$Infection_Status, levels = c("Naive", "Conv"))
 
-# Add "Timepoint" column
-i3 <- grepl("-1", hladr_counts$`SAMPLE ID`) 
-i4 <- grepl("-2", hladr_counts$`SAMPLE ID`) 
-hladr_counts$Timepoint <- NULL
-hladr_counts$Timepoint[i3] <- "PRE"
-hladr_counts$Timepoint[i4] <- "POST"
-
-# Add column to pData indicating sample group (Naive vs. Conv and PRE vs. POST)
-i5 <- grepl("H", hladr_counts$`SAMPLE ID`) & grepl("PRE", hladr_counts$Timepoint)
-i6 <- grepl("H", hladr_counts$`SAMPLE ID`) & grepl("POST", hladr_counts$Timepoint)
-i7 <- grepl("C", hladr_counts$`SAMPLE ID`) & grepl("PRE", hladr_counts$Timepoint)
-i8 <- grepl("C", hladr_counts$`SAMPLE ID`) & grepl("POST", hladr_counts$Timepoint)
-hladr_counts$Group <- NULL
-hladr_counts$Group[i5] <- "Naive PRE"
-hladr_counts$Group[i6] <- "Naive POST"
-hladr_counts$Group[i7] <- "Conv PRE"
-hladr_counts$Group[i8] <- "Conv POST"
 hladr_counts$Group <- factor(hladr_counts$Group, levels = c("Naive PRE", "Naive POST", "Conv PRE", "Conv POST"))
 ```
 
@@ -203,10 +152,10 @@ hladr_counts$Group <- factor(hladr_counts$Group, levels = c("Naive PRE", "Naive 
 cm_counts <- pData(gs) %>%
   tibble::rownames_to_column("rowname") %>%
   left_join(gs_pop_get_count_fast(gs, subpopulations = cd4_compass_cm_parent), by = c("rowname" = "name")) %>%
-  dplyr::rename(CD4_PolyF = Count) %>%
-  dplyr::select(rowname, "SAMPLE ID", "EXPERIMENT NAME", "PATIENT ID", Stim, Group, CD4_PolyF, ParentCount) %>%
+  dplyr::rename(Subpop = Count) %>%
+  dplyr::select(rowname, "SAMPLE ID", "EXPERIMENT NAME", "PATIENT ID", Stim, Group, Timepoint, Subpop, ParentCount) %>%
   dplyr::filter(Stim != "SEB") %>%
-  mutate(Freq = (CD4_PolyF/ParentCount)*100) 
+  mutate(Freq = (Subpop/ParentCount)*100) 
 
 # Add infection status column
 i1 <- grepl("H", cm_counts$`SAMPLE ID`) 
@@ -216,23 +165,6 @@ cm_counts$Infection_Status[i1] <- "Naive"
 cm_counts$Infection_Status[i2] <- "Conv"
 cm_counts$Infection_Status <- factor(cm_counts$Infection_Status, levels = c("Naive", "Conv"))
 
-# Add "Timepoint" column
-i3 <- grepl("-1", cm_counts$`SAMPLE ID`) 
-i4 <- grepl("-2", cm_counts$`SAMPLE ID`) 
-cm_counts$Timepoint <- NULL
-cm_counts$Timepoint[i3] <- "PRE"
-cm_counts$Timepoint[i4] <- "POST"
-
-# Add column to pData indicating sample group (Naive vs. Conv and PRE vs. POST)
-i5 <- grepl("H", cm_counts$`SAMPLE ID`) & grepl("PRE", cm_counts$Timepoint)
-i6 <- grepl("H", cm_counts$`SAMPLE ID`) & grepl("POST", cm_counts$Timepoint)
-i7 <- grepl("C", cm_counts$`SAMPLE ID`) & grepl("PRE", cm_counts$Timepoint)
-i8 <- grepl("C", cm_counts$`SAMPLE ID`) & grepl("POST", cm_counts$Timepoint)
-cm_counts$Group <- NULL
-cm_counts$Group[i5] <- "Naive PRE"
-cm_counts$Group[i6] <- "Naive POST"
-cm_counts$Group[i7] <- "Conv PRE"
-cm_counts$Group[i8] <- "Conv POST"
 cm_counts$Group <- factor(cm_counts$Group, levels = c("Naive PRE", "Naive POST", "Conv PRE", "Conv POST"))
 ```
 
@@ -242,10 +174,10 @@ cm_counts$Group <- factor(cm_counts$Group, levels = c("Naive PRE", "Naive POST",
 em_counts <- pData(gs) %>%
   tibble::rownames_to_column("rowname") %>%
   left_join(gs_pop_get_count_fast(gs, subpopulations = cd4_compass_em_parent), by = c("rowname" = "name")) %>%
-  dplyr::rename(CD4_PolyF = Count) %>%
-  dplyr::select(rowname, "SAMPLE ID", "EXPERIMENT NAME", "PATIENT ID", Stim, Group, CD4_PolyF, ParentCount) %>%
+  dplyr::rename(Subpop = Count) %>%
+  dplyr::select(rowname, "SAMPLE ID", "EXPERIMENT NAME", "PATIENT ID", Stim, Group, Timepoint, Subpop, ParentCount) %>%
   dplyr::filter(Stim != "SEB") %>%
-  mutate(Freq = (CD4_PolyF/ParentCount)*100) 
+  mutate(Freq = (Subpop/ParentCount)*100) 
 
 # Add infection status column
 i1 <- grepl("H", em_counts$`SAMPLE ID`) 
@@ -255,23 +187,6 @@ em_counts$Infection_Status[i1] <- "Naive"
 em_counts$Infection_Status[i2] <- "Conv"
 em_counts$Infection_Status <- factor(em_counts$Infection_Status, levels = c("Naive", "Conv"))
 
-# Add "Timepoint" column
-i3 <- grepl("-1", em_counts$`SAMPLE ID`) 
-i4 <- grepl("-2", em_counts$`SAMPLE ID`) 
-em_counts$Timepoint <- NULL
-em_counts$Timepoint[i3] <- "PRE"
-em_counts$Timepoint[i4] <- "POST"
-
-# Add column to pData indicating sample group (Naive vs. Conv and PRE vs. POST)
-i5 <- grepl("H", em_counts$`SAMPLE ID`) & grepl("PRE", em_counts$Timepoint)
-i6 <- grepl("H", em_counts$`SAMPLE ID`) & grepl("POST", em_counts$Timepoint)
-i7 <- grepl("C", em_counts$`SAMPLE ID`) & grepl("PRE", em_counts$Timepoint)
-i8 <- grepl("C", em_counts$`SAMPLE ID`) & grepl("POST", em_counts$Timepoint)
-em_counts$Group <- NULL
-em_counts$Group[i5] <- "Naive PRE"
-em_counts$Group[i6] <- "Naive POST"
-em_counts$Group[i7] <- "Conv PRE"
-em_counts$Group[i8] <- "Conv POST"
 em_counts$Group <- factor(em_counts$Group, levels = c("Naive PRE", "Naive POST", "Conv PRE", "Conv POST"))
 ```
 
