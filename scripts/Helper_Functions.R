@@ -767,7 +767,6 @@ fs_pfs_plot <- function(df, FS_or_PFS = "FS", cd4_or_cd8 = "CD4", group = "Naive
           axis.text.y = element_text(color="black", size=17),
           axis.text.x = element_text(color="black", size=20),
           plot.title = element_text(hjust = 0.5, size=21),
-          # panel.grid = element_blank(),
           panel.grid.major.x = element_blank(),
           legend.position = "none",
           plot.margin = margin(0.3, 0.2, 0.1, 0.2, "cm")) +
@@ -955,10 +954,11 @@ split_fs_pfs_plot <- function(df, FS_or_PFS = "FS", current_stim = "S1",
           axis.text.y = element_text(color="black", size=17),
           axis.text.x = element_text(color="black", size=20),
           plot.title = element_text(hjust = 0.5, size=21),
-          # panel.grid = element_blank(),
           panel.grid.major.x = element_blank(),
           legend.position = "none",
-          plot.margin = margin(0.3, 0.2, 0.1, 0.2, "cm")) #+
+          plot.margin = margin(0.3, 0.2, 0.1, 0.2, "cm")) +
+    force_panelsizes(rows = unit(4, "in"),
+                     cols = unit(3, "in"))
     # ggsignif::geom_signif(inherit.aes=F,data=test_results_df,
     #                       aes_string(xmin="group1.xloc", xmax="group2.xloc",
     #                                  annotations="p_val_text", y_position="y_pos",
@@ -984,7 +984,8 @@ split_fs_pfs_plot <- function(df, FS_or_PFS = "FS", current_stim = "S1",
 
 make_mag_plots <- function(counts, compare_time, keep, current_stim,
                            groups_to_compare, paired, fill_colors,
-                           group_by_colname, subtitle, ylim = NULL, y_axis_text) {
+                           group_by_colname, subtitle, ylim = NULL, y_axis_text,
+                           y_axis_size, axis_break = NULL) {
   if(compare_time) {
     counts <- counts %>%
       dplyr::filter(Infection_Status == keep & Stim == current_stim)
@@ -1050,18 +1051,19 @@ make_mag_plots <- function(counts, compare_time, keep, current_stim,
     theme_bw() +
     theme(text = element_text(family="Arial"),
           axis.title.x = element_blank(),
-          axis.title.y = element_text(size=15),
+          axis.title.y = element_text(size = y_axis_size),
           axis.text.y = element_text(color="black", size=17),
           axis.text.x = element_text(color="black", size=20),
           plot.title = element_text(hjust = 0.5, size=21),
           plot.subtitle = element_text(hjust = 0.5, size=13),
-          # panel.grid = element_blank(),
           panel.grid.major.x = element_blank(),
           legend.position = "none",
           plot.margin = margin(0.3, 0.2, 0.1, 0.2, "cm")) +
     labs(title = as.character(current_stim),
          subtitle = subtitle,
-         y = y_axis_text)
+         y = y_axis_text) +
+    force_panelsizes(rows = unit(4, "in"),
+                     cols = unit(3, "in"))
     
   if(!is.null(ylim)) {
     current_plot <- current_plot + 
