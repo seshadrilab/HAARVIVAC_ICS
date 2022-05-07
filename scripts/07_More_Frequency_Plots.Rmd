@@ -20,7 +20,7 @@ Plot frequencies of naive and convalescent CD4+ T cells which co-express IFNg an
 Note: all p-values are unadjusted.
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE, fig.width = 4, fig.height = 5.25)
+knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE, fig.width = 4, fig.height = 5.5)
 ```
 
 # Load libraries
@@ -33,7 +33,8 @@ library(ggplot2)
 library(ggpubr)
 library(ggbeeswarm)
 library(cowplot)
-source(here::here("scripts/Helper_Functions.R"))
+library(ggh4x)
+source(here::here("scripts/Helper_Functions.R")) # for make_mag_plots()
 ```
 
 # Load data
@@ -41,7 +42,7 @@ source(here::here("scripts/Helper_Functions.R"))
 ```{r}
 save_output <- TRUE
 
-gs <- load_gs(here::here("out/GatingSets/HAARVIVAC_GatingSet"))
+gs <- load_gs(here::here("out/GatingSets/HAARVIVAC_GatingSet_with_COMPASS_Subsets"))
 
 if(!dir.exists(here::here("out/frequency_plots"))) {
     cat(sprintf("Creating folder %s\n", here::here("out/frequency_plots")))
@@ -62,6 +63,8 @@ pdfFonts(Arial = Arial)
 
 # Add boolean gate
 
+## CD4 IFNg+CD154+
+
 ```{r}
 # Get paths
 cd4_ifng_path <- "/Time/CD3+/CD14-CD19-/Lymphocytes/Singlet/Live/CD4+/IFNg+"
@@ -72,8 +75,25 @@ gs_pop_add(gs, eval(substitute(flowWorkspace::booleanFilter(v),
                                list(v = as.symbol(paste0("", cd4_ifng_path,
                                                          "&", cd4_cd154_path))))),
            parent = "/Time/CD3+/CD14-CD19-/Lymphocytes/Singlet/Live/CD4+", name = "IFNg+CD154+")
+```
 
-# Recompute the GatingSet with the new gate
+## CD8 CD107a+HLADR+CD38+
+
+```{r, eval=FALSE}
+# Get paths
+cd8_cd107a_path <- "/Time/CD3+/CD14-CD19-/Lymphocytes/Singlet/Live/CD8+/CD107a+"
+hladr_cd38_path <- "/Time/CD3+/CD14-CD19-/Lymphocytes/Singlet/Live/CD8+/CD8_COMPASS_Subsets/HLADR+CD38+"  
+
+# Add boolean gate
+gs_pop_add(gs, eval(substitute(flowWorkspace::booleanFilter(v),
+                               list(v = as.symbol(paste0("", cd8_cd107a_path,
+                                                         "&", hladr_cd38_path))))),
+           parent = "/Time/CD3+/CD14-CD19-/Lymphocytes/Singlet/Live/CD8+", name = "CD107a+HLADR+CD38+")
+```
+
+Recompute the GatingSet
+
+```{r}
 flowWorkspace::recompute(gs)
 ```
 
@@ -81,16 +101,18 @@ flowWorkspace::recompute(gs)
 
 Exclude SEB.
 
+## CD4 IFNg+CD154+
+
 ```{r}
 cd4_ifng_cd154_parent <- "/Time/CD3+/CD14-CD19-/Lymphocytes/Singlet/Live/CD4+/IFNg+CD154+"
 
 ifng_cd154_counts <- pData(gs) %>%
   tibble::rownames_to_column("rowname") %>%
   left_join(gs_pop_get_count_fast(gs, subpopulations = cd4_ifng_cd154_parent), by = c("rowname" = "name")) %>%
-  dplyr::rename(CD4_PolyF = Count) %>%
-  dplyr::select(rowname, "SAMPLE ID", "EXPERIMENT NAME", "PATIENT ID", Stim, Group, CD4_PolyF, ParentCount) %>%
+  dplyr::rename(Subpop = Count) %>%
+  dplyr::select(rowname, "SAMPLE ID", "EXPERIMENT NAME", "PATIENT ID", Stim, Group, Timepoint, Subpop, ParentCount) %>%
   dplyr::filter(Stim != "SEB") %>%
-  mutate(Freq = (CD4_PolyF/ParentCount)*100) 
+  mutate(Freq = (Subpop/ParentCount)*100) 
 
 # Add infection status column
 i1 <- grepl("H", ifng_cd154_counts$`SAMPLE ID`) 
@@ -100,24 +122,31 @@ ifng_cd154_counts$Infection_Status[i1] <- "Naive"
 ifng_cd154_counts$Infection_Status[i2] <- "Conv"
 ifng_cd154_counts$Infection_Status <- factor(ifng_cd154_counts$Infection_Status, levels = c("Naive", "Conv"))
 
-# Add "Timepoint" column
-i3 <- grepl("-1", ifng_cd154_counts$`SAMPLE ID`) 
-i4 <- grepl("-2", ifng_cd154_counts$`SAMPLE ID`) 
-ifng_cd154_counts$Timepoint <- NULL
-ifng_cd154_counts$Timepoint[i3] <- "PRE"
-ifng_cd154_counts$Timepoint[i4] <- "POST"
-
-# Add column to pData indicating sample group (Naive vs. Conv and PRE vs. POST)
-i5 <- grepl("H", ifng_cd154_counts$`SAMPLE ID`) & grepl("PRE", ifng_cd154_counts$Timepoint)
-i6 <- grepl("H", ifng_cd154_counts$`SAMPLE ID`) & grepl("POST", ifng_cd154_counts$Timepoint)
-i7 <- grepl("C", ifng_cd154_counts$`SAMPLE ID`) & grepl("PRE", ifng_cd154_counts$Timepoint)
-i8 <- grepl("C", ifng_cd154_counts$`SAMPLE ID`) & grepl("POST", ifng_cd154_counts$Timepoint)
-ifng_cd154_counts$Group <- NULL
-ifng_cd154_counts$Group[i5] <- "Naive PRE"
-ifng_cd154_counts$Group[i6] <- "Naive POST"
-ifng_cd154_counts$Group[i7] <- "Conv PRE"
-ifng_cd154_counts$Group[i8] <- "Conv POST"
 ifng_cd154_counts$Group <- factor(ifng_cd154_counts$Group, levels = c("Naive PRE", "Naive POST", "Conv PRE", "Conv POST"))
+```
+
+## CD8 CD107a+HLADR+CD38+
+
+```{r, eval=FALSE}
+cd8_cd107a_hladr_cd38_parent <- "/Time/CD3+/CD14-CD19-/Lymphocytes/Singlet/Live/CD8+/CD107a+HLADR+CD38+"
+
+cd107a_hladr_cd38_counts <- pData(gs) %>%
+  tibble::rownames_to_column("rowname") %>%
+  left_join(gs_pop_get_count_fast(gs, subpopulations = cd8_cd107a_hladr_cd38_parent), by = c("rowname" = "name")) %>%
+  dplyr::rename(Subpop = Count) %>%
+  dplyr::select(rowname, "SAMPLE ID", "EXPERIMENT NAME", "PATIENT ID", Stim, Group, Timepoint, Subpop, ParentCount) %>%
+  dplyr::filter(Stim != "SEB") %>%
+  mutate(Freq = (Subpop/ParentCount)*100) 
+
+# Add infection status column
+i1 <- grepl("H", cd107a_hladr_cd38_counts$`SAMPLE ID`) 
+i2 <- grepl("C", cd107a_hladr_cd38_counts$`SAMPLE ID`) 
+cd107a_hladr_cd38_counts$Infection_Status <- NULL
+cd107a_hladr_cd38_counts$Infection_Status[i1] <- "Naive"
+cd107a_hladr_cd38_counts$Infection_Status[i2] <- "Conv"
+cd107a_hladr_cd38_counts$Infection_Status <- factor(cd107a_hladr_cd38_counts$Infection_Status, levels = c("Naive", "Conv"))
+
+cd107a_hladr_cd38_counts$Group <- factor(cd107a_hladr_cd38_counts$Group, levels = c("Naive PRE", "Naive POST", "Conv PRE", "Conv POST"))
 ```
 
 # Plots
@@ -131,148 +160,162 @@ fill_colors <- list("Naive" = c("Naive PRE" = "#54A8E1", "Naive POST" = "#196293
                     "POST" = c("Naive POST" = "#196293", "Conv POST" = "#9D1213"))
 ```
 
-## Naive PRE vs Naive POST
+## CD4 IFNg+CD154+
+
+### Naive PRE vs Naive POST
 
 ```{r}
-naive_ifng_cd154_plots <- purrr::pmap(.l = list(stims),
+# There is an outlier in the S2-stimmed CD4 IFNg+CD154+ samples, the S2 data will be plotted separately w/o the outlier PTID 
+naive_ifng_cd154_plots <- purrr::pmap(.l = list(stims[-3]),
                                .f = function(n) {
-                                 make_mag_plots(ifng_cd154_counts, current_stim = n, compare_time = TRUE, keep = "Naive", groups_to_compare = c("Naive PRE", "Naive POST"), paired = TRUE, fill_colors = fill_colors, group_by_colname = "Group", subtitle = paste0("IFN", "\U03B3", "+CD154+"), y_axis_text = "% CD4+ T Cells", ylim = c(0, 1))
+                                 make_mag_plots(ifng_cd154_counts, current_stim = n, compare_time = TRUE, keep = "Naive",
+                                                groups_to_compare = c("Naive PRE", "Naive POST"), paired = TRUE, fill_colors = fill_colors,
+                                                group_by_colname = "Group", subtitle = paste0("IFN", "\U03B3", "+CD154+"), y_axis_text = "% CD4+ T Cells",
+                                                ylim = c(0, 1), y_axis_size = 20)
                                })
-names(naive_ifng_cd154_plots) <- stims
+names(naive_ifng_cd154_plots) <- stims[-3]
 
-naive_ifng_cd154_list <- align_plots(naive_ifng_cd154_plots[["DMSO"]], naive_ifng_cd154_plots[["S1"]], naive_ifng_cd154_plots[["S2"]], naive_ifng_cd154_plots[["NCAP"]], align = "v")
-names(naive_ifng_cd154_list) <- stims
+ifng_cd154_counts_no_outlier <- ifng_cd154_counts %>%
+  dplyr::filter(Stim == "S2") %>%
+  dplyr::filter(`PATIENT ID` != "57H")
+  
+naive_s2_ifng_cd154_plot <- make_mag_plots(ifng_cd154_counts_no_outlier, current_stim = "S2", compare_time = TRUE, keep = "Naive",
+                                                groups_to_compare = c("Naive PRE", "Naive POST"), paired = TRUE, fill_colors = fill_colors,
+                                                group_by_colname = "Group", subtitle = paste0("IFN", "\U03B3", "+CD154+"), y_axis_text = "% CD4+ T Cells", 
+                                           ylim = c(0, 1), y_axis_size = 20)
+
+# naive_ifng_cd154_list <- align_plots(naive_ifng_cd154_plots[["DMSO"]], naive_ifng_cd154_plots[["S1"]], naive_s2_ifng_cd154_plot, naive_ifng_cd154_plots[["NCAP"]], align = "v")
+# names(naive_ifng_cd154_list) <- stims
+# 
+# ggdraw(naive_ifng_cd154_list[["DMSO"]])
+# ggdraw(naive_ifng_cd154_list[["S1"]])
+# ggdraw(naive_ifng_cd154_list[["S2"]])
+# ggdraw(naive_ifng_cd154_list[["NCAP"]])
+
+naive_ifng_cd154_plots[["DMSO"]]
+naive_ifng_cd154_plots[["S1"]]
+naive_s2_ifng_cd154_plot
+naive_ifng_cd154_plots[["NCAP"]]
 ```
 
-```{r}
-ggdraw(naive_ifng_cd154_list[["DMSO"]])
-```
-
-```{r}
-ggdraw(naive_ifng_cd154_list[["S1"]])
-```
-
-```{r}
-ggdraw(naive_ifng_cd154_list[["S2"]])
-```
-
-```{r}
-ggdraw(naive_ifng_cd154_list[["NCAP"]])
-```
-
-## Conv PRE vs Conv POST
+### Conv PRE vs Conv POST
 
 ```{r}
 conv_ifng_cd154_plots <- purrr::pmap(.l = list(stims),
                                .f = function(n) {
-                                 make_mag_plots(ifng_cd154_counts, current_stim = n, compare_time = TRUE, keep = "Conv", groups_to_compare = c("Conv PRE", "Conv POST"), paired = TRUE, fill_colors = fill_colors, group_by_colname = "Group", subtitle = paste0("IFN", "\U03B3", "+CD154+"), y_axis_text = "% CD4+ T Cells", ylim = c(0, 1.75))
+                                 make_mag_plots(ifng_cd154_counts, current_stim = n, compare_time = TRUE, keep = "Conv",
+                                                groups_to_compare = c("Conv PRE", "Conv POST"), paired = TRUE, fill_colors = fill_colors,
+                                                group_by_colname = "Group", subtitle = paste0("IFN", "\U03B3", "+CD154+"), y_axis_text = "% CD4+ T Cells",
+                                                ylim = c(0, 1.75), y_axis_size = 20)
                                })
 names(conv_ifng_cd154_plots) <- stims
 
-conv_ifng_cd154_list <- align_plots(conv_ifng_cd154_plots[["DMSO"]], conv_ifng_cd154_plots[["S1"]], conv_ifng_cd154_plots[["S2"]], conv_ifng_cd154_plots[["NCAP"]], align = "v")
-names(conv_ifng_cd154_list) <- stims
+# conv_ifng_cd154_list <- align_plots(conv_ifng_cd154_plots[["DMSO"]], conv_ifng_cd154_plots[["S1"]], conv_ifng_cd154_plots[["S2"]], conv_ifng_cd154_plots[["NCAP"]], align = "v")
+# names(conv_ifng_cd154_list) <- stims
+# 
+# ggdraw(conv_ifng_cd154_list[["DMSO"]])
+# ggdraw(conv_ifng_cd154_list[["S1"]])
+# ggdraw(conv_ifng_cd154_list[["S2"]])
+# ggdraw(conv_ifng_cd154_list[["NCAP"]])
+
+conv_ifng_cd154_plots[["DMSO"]]
+conv_ifng_cd154_plots[["S1"]]
+conv_ifng_cd154_plots[["S2"]]
+conv_ifng_cd154_plots[["NCAP"]]
 ```
 
-```{r}
-ggdraw(conv_ifng_cd154_list[["DMSO"]])
-```
-
-```{r}
-ggdraw(conv_ifng_cd154_list[["S1"]])
-```
-
-```{r}
-ggdraw(conv_ifng_cd154_list[["S2"]])
-```
-
-```{r}
-ggdraw(conv_ifng_cd154_list[["NCAP"]])
-```
-
-## Naive PRE vs Conv PRE
+### Naive PRE vs Conv PRE
 
 ```{r}
 pre_ifng_cd154_plots <- purrr::pmap(.l = list(stims),
                                .f = function(n) {
-                                 make_mag_plots(ifng_cd154_counts, current_stim = n, compare_time = FALSE, keep = "PRE", groups_to_compare = c("Naive PRE", "Conv PRE"), paired = FALSE, fill_colors = fill_colors, group_by_colname = "Group", subtitle = paste0("IFN", "\U03B3", "+CD154+"), y_axis_text = "% CD4+ T Cells")
+                                 make_mag_plots(ifng_cd154_counts, current_stim = n, compare_time = FALSE, keep = "PRE", 
+                                                groups_to_compare = c("Naive PRE", "Conv PRE"), paired = FALSE, fill_colors = fill_colors, 
+                                                group_by_colname = "Group", subtitle = paste0("IFN", "\U03B3", "+CD154+"), y_axis_text = "% CD4+ T Cells",
+                                                y_axis_size = 20)
                                })
 names(pre_ifng_cd154_plots) <- stims
 
-pre_ifng_cd154_list <- align_plots(pre_ifng_cd154_plots[["DMSO"]], pre_ifng_cd154_plots[["S1"]], pre_ifng_cd154_plots[["S2"]], pre_ifng_cd154_plots[["NCAP"]], align = "v")
-names(pre_ifng_cd154_list) <- stims
+# pre_ifng_cd154_list <- align_plots(pre_ifng_cd154_plots[["DMSO"]], pre_ifng_cd154_plots[["S1"]], pre_ifng_cd154_plots[["S2"]], pre_ifng_cd154_plots[["NCAP"]], align = "v")
+# names(pre_ifng_cd154_list) <- stims
+# 
+# ggdraw(pre_ifng_cd154_list[["DMSO"]])
+# ggdraw(pre_ifng_cd154_list[["S1"]])
+# ggdraw(pre_ifng_cd154_list[["S2"]])
+# ggdraw(pre_ifng_cd154_list[["NCAP"]])
+
+pre_ifng_cd154_plots[["DMSO"]]
+pre_ifng_cd154_plots[["S1"]]
+pre_ifng_cd154_plots[["S2"]]
+pre_ifng_cd154_plots[["NCAP"]]
 ```
 
-```{r}
-ggdraw(pre_ifng_cd154_list[["DMSO"]])
-```
-
-```{r}
-ggdraw(pre_ifng_cd154_list[["S1"]])
-```
-
-```{r}
-ggdraw(pre_ifng_cd154_list[["S2"]])
-```
-
-```{r}
-ggdraw(pre_ifng_cd154_list[["NCAP"]])
-```
-
-## Naive POST vs Conv POST
+### Naive POST vs Conv POST
 
 ```{r}
 post_ifng_cd154_plots <- purrr::pmap(.l = list(stims),
                                .f = function(n) {
-                                 make_mag_plots(ifng_cd154_counts, current_stim = n, compare_time = FALSE, keep = "POST", groups_to_compare = c("Naive POST", "Conv POST"), paired = FALSE, fill_colors = fill_colors, group_by_colname = "Group", subtitle = paste0("IFN", "\U03B3", "+CD154+"), y_axis_text = "% CD4+ T Cells")
+                                 make_mag_plots(ifng_cd154_counts, current_stim = n, compare_time = FALSE, keep = "POST", 
+                                                groups_to_compare = c("Naive POST", "Conv POST"), paired = FALSE, fill_colors = fill_colors, 
+                                                group_by_colname = "Group", subtitle = paste0("IFN", "\U03B3", "+CD154+"), y_axis_text = "% CD4+ T Cells",
+                                                ylim = c(0, 2.75), y_axis_size = 20)
                                })
 names(post_ifng_cd154_plots) <- stims
 
-post_ifng_cd154_list <- align_plots(post_ifng_cd154_plots[["DMSO"]], post_ifng_cd154_plots[["S1"]], post_ifng_cd154_plots[["S2"]], post_ifng_cd154_plots[["NCAP"]], align = "v")
-names(post_ifng_cd154_list) <- stims
+# post_ifng_cd154_list <- align_plots(post_ifng_cd154_plots[["DMSO"]], post_ifng_cd154_plots[["S1"]], post_ifng_cd154_plots[["S2"]], post_ifng_cd154_plots[["NCAP"]], align = "v")
+# names(post_ifng_cd154_list) <- stims
+# 
+# ggdraw(post_ifng_cd154_list[["DMSO"]])
+# ggdraw(post_ifng_cd154_list[["S1"]])
+# ggdraw(post_ifng_cd154_list[["S2"]])
+# ggdraw(post_ifng_cd154_list[["NCAP"]])
+
+post_ifng_cd154_plots[["DMSO"]]
+post_ifng_cd154_plots[["S1"]]
+post_ifng_cd154_plots[["S2"]]
+post_ifng_cd154_plots[["NCAP"]]
 ```
 
-```{r}
-ggdraw(post_ifng_cd154_list[["DMSO"]])
-```
 
-```{r}
-ggdraw(post_ifng_cd154_list[["S1"]])
-```
-
-```{r}
-ggdraw(post_ifng_cd154_list[["S2"]])
-```
-
-```{r}
-ggdraw(post_ifng_cd154_list[["NCAP"]])
-```
 
 # Save figures
 
 ```{r save boxplots pdf}
 if(save_output) {
-  cairo_pdf(file=here::here("out/frequency_plots/CD4_naive_ifng_cd154_plot.pdf"), width=4, height=5.25,
+  cairo_pdf(file=here::here("out/frequency_plots/CD4_naive_ifng_cd154_plot.pdf"), width=4, height=5.5,
         onefile = TRUE, bg = "transparent", family = "Arial") # default unit is inches, default font is Helvetica.
-  print(ggdraw(naive_ifng_cd154_list[["DMSO"]]))
-  print(ggdraw(naive_ifng_cd154_list[["S1"]]))
-  print(ggdraw(naive_ifng_cd154_list[["S2"]]))
-  print(ggdraw(naive_ifng_cd154_list[["NCAP"]]))
+  # print(ggdraw(naive_ifng_cd154_list[["DMSO"]]))
+  # print(ggdraw(naive_ifng_cd154_list[["S1"]]))
+  # print(ggdraw(naive_ifng_cd154_list[["S2"]]))
+  # print(ggdraw(naive_ifng_cd154_list[["NCAP"]]))
+  print(naive_ifng_cd154_plots[["DMSO"]])
+  print(naive_ifng_cd154_plots[["S1"]])
+  print(naive_s2_ifng_cd154_plot)
+  print(naive_ifng_cd154_plots[["NCAP"]])
   dev.off()
   
-    cairo_pdf(file=here::here("out/frequency_plots/CD4_conv_ifng_cd154_plot.pdf"), width=4, height=5.25,
+    cairo_pdf(file=here::here("out/frequency_plots/CD4_conv_ifng_cd154_plot.pdf"), width=4, height=5.5,
         onefile = TRUE, bg = "transparent", family = "Arial") # default unit is inches, default font is Helvetica.
-  print(ggdraw(conv_ifng_cd154_list[["DMSO"]]))
-  print(ggdraw(conv_ifng_cd154_list[["S1"]]))
-  print(ggdraw(conv_ifng_cd154_list[["S2"]]))
-  print(ggdraw(conv_ifng_cd154_list[["NCAP"]]))
+  # print(ggdraw(conv_ifng_cd154_list[["DMSO"]]))
+  # print(ggdraw(conv_ifng_cd154_list[["S1"]]))
+  # print(ggdraw(conv_ifng_cd154_list[["S2"]]))
+  # print(ggdraw(conv_ifng_cd154_list[["NCAP"]]))
+  print(conv_ifng_cd154_plots[["DMSO"]])
+  print(conv_ifng_cd154_plots[["S1"]])
+  print(conv_ifng_cd154_plots[["S2"]])
+  print(conv_ifng_cd154_plots[["NCAP"]])
   dev.off()
   
-      cairo_pdf(file=here::here("out/frequency_plots/CD4_post_ifng_cd154_plot.pdf"), width=4, height=5.25,
+      cairo_pdf(file=here::here("out/frequency_plots/CD4_post_ifng_cd154_plot.pdf"), width=4, height=5.5,
         onefile = TRUE, bg = "transparent", family = "Arial") # default unit is inches, default font is Helvetica.
-  print(ggdraw(post_ifng_cd154_list[["DMSO"]]))
-  print(ggdraw(post_ifng_cd154_list[["S1"]]))
-  print(ggdraw(post_ifng_cd154_list[["S2"]]))
-  print(ggdraw(post_ifng_cd154_list[["NCAP"]]))
+  # print(ggdraw(post_ifng_cd154_list[["DMSO"]]))
+  # print(ggdraw(post_ifng_cd154_list[["S1"]]))
+  # print(ggdraw(post_ifng_cd154_list[["S2"]]))
+  # print(ggdraw(post_ifng_cd154_list[["NCAP"]]))
+  print(post_ifng_cd154_plots[["DMSO"]])
+  print(post_ifng_cd154_plots[["S1"]])
+  print(post_ifng_cd154_plots[["S2"]])
+  print(post_ifng_cd154_plots[["NCAP"]])
   dev.off()
 }
 ```
