@@ -727,7 +727,7 @@ fs_pfs_plot <- function(df, FS_or_PFS = "FS", cd4_or_cd8 = "CD4", group = "Naive
   stim_x_order <- 1:3
   d$Stim <- factor(d$Stim, levels = c("NCAP", "S1", "S2"))
   names(stim_x_order) <- levels(d$Stim)
-  test_results_df <- data.frame(group1 = c("NCAP", "S1", "NCAP"),
+  test_df <- data.frame(group1 = c("NCAP", "S1", "NCAP"),
                                 group2 = c("S1", "S2", "S2"),
                                 p.val = c(n_s1_signed_rank_result$p.value,
                                           s1_s2_signed_rank_result$p.value,
@@ -757,10 +757,8 @@ fs_pfs_plot <- function(df, FS_or_PFS = "FS", cd4_or_cd8 = "CD4", group = "Naive
   ggplot(d, aes(Stim, !!as.name(FS_or_PFS))) +
     geom_boxplot(outlier.shape=NA, position = position_dodge2(preserve = "total")) +
     geom_quasirandom(size=3, shape = 16, width = 0.3, aes(color=!!as.symbol(group_by_colname))) +
-    labs(y = if(FS_or_PFS == "FS") {"Functionality Score"} else if(FS_or_PFS == "PFS") {"Polyfunctionality Score"},
-         title = sprintf("%s %s",
-                         cd4_or_cd8,
-                         group)) +
+    labs(y = if(FS_or_PFS == "FS") {sprintf("%s Functionality Score", cd4_or_cd8)} else if(FS_or_PFS == "PFS") {sprintf("%s Polyfunctionality Score", cd4_or_cd8)},
+         title = group) +
     theme_bw() +
     theme(axis.title.x = element_blank(),
           axis.title.y = element_text(size=20),
@@ -773,7 +771,7 @@ fs_pfs_plot <- function(df, FS_or_PFS = "FS", cd4_or_cd8 = "CD4", group = "Naive
     scale_x_discrete(expand = c(0.15, 0.15),
                      labels = c("NCAP", "S1", "S2")) +
     scale_color_manual(values = fill_colors[[group]]) +
-    ggsignif::geom_signif(inherit.aes=F,data=test_results_df,
+    ggsignif::geom_signif(inherit.aes=F,data=test_df,
                           aes_string(xmin="group1.xloc", xmax="group2.xloc",
                                      annotations="p_val_text", y_position="y_pos",
                                      group="geom_signif_group"), # , family="Arial"
@@ -781,7 +779,7 @@ fs_pfs_plot <- function(df, FS_or_PFS = "FS", cd4_or_cd8 = "CD4", group = "Naive
                           textsize=5,
                           size = 0.75,
                           manual = TRUE) +
-    coord_cartesian(ylim = c(NA, max(test_results_df$y_pos) + 0.1*diff(range(d %>% dplyr::pull(!!FS_or_PFS)))))
+    coord_cartesian(ylim = c(NA, max(test_df$y_pos) + 0.1*diff(range(d %>% dplyr::pull(!!FS_or_PFS)))))
 }
 
 ############################################################################################################################
@@ -790,7 +788,8 @@ split_fs_pfs_plot <- function(df, FS_or_PFS = "FS", current_stim = "S1",
                               cd4_or_cd8 = "CD4", compare_naive = FALSE,
                               compare_conv = FALSE, compare_POST = FALSE,
                               compare_PRE = FALSE, compare_intra = FALSE,
-                              group_by_colname = NULL, groups_to_compare = NULL, fill_colors = NULL) {
+                              group_by_colname = NULL, groups_to_compare = NULL, 
+                              fill_colors = NULL, ylim = NULL) {
   d <- df %>% 
     dplyr::filter(Stim == current_stim & parent == cd4_or_cd8)
   d_pre <- d %>% 
@@ -816,7 +815,7 @@ split_fs_pfs_plot <- function(df, FS_or_PFS = "FS", current_stim = "S1",
   
   timepoint_infection_status_x_order <- 1:4
   names(timepoint_infection_status_x_order) <- levels(d$Group)
-  test_results_df <- data.frame(group1 = c("Naive PRE", "Conv PRE", "Naive PRE", "Naive POST"),
+  test_df <- data.frame(group1 = c("Naive PRE", "Conv PRE", "Naive PRE", "Naive POST"),
                                 group2 = c("Naive POST", "Conv POST", "Conv PRE", "Conv POST"),
                                 p.val = c(naive_signed_rank_result$p.value,
                                           conv_signed_rank_result$p.value,
@@ -863,7 +862,7 @@ split_fs_pfs_plot <- function(df, FS_or_PFS = "FS", current_stim = "S1",
     group_lab <- c("Naive PRE" = "Naive\nPRE",
                    "Naive POST" = "Naive\nPOST")
     
-    test_results_df <- test_results_df %>%
+    test_df <- test_df %>%
       filter(geom_signif_group %in% "Naive PRENaive POST") %>%
       mutate(group1.xloc = replace(group1.xloc, group1.xloc != 1, 1)) %>%
       mutate(group2.xloc = replace(group2.xloc, group2.xloc != 2, 2))
@@ -881,7 +880,7 @@ split_fs_pfs_plot <- function(df, FS_or_PFS = "FS", current_stim = "S1",
     group_lab <- c("Conv PRE" = "Conv\nPRE",
                    "Conv POST" = "Conv\nPOST")
     
-    test_results_df <- test_results_df %>%
+    test_df <- test_df %>%
       filter(geom_signif_group %in% "Conv PREConv POST") %>%
       mutate(group1.xloc = replace(group1.xloc, group1.xloc != 1, 1)) %>%
       mutate(group2.xloc = replace(group2.xloc, group2.xloc != 2, 2))
@@ -899,7 +898,7 @@ split_fs_pfs_plot <- function(df, FS_or_PFS = "FS", current_stim = "S1",
     group_lab <- c("Naive POST" = "Naive\nPOST",
                    "Conv POST" = "Conv\nPOST")
     
-    test_results_df <- test_results_df %>%
+    test_df <- test_df %>%
       filter(geom_signif_group %in% "Naive POSTConv POST") %>%
       mutate(group1.xloc = replace(group1.xloc, group1.xloc != 1, 1)) %>%
       mutate(group2.xloc = replace(group2.xloc, group2.xloc != 2, 2))
@@ -917,7 +916,7 @@ split_fs_pfs_plot <- function(df, FS_or_PFS = "FS", current_stim = "S1",
     group_lab <- c("Naive PRE" = "Naive\nPRE",
                    "Conv PRE" = "Conv\nPRE") 
     
-    test_results_df <- test_results_df %>%
+    test_df <- test_df %>%
       filter(geom_signif_group %in% "Naive PREConv PRE") %>%
       mutate(group1.xloc = replace(group1.xloc, group1.xloc != 1, 1)) %>%
       mutate(group2.xloc = replace(group2.xloc, group2.xloc != 2, 2))
@@ -944,10 +943,8 @@ split_fs_pfs_plot <- function(df, FS_or_PFS = "FS", current_stim = "S1",
   }
   
   plot <- plot +
-    labs(y = if(FS_or_PFS == "FS") {"Functionality Score"} else if(FS_or_PFS == "PFS") {"Polyfunctionality Score"},
-         title = sprintf("%s %s",
-                         cd4_or_cd8,
-                         current_stim)) +
+    labs(y = if(FS_or_PFS == "FS") {sprintf("%s Functionality Score", cd4_or_cd8)} else if(FS_or_PFS == "PFS") {sprintf("%s Polyfunctionality Score", cd4_or_cd8)},
+         title = current_stim) +
     theme_bw() +
     theme(axis.title.x = element_blank(),
           axis.title.y = element_text(size=20),
@@ -957,25 +954,20 @@ split_fs_pfs_plot <- function(df, FS_or_PFS = "FS", current_stim = "S1",
           panel.grid.major.x = element_blank(),
           legend.position = "none",
           plot.margin = margin(0.3, 0.2, 0.1, 0.2, "cm")) +
-    force_panelsizes(rows = unit(4, "in"),
+    force_panelsizes(rows = unit(3.5, "in"),
                      cols = unit(3, "in"))
-    # ggsignif::geom_signif(inherit.aes=F,data=test_results_df,
-    #                       aes_string(xmin="group1.xloc", xmax="group2.xloc",
-    #                                  annotations="p_val_text", y_position="y_pos",
-    #                                  # https://github.com/const-ae/ggsignif/issues/63
-    #                                  group="geom_signif_group"), # , family="Arial"
-    #                       tip_length = c(0, 0),
-    #                       textsize=5,
-    #                       size = 0.75,
-    #                       manual = TRUE) +
-    #coord_cartesian(ylim = c(NA, max(test_results_df$y_pos) + 0.1*diff(range(d %>% dplyr::pull(!!FS_or_PFS)))))
-  
-  plot_ylims <- ggplot_build(plot)$layout$panel_params[[1]]$y.range
-  
-  plot <- plot + 
-    annotate("text", x = 1.5, y = plot_ylims[2] + 0.01*diff(plot_ylims),
-             label = test_results_df$p_val_text, size=5.5) +
-    coord_cartesian(ylim = c(plot_ylims[[1]], plot_ylims[[2]] + 0.09*diff(plot_ylims)))
+  if(!is.null(ylim)) {
+    plot <- plot + 
+      coord_cartesian(ylim = ylim) +
+      annotate("text", x = 1.5, y = ylim[2] - 0.09*diff(ylim),
+               label = test_df$p_val_text, size=5.5)
+  } else {
+    plot_ylims <- ggplot_build(plot)$layout$panel_params[[1]]$y.range
+    plot <- plot + 
+      annotate("text", x = 1.5, y = plot_ylims[2] + 0.01*diff(plot_ylims),
+               label = test_df$p_val_text, size=5.5) +
+      coord_cartesian(ylim = c(plot_ylims[[1]], plot_ylims[[2]] + 0.09*diff(plot_ylims)))
+  } 
 }
 
 ############################################################################################################################
@@ -988,7 +980,7 @@ make_mag_plots <- function(counts, compare_time, keep, current_stim,
                            y_axis_size, axis_break = NULL) {
   if(compare_time) {
     counts <- counts %>%
-      dplyr::filter(Infection_Status == keep & Stim == current_stim)
+      dplyr::filter(grepl(keep, Group) & Stim == current_stim)
   } else {
     counts <- counts %>%
       dplyr::filter(Timepoint == keep & Stim == current_stim)
@@ -1062,7 +1054,7 @@ make_mag_plots <- function(counts, compare_time, keep, current_stim,
     labs(title = as.character(current_stim),
          subtitle = subtitle,
          y = y_axis_text) +
-    force_panelsizes(rows = unit(4, "in"),
+    force_panelsizes(rows = unit(3.5, "in"),
                      cols = unit(3, "in"))
     
   if(!is.null(ylim)) {
