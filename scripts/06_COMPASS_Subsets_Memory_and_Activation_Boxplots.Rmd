@@ -22,7 +22,7 @@ Stratify by stim (S1, S2, NCAP, and DMSO).
 Note: all p-values are unadjusted.
 
 ```{r setup, include = FALSE}
-knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE, fig.width = 4, fig.height = 5.25)
+knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE, fig.width = 4, fig.height = 5)
 ```
 
 # Load libraries
@@ -35,7 +35,8 @@ library(ggplot2)
 library(ggpubr)
 library(ggbeeswarm)
 library(cowplot)
-source(here::here("scripts/Helper_Functions.R"))
+library(ggh4x)
+source(here::here("scripts/Helper_Functions.R")) # for make_mag_plots()
 ```
 
 # Load data
@@ -91,14 +92,6 @@ act_counts <- pData(gs) %>%
   dplyr::filter(Stim != "SEB") %>%
   mutate(Freq = (Subpop/ParentCount)*100) 
 
-# Add infection status column
-i1 <- grepl("H", act_counts$`SAMPLE ID`) 
-i2 <- grepl("C", act_counts$`SAMPLE ID`) 
-act_counts$Infection_Status <- NULL
-act_counts$Infection_Status[i1] <- "Naive"
-act_counts$Infection_Status[i2] <- "Conv"
-act_counts$Infection_Status <- factor(act_counts$Infection_Status, levels = c("Naive", "Conv"))
-
 act_counts$Group <- factor(act_counts$Group, levels = c("Naive PRE", "Naive POST", "Conv PRE", "Conv POST"))
 ```
 
@@ -112,14 +105,6 @@ cd38_counts <- pData(gs) %>%
   dplyr::select(rowname, "SAMPLE ID", "EXPERIMENT NAME", "PATIENT ID", Stim, Group, Timepoint, Subpop, ParentCount) %>%
   dplyr::filter(Stim != "SEB") %>%
   mutate(Freq = (Subpop/ParentCount)*100) 
-
-# Add infection status column
-i1 <- grepl("H", cd38_counts$`SAMPLE ID`) 
-i2 <- grepl("C", cd38_counts$`SAMPLE ID`) 
-cd38_counts$Infection_Status <- NULL
-cd38_counts$Infection_Status[i1] <- "Naive"
-cd38_counts$Infection_Status[i2] <- "Conv"
-cd38_counts$Infection_Status <- factor(cd38_counts$Infection_Status, levels = c("Naive", "Conv"))
 
 cd38_counts$Group <- factor(cd38_counts$Group, levels = c("Naive PRE", "Naive POST", "Conv PRE", "Conv POST"))
 ```
@@ -135,14 +120,6 @@ hladr_counts <- pData(gs) %>%
   dplyr::filter(Stim != "SEB") %>%
   mutate(Freq = (Subpop/ParentCount)*100) 
 
-# Add infection status column
-i1 <- grepl("H", hladr_counts$`SAMPLE ID`) 
-i2 <- grepl("C", hladr_counts$`SAMPLE ID`) 
-hladr_counts$Infection_Status <- NULL
-hladr_counts$Infection_Status[i1] <- "Naive"
-hladr_counts$Infection_Status[i2] <- "Conv"
-hladr_counts$Infection_Status <- factor(hladr_counts$Infection_Status, levels = c("Naive", "Conv"))
-
 hladr_counts$Group <- factor(hladr_counts$Group, levels = c("Naive PRE", "Naive POST", "Conv PRE", "Conv POST"))
 ```
 
@@ -156,14 +133,6 @@ cm_counts <- pData(gs) %>%
   dplyr::select(rowname, "SAMPLE ID", "EXPERIMENT NAME", "PATIENT ID", Stim, Group, Timepoint, Subpop, ParentCount) %>%
   dplyr::filter(Stim != "SEB") %>%
   mutate(Freq = (Subpop/ParentCount)*100) 
-
-# Add infection status column
-i1 <- grepl("H", cm_counts$`SAMPLE ID`) 
-i2 <- grepl("C", cm_counts$`SAMPLE ID`) 
-cm_counts$Infection_Status <- NULL
-cm_counts$Infection_Status[i1] <- "Naive"
-cm_counts$Infection_Status[i2] <- "Conv"
-cm_counts$Infection_Status <- factor(cm_counts$Infection_Status, levels = c("Naive", "Conv"))
 
 cm_counts$Group <- factor(cm_counts$Group, levels = c("Naive PRE", "Naive POST", "Conv PRE", "Conv POST"))
 ```
@@ -179,14 +148,6 @@ em_counts <- pData(gs) %>%
   dplyr::filter(Stim != "SEB") %>%
   mutate(Freq = (Subpop/ParentCount)*100) 
 
-# Add infection status column
-i1 <- grepl("H", em_counts$`SAMPLE ID`) 
-i2 <- grepl("C", em_counts$`SAMPLE ID`) 
-em_counts$Infection_Status <- NULL
-em_counts$Infection_Status[i1] <- "Naive"
-em_counts$Infection_Status[i2] <- "Conv"
-em_counts$Infection_Status <- factor(em_counts$Infection_Status, levels = c("Naive", "Conv"))
-
 em_counts$Group <- factor(em_counts$Group, levels = c("Naive PRE", "Naive POST", "Conv PRE", "Conv POST"))
 ```
 
@@ -199,6 +160,8 @@ fill_colors <- list("Naive" = c("Naive PRE" = "#54A8E1", "Naive POST" = "#196293
                     "Conv" = c("Conv PRE" = "#EB4D4F", "Conv POST" = "#9D1213"),
                     "PRE" = c("Naive PRE" = "#54A8E1", "Conv PRE" = "#EB4D4F"),
                     "POST" = c("Naive POST" = "#196293", "Conv POST" = "#9D1213"))
+
+y_axis_size <- 15
 ```
 
 ## HLA-DR+CD38+
@@ -208,28 +171,12 @@ fill_colors <- list("Naive" = c("Naive PRE" = "#54A8E1", "Naive POST" = "#196293
 ```{r}
 naive_act_plots <- purrr::pmap(.l = list(stims),
                                .f = function(n) {
-                                 make_mag_plots(act_counts, current_stim = n, compare_time = TRUE, keep = "Naive", groups_to_compare = c("Naive PRE", "Naive POST"), paired = TRUE, fill_colors = fill_colors, group_by_colname = "Group", subtitle = "HLA-DR+CD38+", y_axis_text = "% COMPASS-selected CD4+ T Cells")
+                                 make_mag_plots(act_counts, current_stim = n, compare_time = TRUE, keep = "Naive", groups_to_compare = c("Naive PRE", "Naive POST"),
+                                                paired = TRUE, fill_colors = fill_colors, group_by_colname = "Group", subtitle = "HLA-DR+CD38+", 
+                                                y_axis_text = "% COMPASS-selected CD4+ T Cells", y_axis_size = 15)
                                })
 names(naive_act_plots) <- stims
-
-naive_act_plots_list <- align_plots(naive_act_plots[["DMSO"]], naive_act_plots[["S1"]], naive_act_plots[["S2"]], naive_act_plots[["NCAP"]], align = "v")
-names(naive_act_plots_list) <- stims
-```
-
-```{r}
-ggdraw(naive_act_plots_list[["DMSO"]])
-```
-
-```{r}
-ggdraw(naive_act_plots_list[["S1"]])
-```
-
-```{r}
-ggdraw(naive_act_plots_list[["S2"]])
-```
-
-```{r}
-ggdraw(naive_act_plots_list[["NCAP"]])
+naive_act_plots
 ```
 
 ### Conv PRE vs Conv POST
@@ -237,28 +184,12 @@ ggdraw(naive_act_plots_list[["NCAP"]])
 ```{r}
 conv_act_plots <- purrr::pmap(.l = list(stims),
                                .f = function(n) {
-                                 make_mag_plots(act_counts, current_stim = n, compare_time = TRUE, keep = "Conv", groups_to_compare = c("Conv PRE", "Conv POST"), paired = TRUE, fill_colors = fill_colors, group_by_colname = "Group", subtitle = "HLA-DR+CD38+", y_axis_text = "% COMPASS-selected CD4+ T Cells")
+                                 make_mag_plots(act_counts, current_stim = n, compare_time = TRUE, keep = "Conv", groups_to_compare = c("Conv PRE", "Conv POST"), 
+                                                paired = TRUE, fill_colors = fill_colors, group_by_colname = "Group", subtitle = "HLA-DR+CD38+", 
+                                                y_axis_text = "% COMPASS-selected CD4+ T Cells", y_axis_size = 15)
                                })
 names(conv_act_plots) <- stims
-
-conv_act_plots_list <- align_plots(conv_act_plots[["DMSO"]], conv_act_plots[["S1"]], conv_act_plots[["S2"]], conv_act_plots[["NCAP"]], align = "v")
-names(conv_act_plots_list) <- stims
-```
-
-```{r}
-ggdraw(conv_act_plots_list[["DMSO"]])
-```
-
-```{r}
-ggdraw(conv_act_plots_list[["S1"]])
-```
-
-```{r}
-ggdraw(conv_act_plots_list[["S2"]])
-```
-
-```{r}
-ggdraw(conv_act_plots_list[["NCAP"]])
+conv_act_plots
 ```
 
 ### Naive PRE vs Conv PRE
@@ -266,28 +197,12 @@ ggdraw(conv_act_plots_list[["NCAP"]])
 ```{r}
 pre_act_plots <- purrr::pmap(.l = list(stims),
                                .f = function(n) {
-                                 make_mag_plots(act_counts, current_stim = n, compare_time = FALSE, keep = "PRE", groups_to_compare = c("Naive PRE", "Conv PRE"), paired = FALSE, fill_colors = fill_colors, group_by_colname = "Group", subtitle = "HLA-DR+CD38+", y_axis_text = "% COMPASS-selected CD4+ T Cells")
+                                 make_mag_plots(act_counts, current_stim = n, compare_time = FALSE, keep = "PRE", groups_to_compare = c("Naive PRE", "Conv PRE"),
+                                                paired = FALSE, fill_colors = fill_colors, group_by_colname = "Group", subtitle = "HLA-DR+CD38+", 
+                                                y_axis_text = "% COMPASS-selected CD4+ T Cells", y_axis_size = 15)
                                })
 names(pre_act_plots) <- stims
-
-pre_act_plots_list <- align_plots(pre_act_plots[["DMSO"]], pre_act_plots[["S1"]], pre_act_plots[["S2"]], pre_act_plots[["NCAP"]], align = "v")
-names(pre_act_plots_list) <- stims
-```
-
-```{r}
-ggdraw(pre_act_plots_list[["DMSO"]])
-```
-
-```{r}
-ggdraw(pre_act_plots_list[["S1"]])
-```
-
-```{r}
-ggdraw(pre_act_plots_list[["S2"]])
-```
-
-```{r}
-ggdraw(pre_act_plots_list[["NCAP"]])
+pre_act_plots
 ```
 
 ### Naive POST vs Conv POST
@@ -295,28 +210,12 @@ ggdraw(pre_act_plots_list[["NCAP"]])
 ```{r}
 post_act_plots <- purrr::pmap(.l = list(stims),
                                .f = function(n) {
-                                 make_mag_plots(act_counts, current_stim = n, compare_time = FALSE, keep = "POST", groups_to_compare = c("Naive POST", "Conv POST"), paired = FALSE, fill_colors = fill_colors, group_by_colname = "Group", subtitle = "HLA-DR+CD38+", y_axis_text = "% COMPASS-selected CD4+ T Cells")
+                                 make_mag_plots(act_counts, current_stim = n, compare_time = FALSE, keep = "POST", groups_to_compare = c("Naive POST", "Conv POST"),
+                                                paired = FALSE, fill_colors = fill_colors, group_by_colname = "Group", subtitle = "HLA-DR+CD38+", 
+                                                y_axis_text = "% COMPASS-selected CD4+ T Cells", y_axis_size = 15)
                                })
 names(post_act_plots) <- stims
-
-post_act_plots_list <- align_plots(post_act_plots[["DMSO"]], post_act_plots[["S1"]], post_act_plots[["S2"]], post_act_plots[["NCAP"]], align = "v")
-names(post_act_plots_list) <- stims
-```
-
-```{r}
-ggdraw(post_act_plots_list[["DMSO"]])
-```
-
-```{r}
-ggdraw(post_act_plots_list[["S1"]])
-```
-
-```{r}
-ggdraw(post_act_plots_list[["S2"]])
-```
-
-```{r}
-ggdraw(post_act_plots_list[["NCAP"]])
+post_act_plots
 ```
 
 ## CD38+
@@ -326,28 +225,12 @@ ggdraw(post_act_plots_list[["NCAP"]])
 ```{r}
 naive_cd38_plots <- purrr::pmap(.l = list(stims),
                                .f = function(n) {
-                                 make_mag_plots(cd38_counts, current_stim = n, compare_time = TRUE, keep = "Naive", groups_to_compare = c("Naive PRE", "Naive POST"), paired = TRUE, fill_colors = fill_colors, group_by_colname = "Group", subtitle = "CD38+", y_axis_text = "% COMPASS-selected CD4+ T Cells")
+                                 make_mag_plots(cd38_counts, current_stim = n, compare_time = TRUE, keep = "Naive", groups_to_compare = c("Naive PRE", "Naive POST"),
+                                                paired = TRUE, fill_colors = fill_colors, group_by_colname = "Group", subtitle = "CD38+", 
+                                                y_axis_text = "% COMPASS-selected CD4+ T Cells", y_axis_size = 15)
                                })
 names(naive_cd38_plots) <- stims
-
-naive_cd38_plots_list <- align_plots(naive_cd38_plots[["DMSO"]], naive_cd38_plots[["S1"]], naive_cd38_plots[["S2"]], naive_cd38_plots[["NCAP"]], align = "v")
-names(naive_cd38_plots_list) <- stims
-```
-
-```{r}
-ggdraw(naive_cd38_plots_list[["DMSO"]])
-```
-
-```{r}
-ggdraw(naive_cd38_plots_list[["S1"]])
-```
-
-```{r}
-ggdraw(naive_cd38_plots_list[["S2"]])
-```
-
-```{r}
-ggdraw(naive_cd38_plots_list[["NCAP"]])
+naive_cd38_plots
 ```
 
 ### Conv PRE vs Conv POST
@@ -355,28 +238,12 @@ ggdraw(naive_cd38_plots_list[["NCAP"]])
 ```{r}
 conv_cd38_plots <- purrr::pmap(.l = list(stims),
                                .f = function(n) {
-                                 make_mag_plots(cd38_counts, current_stim = n, compare_time = TRUE, keep = "Conv", groups_to_compare = c("Conv PRE", "Conv POST"), paired = TRUE, fill_colors = fill_colors, group_by_colname = "Group", subtitle = "CD38+", y_axis_text = "% COMPASS-selected CD4+ T Cells", ylim = c(0, 65))
+                                 make_mag_plots(cd38_counts, current_stim = n, compare_time = TRUE, keep = "Conv", groups_to_compare = c("Conv PRE", "Conv POST"),
+                                                paired = TRUE, fill_colors = fill_colors, group_by_colname = "Group", subtitle = "CD38+", 
+                                                y_axis_text = "% COMPASS-selected CD4+ T Cells", y_axis_size = 15,  ylim = c(0, 65))
                                })
 names(conv_cd38_plots) <- stims
-
-conv_cd38_plots_list <- align_plots(conv_cd38_plots[["DMSO"]], conv_cd38_plots[["S1"]], conv_cd38_plots[["S2"]], conv_cd38_plots[["NCAP"]], align = "v")
-names(conv_cd38_plots_list) <- stims
-```
-
-```{r}
-ggdraw(conv_cd38_plots_list[["DMSO"]])
-```
-
-```{r}
-ggdraw(conv_cd38_plots_list[["S1"]])
-```
-
-```{r}
-ggdraw(conv_cd38_plots_list[["S2"]])
-```
-
-```{r}
-ggdraw(conv_cd38_plots_list[["NCAP"]])
+conv_cd38_plots
 ```
 
 ### Naive PRE vs Conv PRE
@@ -384,28 +251,12 @@ ggdraw(conv_cd38_plots_list[["NCAP"]])
 ```{r}
 pre_cd38_plots <- purrr::pmap(.l = list(stims),
                                .f = function(n) {
-                                 make_mag_plots(cd38_counts, current_stim = n, compare_time = FALSE, keep = "PRE", groups_to_compare = c("Naive PRE", "Conv PRE"), paired = FALSE, fill_colors = fill_colors, group_by_colname = "Group", subtitle = "CD38+", y_axis_text = "% COMPASS-selected CD4+ T Cells")
+                                 make_mag_plots(cd38_counts, current_stim = n, compare_time = FALSE, keep = "PRE", groups_to_compare = c("Naive PRE", "Conv PRE"),
+                                                paired = FALSE, fill_colors = fill_colors, group_by_colname = "Group", subtitle = "CD38+", 
+                                                y_axis_text = "% COMPASS-selected CD4+ T Cells", y_axis_size = 15)
                                })
 names(pre_cd38_plots) <- stims
-
-pre_cd38_plots_list <- align_plots(pre_cd38_plots[["DMSO"]], pre_cd38_plots[["S1"]], pre_cd38_plots[["S2"]], pre_cd38_plots[["NCAP"]], align = "v")
-names(pre_cd38_plots_list) <- stims
-```
-
-```{r}
-ggdraw(pre_cd38_plots_list[["DMSO"]])
-```
-
-```{r}
-ggdraw(pre_cd38_plots_list[["S1"]])
-```
-
-```{r}
-ggdraw(pre_cd38_plots_list[["S2"]])
-```
-
-```{r}
-ggdraw(pre_cd38_plots_list[["NCAP"]])
+pre_cd38_plots
 ```
 
 ### Naive POST vs Conv POST
@@ -413,28 +264,12 @@ ggdraw(pre_cd38_plots_list[["NCAP"]])
 ```{r}
 post_cd38_plots <- purrr::pmap(.l = list(stims),
                                .f = function(n) {
-                                 make_mag_plots(cd38_counts, current_stim = n, compare_time = FALSE, keep = "POST", groups_to_compare = c("Naive POST", "Conv POST"), paired = FALSE, fill_colors = fill_colors, group_by_colname = "Group", subtitle = "CD38+", y_axis_text = "% COMPASS-selected CD4+ T Cells")
+                                 make_mag_plots(cd38_counts, current_stim = n, compare_time = FALSE, keep = "POST", groups_to_compare = c("Naive POST", "Conv POST"),
+                                                paired = FALSE, fill_colors = fill_colors, group_by_colname = "Group", subtitle = "CD38+", 
+                                                y_axis_text = "% COMPASS-selected CD4+ T Cells", y_axis_size = 15)
                                })
 names(post_cd38_plots) <- stims
-
-post_cd38_plots_list <- align_plots(post_cd38_plots[["DMSO"]], post_cd38_plots[["S1"]], post_cd38_plots[["S2"]], post_cd38_plots[["NCAP"]], align = "v")
-names(post_cd38_plots_list) <- stims
-```
-
-```{r}
-ggdraw(post_cd38_plots_list[["DMSO"]])
-```
-
-```{r}
-ggdraw(post_cd38_plots_list[["S1"]])
-```
-
-```{r}
-ggdraw(post_cd38_plots_list[["S2"]])
-```
-
-```{r}
-ggdraw(post_cd38_plots_list[["NCAP"]])
+post_cd38_plots
 ```
 
 ## HLA-DR+
@@ -444,28 +279,12 @@ ggdraw(post_cd38_plots_list[["NCAP"]])
 ```{r}
 naive_hladr_plots <- purrr::pmap(.l = list(stims),
                                .f = function(n) {
-                                 make_mag_plots(hladr_counts, current_stim = n, compare_time = TRUE, keep = "Naive", groups_to_compare = c("Naive PRE", "Naive POST"), paired = TRUE, fill_colors = fill_colors, group_by_colname = "Group", subtitle = "HLA-DR+", y_axis_text = "% COMPASS-selected CD4+ T Cells", ylim = c(0, 50))
+                                 make_mag_plots(hladr_counts, current_stim = n, compare_time = TRUE, keep = "Naive", groups_to_compare = c("Naive PRE", "Naive POST"),
+                                                paired = TRUE, fill_colors = fill_colors, group_by_colname = "Group", subtitle = "HLA-DR+", 
+                                                y_axis_text = "% COMPASS-selected CD4+ T Cells", y_axis_size = 15,  ylim = c(0, 50))
                                })
 names(naive_hladr_plots) <- stims
-
-naive_hladr_plots_list <- align_plots(naive_hladr_plots[["DMSO"]], naive_hladr_plots[["S1"]], naive_hladr_plots[["S2"]], naive_hladr_plots[["NCAP"]], align = "v")
-names(naive_hladr_plots_list) <- stims
-```
-
-```{r}
-ggdraw(naive_hladr_plots_list[["DMSO"]])
-```
-
-```{r}
-ggdraw(naive_hladr_plots_list[["S1"]])
-```
-
-```{r}
-ggdraw(naive_hladr_plots_list[["S2"]])
-```
-
-```{r}
-ggdraw(naive_hladr_plots_list[["NCAP"]])
+naive_hladr_plots
 ```
 
 ### Conv PRE vs Conv POST
@@ -473,28 +292,12 @@ ggdraw(naive_hladr_plots_list[["NCAP"]])
 ```{r}
 conv_hladr_plots <- purrr::pmap(.l = list(stims),
                                .f = function(n) {
-                                 make_mag_plots(hladr_counts, current_stim = n, compare_time = TRUE, keep = "Conv", groups_to_compare = c("Conv PRE", "Conv POST"), paired = TRUE, fill_colors = fill_colors, group_by_colname = "Group", subtitle = "HLA-DR+", y_axis_text = "% COMPASS-selected CD4+ T Cells", ylim = c(0, 20))
+                                 make_mag_plots(hladr_counts, current_stim = n, compare_time = TRUE, keep = "Conv", groups_to_compare = c("Conv PRE", "Conv POST"),
+                                                paired = TRUE, fill_colors = fill_colors, group_by_colname = "Group", subtitle = "HLA-DR+", 
+                                                y_axis_text = "% COMPASS-selected CD4+ T Cells", y_axis_size = 15,  ylim = c(0, 20))
                                })
 names(conv_hladr_plots) <- stims
-
-conv_hladr_plots_list <- align_plots(conv_hladr_plots[["DMSO"]], conv_hladr_plots[["S1"]], conv_hladr_plots[["S2"]], conv_hladr_plots[["NCAP"]], align = "v")
-names(conv_hladr_plots_list) <- stims
-```
-
-```{r}
-ggdraw(conv_hladr_plots_list[["DMSO"]])
-```
-
-```{r}
-ggdraw(conv_hladr_plots_list[["S1"]])
-```
-
-```{r}
-ggdraw(conv_hladr_plots_list[["S2"]])
-```
-
-```{r}
-ggdraw(conv_hladr_plots_list[["NCAP"]])
+conv_hladr_plots
 ```
 
 ### Naive PRE vs Conv PRE
@@ -502,28 +305,12 @@ ggdraw(conv_hladr_plots_list[["NCAP"]])
 ```{r}
 pre_hladr_plots <- purrr::pmap(.l = list(stims),
                                .f = function(n) {
-                                 make_mag_plots(hladr_counts, current_stim = n, compare_time = FALSE, keep = "PRE", groups_to_compare = c("Naive PRE", "Conv PRE"), paired = FALSE, fill_colors = fill_colors, group_by_colname = "Group", subtitle = "HLA-DR+", y_axis_text = "% COMPASS-selected CD4+ T Cells")
+                                 make_mag_plots(hladr_counts, current_stim = n, compare_time = FALSE, keep = "PRE", groups_to_compare = c("Naive PRE", "Conv PRE"),
+                                                paired = FALSE, fill_colors = fill_colors, group_by_colname = "Group", subtitle = "HLA-DR+",
+                                                y_axis_text = "% COMPASS-selected CD4+ T Cells", y_axis_size = 15)
                                })
 names(pre_hladr_plots) <- stims
-
-pre_hladr_plots_list <- align_plots(pre_hladr_plots[["DMSO"]], pre_hladr_plots[["S1"]], pre_hladr_plots[["S2"]], pre_hladr_plots[["NCAP"]], align = "v")
-names(pre_hladr_plots_list) <- stims
-```
-
-```{r}
-ggdraw(pre_hladr_plots_list[["DMSO"]])
-```
-
-```{r}
-ggdraw(pre_hladr_plots_list[["S1"]])
-```
-
-```{r}
-ggdraw(pre_hladr_plots_list[["S2"]])
-```
-
-```{r}
-ggdraw(pre_hladr_plots_list[["NCAP"]])
+pre_hladr_plots
 ```
 
 ### Naive POST vs Conv POST
@@ -531,28 +318,12 @@ ggdraw(pre_hladr_plots_list[["NCAP"]])
 ```{r}
 post_hladr_plots <- purrr::pmap(.l = list(stims),
                                .f = function(n) {
-                                 make_mag_plots(hladr_counts, current_stim = n, compare_time = FALSE, keep = "POST", groups_to_compare = c("Naive POST", "Conv POST"), paired = FALSE, fill_colors = fill_colors, group_by_colname = "Group", subtitle = "HLA-DR+", y_axis_text = "% COMPASS-selected CD4+ T Cells")
+                                 make_mag_plots(hladr_counts, current_stim = n, compare_time = FALSE, keep = "POST", groups_to_compare = c("Naive POST", "Conv POST"),
+                                                paired = FALSE, fill_colors = fill_colors, group_by_colname = "Group", subtitle = "HLA-DR+",
+                                                y_axis_text = "% COMPASS-selected CD4+ T Cells", y_axis_size = 15)
                                })
 names(post_hladr_plots) <- stims
-
-post_hladr_plots_list <- align_plots(post_hladr_plots[["DMSO"]], post_hladr_plots[["S1"]], post_hladr_plots[["S2"]], post_hladr_plots[["NCAP"]], align = "v")
-names(post_hladr_plots_list) <- stims
-```
-
-```{r}
-ggdraw(post_hladr_plots_list[["DMSO"]])
-```
-
-```{r}
-ggdraw(post_hladr_plots_list[["S1"]])
-```
-
-```{r}
-ggdraw(post_hladr_plots_list[["S2"]])
-```
-
-```{r}
-ggdraw(post_hladr_plots_list[["NCAP"]])
+post_hladr_plots
 ```
 
 ## Central Memory
@@ -562,28 +333,12 @@ ggdraw(post_hladr_plots_list[["NCAP"]])
 ```{r}
 naive_cm_plots <- purrr::pmap(.l = list(stims),
                                .f = function(n) {
-                                 make_mag_plots(cm_counts, current_stim = n, compare_time = TRUE, keep = "Naive", groups_to_compare = c("Naive PRE", "Naive POST"), paired = TRUE, fill_colors = fill_colors, group_by_colname = "Group", subtitle = "Central Memory (CD45RA-CCR7+)", y_axis_text = "% COMPASS-selected CD4+ T Cells")
+                                 make_mag_plots(cm_counts, current_stim = n, compare_time = TRUE, keep = "Naive", groups_to_compare = c("Naive PRE", "Naive POST"),
+                                                paired = TRUE, fill_colors = fill_colors, group_by_colname = "Group", subtitle = "Central Memory (CD45RA-CCR7+)",
+                                                y_axis_text = "% COMPASS-selected CD4+ T Cells", y_axis_size = 15)
                                })
 names(naive_cm_plots) <- stims
-
-naive_cm_plots_list <- align_plots(naive_cm_plots[["DMSO"]], naive_cm_plots[["S1"]], naive_cm_plots[["S2"]], naive_cm_plots[["NCAP"]], align = "v")
-names(naive_cm_plots_list) <- stims
-```
-
-```{r}
-ggdraw(naive_cm_plots_list[["DMSO"]])
-```
-
-```{r}
-ggdraw(naive_cm_plots_list[["S1"]])
-```
-
-```{r}
-ggdraw(naive_cm_plots_list[["S2"]])
-```
-
-```{r}
-ggdraw(naive_cm_plots_list[["NCAP"]])
+naive_cm_plots
 ```
 
 ### Conv PRE vs Conv POST
@@ -591,28 +346,12 @@ ggdraw(naive_cm_plots_list[["NCAP"]])
 ```{r}
 conv_cm_plots <- purrr::pmap(.l = list(stims),
                                .f = function(n) {
-                                 make_mag_plots(cm_counts, current_stim = n, compare_time = TRUE, keep = "Conv", groups_to_compare = c("Conv PRE", "Conv POST"), paired = TRUE, fill_colors = fill_colors, group_by_colname = "Group", subtitle = "Central Memory (CD45RA-CCR7+)", y_axis_text = "% COMPASS-selected CD4+ T Cells")
+                                 make_mag_plots(cm_counts, current_stim = n, compare_time = TRUE, keep = "Conv", groups_to_compare = c("Conv PRE", "Conv POST"), 
+                                                paired = TRUE, fill_colors = fill_colors, group_by_colname = "Group", subtitle = "Central Memory (CD45RA-CCR7+)",
+                                                y_axis_text = "% COMPASS-selected CD4+ T Cells", y_axis_size = 15)
                                })
 names(conv_cm_plots) <- stims
-
-conv_cm_plots_list <- align_plots(conv_cm_plots[["DMSO"]], conv_cm_plots[["S1"]], conv_cm_plots[["S2"]], conv_cm_plots[["NCAP"]], align = "v")
-names(conv_cm_plots_list) <- stims
-```
-
-```{r}
-ggdraw(conv_cm_plots_list[["DMSO"]])
-```
-
-```{r}
-ggdraw(conv_cm_plots_list[["S1"]])
-```
-
-```{r}
-ggdraw(conv_cm_plots_list[["S2"]])
-```
-
-```{r}
-ggdraw(conv_cm_plots_list[["NCAP"]])
+conv_cm_plots
 ```
 
 ### Naive PRE vs Conv PRE
@@ -620,28 +359,12 @@ ggdraw(conv_cm_plots_list[["NCAP"]])
 ```{r}
 pre_cm_plots <- purrr::pmap(.l = list(stims),
                                .f = function(n) {
-                                 make_mag_plots(cm_counts, current_stim = n, compare_time = FALSE, keep = "PRE", groups_to_compare = c("Naive PRE", "Conv PRE"), paired = FALSE, fill_colors = fill_colors, group_by_colname = "Group", subtitle = "Central Memory (CD45RA-CCR7+)", y_axis_text = "% COMPASS-selected CD4+ T Cells")
+                                 make_mag_plots(cm_counts, current_stim = n, compare_time = FALSE, keep = "PRE", groups_to_compare = c("Naive PRE", "Conv PRE"),
+                                                paired = FALSE, fill_colors = fill_colors, group_by_colname = "Group", subtitle = "Central Memory (CD45RA-CCR7+)",
+                                                y_axis_text = "% COMPASS-selected CD4+ T Cells", y_axis_size = 15)
                                })
 names(pre_cm_plots) <- stims
-
-pre_cm_plots_list <- align_plots(pre_cm_plots[["DMSO"]], pre_cm_plots[["S1"]], pre_cm_plots[["S2"]], pre_cm_plots[["NCAP"]], align = "v")
-names(pre_cm_plots_list) <- stims
-```
-
-```{r}
-ggdraw(pre_cm_plots_list[["DMSO"]])
-```
-
-```{r}
-ggdraw(pre_cm_plots_list[["S1"]])
-```
-
-```{r}
-ggdraw(pre_cm_plots_list[["S2"]])
-```
-
-```{r}
-ggdraw(pre_cm_plots_list[["NCAP"]])
+pre_cm_plots
 ```
 
 ### Naive POST vs Conv POST
@@ -649,28 +372,12 @@ ggdraw(pre_cm_plots_list[["NCAP"]])
 ```{r}
 post_cm_plots <- purrr::pmap(.l = list(stims),
                                .f = function(n) {
-                                 make_mag_plots(cm_counts, current_stim = n, compare_time = FALSE, keep = "POST", groups_to_compare = c("Naive POST", "Conv POST"), paired = FALSE, fill_colors = fill_colors, group_by_colname = "Group", subtitle = "Central Memory (CD45RA-CCR7+)", y_axis_text = "% COMPASS-selected CD4+ T Cells")
+                                 make_mag_plots(cm_counts, current_stim = n, compare_time = FALSE, keep = "POST", groups_to_compare = c("Naive POST", "Conv POST"),
+                                                paired = FALSE, fill_colors = fill_colors, group_by_colname = "Group", subtitle = "Central Memory (CD45RA-CCR7+)",
+                                                y_axis_text = "% COMPASS-selected CD4+ T Cells", y_axis_size = 15)
                                })
 names(post_cm_plots) <- stims
-
-post_cm_plots_list <- align_plots(post_cm_plots[["DMSO"]], post_cm_plots[["S1"]], post_cm_plots[["S2"]], post_cm_plots[["NCAP"]], align = "v")
-names(post_cm_plots_list) <- stims
-```
-
-```{r}
-ggdraw(post_cm_plots_list[["DMSO"]])
-```
-
-```{r}
-ggdraw(post_cm_plots_list[["S1"]])
-```
-
-```{r}
-ggdraw(post_cm_plots_list[["S2"]])
-```
-
-```{r}
-ggdraw(post_cm_plots_list[["NCAP"]])
+post_cm_plots
 ```
 
 ## Effector Memory
@@ -680,28 +387,12 @@ ggdraw(post_cm_plots_list[["NCAP"]])
 ```{r}
 naive_em_plots <- purrr::pmap(.l = list(stims),
                                .f = function(n) {
-                                 make_mag_plots(em_counts, current_stim = n, compare_time = TRUE, keep = "Naive", groups_to_compare = c("Naive PRE", "Naive POST"), paired = TRUE, fill_colors = fill_colors, group_by_colname = "Group", subtitle = "Effector Memory (CD45RA-CCR7-)", y_axis_text = "% COMPASS-selected CD4+ T Cells",  ylim = c(0, 100))
+                                 make_mag_plots(em_counts, current_stim = n, compare_time = TRUE, keep = "Naive", groups_to_compare = c("Naive PRE", "Naive POST"),
+                                                paired = TRUE, fill_colors = fill_colors, group_by_colname = "Group", subtitle = "Effector Memory (CD45RA-CCR7-)",
+                                                y_axis_text = "% COMPASS-selected CD4+ T Cells", y_axis_size = 15,   ylim = c(0, 100))
                                })
 names(naive_em_plots) <- stims
-
-naive_em_plots_list <- align_plots(naive_em_plots[["DMSO"]], naive_em_plots[["S1"]], naive_em_plots[["S2"]], naive_em_plots[["NCAP"]], align = "v")
-names(naive_em_plots_list) <- stims
-```
-
-```{r}
-ggdraw(naive_em_plots_list[["DMSO"]])
-```
-
-```{r}
-ggdraw(naive_em_plots_list[["S1"]])
-```
-
-```{r}
-ggdraw(naive_em_plots_list[["S2"]])
-```
-
-```{r}
-ggdraw(naive_em_plots_list[["NCAP"]])
+naive_em_plots
 ```
 
 ### Conv PRE vs Conv POST
@@ -709,28 +400,12 @@ ggdraw(naive_em_plots_list[["NCAP"]])
 ```{r}
 conv_em_plots <- purrr::pmap(.l = list(stims),
                                .f = function(n) {
-                                 make_mag_plots(em_counts, current_stim = n, compare_time = TRUE, keep = "Conv", groups_to_compare = c("Conv PRE", "Conv POST"), paired = TRUE, fill_colors = fill_colors, group_by_colname = "Group", subtitle = "Effector Memory (CD45RA-CCR7-)", y_axis_text = "% COMPASS-selected CD4+ T Cells", ylim = c(0, 65))
+                                 make_mag_plots(em_counts, current_stim = n, compare_time = TRUE, keep = "Conv", groups_to_compare = c("Conv PRE", "Conv POST"), 
+                                                paired = TRUE, fill_colors = fill_colors, group_by_colname = "Group", subtitle = "Effector Memory (CD45RA-CCR7-)",
+                                                y_axis_text = "% COMPASS-selected CD4+ T Cells", y_axis_size = 15,  ylim = c(0, 65))
                                })
 names(conv_em_plots) <- stims
-
-conv_em_plots_list <- align_plots(conv_em_plots[["DMSO"]], conv_em_plots[["S1"]], conv_em_plots[["S2"]], conv_em_plots[["NCAP"]], align = "v")
-names(conv_em_plots_list) <- stims
-```
-
-```{r}
-ggdraw(conv_em_plots_list[["DMSO"]])
-```
-
-```{r}
-ggdraw(conv_em_plots_list[["S1"]])
-```
-
-```{r}
-ggdraw(conv_em_plots_list[["S2"]])
-```
-
-```{r}
-ggdraw(conv_em_plots_list[["NCAP"]])
+conv_em_plots
 ```
 
 ### Naive PRE vs Conv PRE
@@ -738,28 +413,12 @@ ggdraw(conv_em_plots_list[["NCAP"]])
 ```{r}
 pre_em_plots <- purrr::pmap(.l = list(stims),
                                .f = function(n) {
-                                 make_mag_plots(em_counts, current_stim = n, compare_time = FALSE, keep = "PRE", groups_to_compare = c("Naive PRE", "Conv PRE"), paired = FALSE, fill_colors = fill_colors, group_by_colname = "Group", subtitle = "Effector Memory (CD45RA-CCR7-)", y_axis_text = "% COMPASS-selected CD4+ T Cells")
+                                 make_mag_plots(em_counts, current_stim = n, compare_time = FALSE, keep = "PRE", groups_to_compare = c("Naive PRE", "Conv PRE"), 
+                                                paired = FALSE, fill_colors = fill_colors, group_by_colname = "Group", subtitle = "Effector Memory (CD45RA-CCR7-)",
+                                                y_axis_text = "% COMPASS-selected CD4+ T Cells", y_axis_size = 15)
                                })
 names(pre_em_plots) <- stims
-
-pre_em_plots_list <- align_plots(pre_em_plots[["DMSO"]], pre_em_plots[["S1"]], pre_em_plots[["S2"]], pre_em_plots[["NCAP"]], align = "v")
-names(pre_em_plots_list) <- stims
-```
-
-```{r}
-ggdraw(pre_em_plots_list[["DMSO"]])
-```
-
-```{r}
-ggdraw(pre_em_plots_list[["S1"]])
-```
-
-```{r}
-ggdraw(pre_em_plots_list[["S2"]])
-```
-
-```{r}
-ggdraw(pre_em_plots_list[["NCAP"]])
+pre_em_plots
 ```
 
 ### Naive POST vs Conv POST
@@ -767,62 +426,46 @@ ggdraw(pre_em_plots_list[["NCAP"]])
 ```{r}
 post_em_plots <- purrr::pmap(.l = list(stims),
                                .f = function(n) {
-                                 make_mag_plots(em_counts, current_stim = n, compare_time = FALSE, keep = "POST", groups_to_compare = c("Naive POST", "Conv POST"), paired = FALSE, fill_colors = fill_colors, group_by_colname = "Group", subtitle = "Effector Memory (CD45RA-CCR7-)", y_axis_text = "% COMPASS-selected CD4+ T Cells")
+                                 make_mag_plots(em_counts, current_stim = n, compare_time = FALSE, keep = "POST", groups_to_compare = c("Naive POST", "Conv POST"),
+                                                paired = FALSE, fill_colors = fill_colors, group_by_colname = "Group", subtitle = "Effector Memory (CD45RA-CCR7-)",
+                                                y_axis_text = "% COMPASS-selected CD4+ T Cells", y_axis_size = 15)
                                })
 names(post_em_plots) <- stims
-
-post_em_plots_list <- align_plots(post_em_plots[["DMSO"]], post_em_plots[["S1"]], post_em_plots[["S2"]], post_em_plots[["NCAP"]], align = "v")
-names(post_em_plots_list) <- stims
-```
-
-```{r}
-ggdraw(post_em_plots_list[["DMSO"]])
-```
-
-```{r}
-ggdraw(post_em_plots_list[["S1"]])
-```
-
-```{r}
-ggdraw(post_em_plots_list[["S2"]])
-```
-
-```{r}
-ggdraw(post_em_plots_list[["NCAP"]])
+post_em_plots
 ```
 
 # Save figures
 
 ```{r save boxplots pdf}
 if(save_output) {
-  cairo_pdf(file=here::here("out/post_compass_plots/activation_memory_plots/CD4_naive_hladr_plots.pdf"), width=4, height=5.25,
+  cairo_pdf(file=here::here("out/post_compass_plots/activation_memory_plots/CD4_naive_hladr_plots.pdf"), width=4, height=5,
         onefile = TRUE, bg = "transparent", family = "Arial") # default unit is inches, default font is Helvetica.
-  print(ggdraw(naive_hladr_plots_list[["S1"]]))
-  print(ggdraw(naive_hladr_plots_list[["S2"]]))
+  print(naive_hladr_plots[["S1"]])
+  print(naive_hladr_plots[["S2"]])
   dev.off()
   
-  cairo_pdf(file=here::here("out/post_compass_plots/activation_memory_plots/CD4_naive_em_plots.pdf"), width=4, height=5.25,
+  cairo_pdf(file=here::here("out/post_compass_plots/activation_memory_plots/CD4_naive_em_plots.pdf"), width=4, height=5,
         onefile = TRUE, bg = "transparent", family = "Arial") # default unit is inches, default font is Helvetica
-  print(ggdraw(naive_em_plots_list[["S1"]]))
-  print(ggdraw(naive_em_plots_list[["S2"]]))
+  print(naive_em_plots[["S1"]])
+  print(naive_em_plots[["S2"]])
   dev.off()
   
-    cairo_pdf(file=here::here("out/post_compass_plots/activation_memory_plots/CD4_conv_cd38_plots.pdf"), width=4, height=5.25,
+    cairo_pdf(file=here::here("out/post_compass_plots/activation_memory_plots/CD4_conv_cd38_plots.pdf"), width=4, height=5,
         onefile = TRUE, bg = "transparent", family = "Arial") # default unit is inches, default font is Helvetica.
-  print(ggdraw(conv_cd38_plots_list[["S1"]]))
-  print(ggdraw(conv_cd38_plots_list[["S2"]]))
+  print(conv_cd38_plots[["S1"]])
+  print(conv_cd38_plots[["S2"]])
   dev.off()
   
-    cairo_pdf(file=here::here("out/post_compass_plots/activation_memory_plots/CD4_conv_hladr_plots.pdf"), width=4, height=5.25,
+    cairo_pdf(file=here::here("out/post_compass_plots/activation_memory_plots/CD4_conv_hladr_plots.pdf"), width=4, height=5,
         onefile = TRUE, bg = "transparent", family = "Arial") # default unit is inches, default font is Helvetica.
-  print(ggdraw(conv_hladr_plots_list[["S1"]]))
-  print(ggdraw(conv_hladr_plots_list[["S2"]]))
+  print(conv_hladr_plots[["S1"]])
+  print(conv_hladr_plots[["S2"]])
   dev.off()
     
-  cairo_pdf(file=here::here("out/post_compass_plots/activation_memory_plots/CD4_conv_em_plots.pdf"), width=4, height=5.25,
+  cairo_pdf(file=here::here("out/post_compass_plots/activation_memory_plots/CD4_conv_em_plots.pdf"), width=4, height=5,
         onefile = TRUE, bg = "transparent", family = "Arial") # default unit is inches, default font is Helvetica
-  print(ggdraw(conv_em_plots_list[["S1"]]))
-  print(ggdraw(conv_em_plots_list[["S2"]]))
+  print(conv_em_plots[["S1"]])
+  print(conv_em_plots[["S2"]])
   dev.off()
 }
 ```
