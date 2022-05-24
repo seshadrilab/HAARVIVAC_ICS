@@ -827,7 +827,7 @@ split_fs_pfs_plot <- function(df, FS_or_PFS = "FS", current_stim = "S1",
              if(p < 0.001) {
                "p<0.001"
              } else {
-               paste0("p=", round(p, 3))
+               paste0("p=", formatC(round(p, 3), format='f', digits=3))
              }
            }),
            # y_pos = c(d %>% dplyr::filter(Group %in% c("Naive PRE", "Naive POST")) %>%
@@ -974,7 +974,7 @@ split_fs_pfs_plot <- function(df, FS_or_PFS = "FS", current_stim = "S1",
 
 # Individual magnitude/frequency plots
 
-make_mag_plots <- function(counts, compare_time, keep, current_stim,
+make_mag_plots <- function(counts, counts_no_outlier = NULL, compare_time, keep, current_stim,
                            groups_to_compare, paired, fill_colors,
                            group_by_colname, subtitle, ylim = NULL, y_axis_text,
                            y_axis_size, axis_break = NULL) {
@@ -984,6 +984,19 @@ make_mag_plots <- function(counts, compare_time, keep, current_stim,
   } else {
     counts <- counts %>%
       dplyr::filter(Timepoint == keep & Stim == current_stim)
+  }
+  
+  if(!is.null(counts_no_outlier)) {
+    if(compare_time) {
+      counts_no_outlier <- counts_no_outlier %>%
+        dplyr::filter(grepl(keep, Group) & Stim == current_stim)
+    } else {
+      counts_no_outlier <- counts_no_outlier %>%
+        dplyr::filter(Timepoint == keep & Stim == current_stim)
+    }
+    counts_to_plot <- counts_no_outlier
+  } else {
+    counts_to_plot <- counts
   }
   
   # P-values are unadjusted
@@ -1007,7 +1020,7 @@ make_mag_plots <- function(counts, compare_time, keep, current_stim,
                if(p < 0.001) {
                  "p<0.001"
                } else {
-                 paste0("p=", round(p, 3))
+                 paste0("p=", formatC(round(p, 3), format='f', digits=3))
                }
              }),
              geom_signif_group = paste0(group1, group2))
@@ -1018,11 +1031,11 @@ make_mag_plots <- function(counts, compare_time, keep, current_stim,
              x.end.segment = 1:2 + 0.1)
   } else {
     test_df <- data.frame(p = as.numeric(unlist(test)["p.value"])) %>%
-      mutate(p_val_text = if_else(p < 0.001, "p<.001", paste0("p=", sub("0.", ".", round(p, 3)))))
+      mutate(p_val_text = if_else(p < 0.001, "p<0.001", paste0("p=", formatC(round(p, 3), format='f', digits=3))))
   }
   
   if(compare_time) {
-    current_plot <- ggplot(counts, aes(x = Group, y = Freq)) +
+    current_plot <- ggplot(counts_to_plot, aes(x = Group, y = Freq)) +
       geom_line(aes(group = `PATIENT ID`), color = fill_colors[[keep]][1], size = 0.6, alpha = 0.5) +
       geom_segment(data = medians,
                    aes(x=x.min.segment, xend=x.end.segment, y=med, yend=med),
@@ -1032,7 +1045,7 @@ make_mag_plots <- function(counts, compare_time, keep, current_stim,
       scale_fill_manual(values = ggplot2::alpha(fill_colors[[keep]], 0.3)) +
       scale_x_discrete(expand = c(0.1, 0.1), labels = stringr::str_replace_all(groups_to_compare, " ", "\n"))
   } else {
-    current_plot <- ggplot(counts, aes(x = Group, y = Freq)) +
+    current_plot <- ggplot(counts_to_plot, aes(x = Group, y = Freq)) +
       geom_boxplot(outlier.shape=NA, position = position_dodge2(preserve = "total")) +
       geom_quasirandom(size=3, shape = 16, width = 0.3, aes(color=!!as.symbol(group_by_colname))) +
       scale_color_manual(values = fill_colors[[keep]]) +
