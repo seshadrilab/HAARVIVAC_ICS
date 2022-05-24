@@ -207,11 +207,11 @@ base_dimred_plot <- function(currentColumn, pointSize = 0.02, colorScheme = NA) 
 
 ## Look for Batch and Patient sub-clustering
 
-```{r, fig.width=10, fig.height=8, eval=FALSE, include=FALSE}
+```{r, fig.width=10, fig.height=8}
 base_dimred_plot("EXPERIMENT NAME")
 ```
 
-```{r, fig.width=10, fig.height=8, eval=FALSE, include=FALSE}
+```{r, fig.width=10, fig.height=8}
 base_dimred_plot("SAMPLE ID")
 ```
 
