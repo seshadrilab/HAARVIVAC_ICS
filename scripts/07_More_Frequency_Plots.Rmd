@@ -91,18 +91,47 @@ gs_pop_add(gs, eval(substitute(flowWorkspace::booleanFilter(v),
            parent = "/Time/CD3+/CD14-CD19-/Lymphocytes/Singlet/Live/CD4+", name = "IFNg+CD107a+")
 ```
 
-## CD8 CD107a+HLADR+CD38+
+## CD8 CD107a+HLADR|CD107a+CD38+
 
 ```{r}
 # Get paths
 cd8_cd107a_path <- "/Time/CD3+/CD14-CD19-/Lymphocytes/Singlet/Live/CD8+/CD107a+"
-hladr_cd38_path <- "/Time/CD3+/CD14-CD19-/Lymphocytes/Singlet/Live/CD8+/CD8_COMPASS_Subsets/HLADR+CD38+"  
+cd3_hladr_path <- "/Time/CD3+/CD14-CD19-/Lymphocytes/Singlet/Live/HLADR+"
+cd3_cd38_path <- "/Time/CD3+/CD14-CD19-/Lymphocytes/Singlet/Live/CD38+" 
 
 # Add boolean gate
 gs_pop_add(gs, eval(substitute(flowWorkspace::booleanFilter(v),
                                list(v = as.symbol(paste0("", cd8_cd107a_path,
-                                                         "&", hladr_cd38_path))))),
-           parent = "/Time/CD3+/CD14-CD19-/Lymphocytes/Singlet/Live/CD8+", name = "CD107a+HLADR+CD38+")
+                                                         "&", cd3_hladr_path))))),
+           parent = "/Time/CD3+/CD14-CD19-/Lymphocytes/Singlet/Live/CD8+", name = "CD107a+HLADR+")
+
+gs_pop_add(gs, eval(substitute(flowWorkspace::booleanFilter(v),
+                               list(v = as.symbol(paste0("", cd8_cd107a_path,
+                                                         "&", cd3_cd38_path))))),
+           parent = "/Time/CD3+/CD14-CD19-/Lymphocytes/Singlet/Live/CD8+", name = "CD107a+CD38+")
+
+cd8_cd107a_hladr_path <- "/Time/CD3+/CD14-CD19-/Lymphocytes/Singlet/Live/CD8+/CD107a+HLADR+"
+cd8_cd107a_cd38_path <- "/Time/CD3+/CD14-CD19-/Lymphocytes/Singlet/Live/CD8+/CD107a+CD38+"
+
+gs_pop_add(gs, eval(substitute(flowWorkspace::booleanFilter(v),
+                               list(v = as.symbol(paste0("", cd8_cd107a_hladr_path,
+                                                         "|", cd8_cd107a_cd38_path))))),
+           parent = "/Time/CD3+/CD14-CD19-/Lymphocytes/Singlet/Live/CD8+", name = "CD107a+HLADR+|CD107a+CD38+")
+```
+
+## CD8 TEMRA CD107a+
+
+```{r}
+# Get paths
+cd8_cd107a_path <- "/Time/CD3+/CD14-CD19-/Lymphocytes/Singlet/Live/CD8+/CD107a+"
+cd8_cd45ra_path <- "/Time/CD3+/CD14-CD19-/Lymphocytes/Singlet/Live/CD8+/CD45RA+" 
+cd8_ccr7_path <- "/Time/CD3+/CD14-CD19-/Lymphocytes/Singlet/Live/CD8+/CCR7+"
+
+gs_pop_add(gs, eval(substitute(flowWorkspace::booleanFilter(v),
+                               list(v = as.symbol(paste0("", cd8_cd107a_path,
+                                                         "&", cd3_hladr_path,
+                                                         "&!", cd8_ccr7_path))))),
+           parent = "/Time/CD3+/CD14-CD19-/Lymphocytes/Singlet/Live/CD8+", name = "TEMRA_CD107a+")
 ```
 
 Recompute the GatingSet
@@ -147,10 +176,10 @@ ifng_cd107a_counts <- pData(gs) %>%
 ifng_cd107a_counts$Group <- factor(ifng_cd154_counts$Group, levels = c("Naive PRE", "Naive POST", "Conv PRE", "Conv POST"))
 ```
 
-## CD8 CD107a+HLADR+CD38+
+## CD8 CD107a+HLADR+|CD107a+CD38+
 
 ```{r}
-cd8_cd107a_hladr_cd38_parent <- "/Time/CD3+/CD14-CD19-/Lymphocytes/Singlet/Live/CD8+/CD107a+HLADR+CD38+"
+cd8_cd107a_hladr_cd38_parent <- "/Time/CD3+/CD14-CD19-/Lymphocytes/Singlet/Live/CD8+/CD107a+HLADR+|CD107a+CD38+"
 
 cd107a_hladr_cd38_counts <- pData(gs) %>%
   tibble::rownames_to_column("rowname") %>%
@@ -161,6 +190,22 @@ cd107a_hladr_cd38_counts <- pData(gs) %>%
   mutate(Freq = (Subpop/ParentCount)*100) 
 
 cd107a_hladr_cd38_counts$Group <- factor(cd107a_hladr_cd38_counts$Group, levels = c("Naive PRE", "Naive POST", "Conv PRE", "Conv POST"))
+```
+
+## CD8 TEMRA CD107a+
+
+```{r}
+cd8_temra_cd107a_parent <- "/Time/CD3+/CD14-CD19-/Lymphocytes/Singlet/Live/CD8+/TEMRA_CD107a+"
+
+temra_cd107a_counts <- pData(gs) %>%
+  tibble::rownames_to_column("rowname") %>%
+  left_join(gs_pop_get_count_fast(gs, subpopulations = cd8_temra_cd107a_parent), by = c("rowname" = "name")) %>%
+  dplyr::rename(Subpop = Count) %>%
+  dplyr::select(rowname, "SAMPLE ID", "EXPERIMENT NAME", "PATIENT ID", Stim, Group, Timepoint, Subpop, ParentCount) %>%
+  dplyr::filter(Stim != "SEB") %>%
+  mutate(Freq = (Subpop/ParentCount)*100) 
+
+temra_cd107a_counts$Group <- factor(temra_cd107a_counts$Group, levels = c("Naive PRE", "Naive POST", "Conv PRE", "Conv POST"))
 ```
 
 # Plots
@@ -193,7 +238,7 @@ ifng_cd154_counts_no_outlier <- ifng_cd154_counts %>%
   dplyr::filter(Stim == "S2") %>%
   dplyr::filter(`PATIENT ID` != "57H")
   
-naive_s2_ifng_cd154_plot <- make_mag_plots(ifng_cd154_counts_no_outlier, current_stim = "S2", compare_time = TRUE, keep = "Naive",
+naive_s2_ifng_cd154_plot <- make_mag_plots(counts = ifng_cd154_counts, counts_no_outlier = ifng_cd154_counts_no_outlier, current_stim = "S2", compare_time = TRUE, keep = "Naive",
                                                 groups_to_compare = c("Naive PRE", "Naive POST"), paired = TRUE, fill_colors = fill_colors,
                                                 group_by_colname = "Group", subtitle = paste0("IFN", "\U03B3", "+CD154+"), y_axis_text = "% CD4+ T Cells", 
                                            ylim = c(0, 1), y_axis_size = 20)
@@ -283,7 +328,7 @@ ifng_cd107a_counts_no_outlier <- ifng_cd107a_counts %>%
   dplyr::filter(Stim == "S2") %>%
   dplyr::filter(`PATIENT ID` != "242C")
   
-conv_s2_ifng_cd107a_plot <- make_mag_plots(ifng_cd107a_counts_no_outlier, current_stim = "S2", compare_time = TRUE, keep = "Conv",
+conv_s2_ifng_cd107a_plot <- make_mag_plots(counts = ifng_cd107a_counts, counts_no_outlier = ifng_cd107a_counts_no_outlier, current_stim = "S2", compare_time = TRUE, keep = "Conv",
                                                 groups_to_compare = c("Conv PRE", "Conv POST"), paired = TRUE, fill_colors = fill_colors,
                                                 group_by_colname = "Group", subtitle = paste0("IFN", "\U03B3", "+CD107a+"), y_axis_text = "% CD4+ T Cells", 
                                            ylim = c(0, 0.35), y_axis_size = 20)
@@ -327,7 +372,7 @@ ifng_cd107a_counts_no_outlier <- ifng_cd107a_counts %>%
   dplyr::filter(Stim == "S1") %>%
   dplyr::filter(`PATIENT ID` != "12C")
   
-post_s1_ifng_cd107a_plot <- make_mag_plots(ifng_cd107a_counts_no_outlier, current_stim = "S1", compare_time = FALSE, keep = "POST",
+post_s1_ifng_cd107a_plot <- make_mag_plots(counts = ifng_cd107a_counts, counts_no_outlier = ifng_cd107a_counts_no_outlier, current_stim = "S1", compare_time = FALSE, keep = "POST",
                                            groups_to_compare = c("Naive POST", "Conv POST"), paired = FALSE, fill_colors = fill_colors,
                                            group_by_colname = "Group", subtitle = paste0("IFN", "\U03B3", "+CD107a+"), y_axis_text = "% CD4+ T Cells", 
                                            ylim = c(0, 0.17), y_axis_size = 20)
@@ -349,7 +394,7 @@ naive_cd107a_hladr_cd38_plots <- purrr::pmap(.l = list(stims[-1]),
                                .f = function(n) {
                                  make_mag_plots(cd107a_hladr_cd38_counts, current_stim = n, compare_time = TRUE, keep = "Naive",
                                                 groups_to_compare = c("Naive PRE", "Naive POST"), paired = TRUE, fill_colors = fill_colors,
-                                                group_by_colname = "Group", subtitle = "CD107a+HLA-DR+CD38+", y_axis_text = "% CD8+ T Cells",
+                                                group_by_colname = "Group", subtitle = "CD107a+HLA-DR+ or CD107a+CD38+", y_axis_text = "% CD8+ T Cells",
                                                 y_axis_size = 20)
                                })
 
@@ -365,7 +410,7 @@ conv_cd107a_hladr_cd38_plots <- purrr::pmap(.l = list(stims),
                                .f = function(n) {
                                  make_mag_plots(cd107a_hladr_cd38_counts, current_stim = n, compare_time = TRUE, keep = "Conv",
                                                 groups_to_compare = c("Conv PRE", "Conv POST"), paired = TRUE, fill_colors = fill_colors,
-                                                group_by_colname = "Group", subtitle = "CD107a+HLA-DR+CD38+", y_axis_text = "% CD8+ T Cells",
+                                                group_by_colname = "Group", subtitle = "CD107a+HLA-DR+ or CD107a+CD38+", y_axis_text = "% CD8+ T Cells",
                                                 y_axis_size = 20)
                                })
 names(conv_cd107a_hladr_cd38_plots) <- stims
@@ -380,7 +425,7 @@ pre_cd107a_hladr_cd38_plots <- purrr::pmap(.l = list(stims),
                                .f = function(n) {
                                  make_mag_plots(cd107a_hladr_cd38_counts, current_stim = n, compare_time = FALSE, keep = "PRE", 
                                                 groups_to_compare = c("Naive PRE", "Conv PRE"), paired = FALSE, fill_colors = fill_colors, 
-                                                group_by_colname = "Group", subtitle = "CD107a+HLA-DR+CD38+", y_axis_text = "% CD8+ T Cells",
+                                                group_by_colname = "Group", subtitle = "CD107a+HLA-DR+ or CD107a+CD38+", y_axis_text = "% CD8+ T Cells",
                                                 y_axis_size = 20)
                                })
 names(pre_cd107a_hladr_cd38_plots) <- stims
@@ -395,12 +440,75 @@ post_cd107a_hladr_cd38_plots <- purrr::pmap(.l = list(stims),
                                .f = function(n) {
                                  make_mag_plots(cd107a_hladr_cd38_counts, current_stim = n, compare_time = FALSE, keep = "POST", 
                                                 groups_to_compare = c("Naive POST", "Conv POST"), paired = FALSE, fill_colors = fill_colors, 
-                                                group_by_colname = "Group", subtitle = "CD107a+HLA-DR+CD38+", y_axis_text = "% CD8+ T Cells",
+                                                group_by_colname = "Group", subtitle = "CD107a+HLA-DR+ or CD107a+CD38+", y_axis_text = "% CD8+ T Cells",
                                                 y_axis_size = 20)
                                })
 names(post_cd107a_hladr_cd38_plots) <- stims
 
 post_cd107a_hladr_cd38_plots
+```
+
+## CD8 TEMRA CD107a+
+
+### Naive PRE vs Naive POST
+
+```{r}
+naive_temra_cd107a_plots <- purrr::pmap(.l = list(stims),
+                               .f = function(n) {
+                                 make_mag_plots(temra_cd107a_counts, current_stim = n, compare_time = TRUE, keep = "Naive",
+                                                groups_to_compare = c("Naive PRE", "Naive POST"), paired = TRUE, fill_colors = fill_colors,
+                                                group_by_colname = "Group", subtitle = "TEMRA CD107a+", y_axis_text = "% CD8+ T Cells",
+                                                y_axis_size = 20)
+                               })
+
+names(naive_temra_cd107a_plots) <- stims
+
+naive_temra_cd107a_plots
+```
+
+### Conv PRE vs Conv POST
+
+```{r}
+conv_temra_cd107a_plots <- purrr::pmap(.l = list(stims),
+                               .f = function(n) {
+                                 make_mag_plots(temra_cd107a_counts, current_stim = n, compare_time = TRUE, keep = "Conv",
+                                                groups_to_compare = c("Conv PRE", "Conv POST"), paired = TRUE, fill_colors = fill_colors,
+                                                group_by_colname = "Group", subtitle = "TEMRA CD107a+", y_axis_text = "% CD8+ T Cells",
+                                                y_axis_size = 20)
+                               })
+names(conv_temra_cd107a_plots) <- stims
+
+conv_temra_cd107a_plots
+```
+
+### Naive PRE vs Conv PRE
+
+```{r}
+pre_temra_cd107a_plots <- purrr::pmap(.l = list(stims),
+                               .f = function(n) {
+                                 make_mag_plots(temra_cd107a_counts, current_stim = n, compare_time = FALSE, keep = "PRE", 
+                                                groups_to_compare = c("Naive PRE", "Conv PRE"), paired = FALSE, fill_colors = fill_colors, 
+                                                group_by_colname = "Group", subtitle = "TEMRA CD107a+", y_axis_text = "% CD8+ T Cells",
+                                                y_axis_size = 20)
+                               })
+names(pre_temra_cd107a_plots) <- stims
+
+pre_temra_cd107a_plots
+```
+
+### Naive POST vs Conv POST
+
+```{r}
+post_temra_cd107a_plots <- purrr::pmap(.l = list(stims),
+                               .f = function(n) {
+                                 make_mag_plots(temra_cd107a_counts, current_stim = n, compare_time = FALSE, keep = "POST", 
+                                                groups_to_compare = c("Naive POST", "Conv POST"), paired = FALSE, fill_colors = fill_colors, 
+                                                group_by_colname = "Group", subtitle = "TEMRA CD107a+", y_axis_text = "% CD8+ T Cells",
+                                                y_axis_size = 20)
+                               })
+names(post_temra_cd107a_plots) <- stims
+
+post_temra_cd107a_plots
 ```
 
 # Save figures
