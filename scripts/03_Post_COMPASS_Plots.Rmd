@@ -706,22 +706,22 @@ post_fs_plots
 
 ```{r save heatmaps pdf}
 if(save_output) {
-  cairo_pdf(file=here::here("out/post_compass_plots/CD4_naive_COMPASS_Heatmap.pdf"), width=6, height=8,
+  cairo_pdf(file=here::here("out/post_compass_plots/CD4_naive_COMPASS_Heatmap.pdf"), width=5, height=8,
         onefile = TRUE, bg = "transparent", family = "Arial") # default unit is inches, default font is Helvetica.
   print(draw(cd4_naive_heatmap, gap = unit(0.1, "in"), merge_legends = T, heatmap_legend_side = "bottom", annotation_legend_side = "bottom"))
   dev.off()
   
-  cairo_pdf(file=here::here("out/post_compass_plots/CD4_conv_COMPASS_Heatmap.pdf"), width=6, height=8,
+  cairo_pdf(file=here::here("out/post_compass_plots/CD4_conv_COMPASS_Heatmap.pdf"), width=5, height=8,
         onefile = TRUE, bg = "transparent", family = "Arial") # default unit is inches, default font is Helvetica
   print(draw(cd4_conv_heatmap, gap = unit(0.1, "in"), merge_legends = T, heatmap_legend_side = "bottom", annotation_legend_side = "bottom"))
   dev.off()
   
-  cairo_pdf(file=here::here("out/post_compass_plots/CD8_naive_COMPASS_Heatmap.pdf"), width=6, height=8,
+  cairo_pdf(file=here::here("out/post_compass_plots/CD8_naive_COMPASS_Heatmap.pdf"), width=5, height=8,
         onefile = TRUE, bg = "transparent", family = "Arial") # default unit is inches, default font is Helvetica
   print(draw(cd8_naive_heatmap, gap = unit(0.1, "in"), merge_legends = T, heatmap_legend_side = "bottom", annotation_legend_side = "bottom"))
   dev.off()
   
-  cairo_pdf(file=here::here("out/post_compass_plots/CD8_conv_COMPASS_Heatmap.pdf"), width=6, height=8,
+  cairo_pdf(file=here::here("out/post_compass_plots/CD8_conv_COMPASS_Heatmap.pdf"), width=5, height=8,
         onefile = TRUE, bg = "transparent", family = "Arial") # default unit is inches, default font is Helvetica
   print(draw(cd8_conv_heatmap, gap = unit(0.1, "in"), merge_legends = T, heatmap_legend_side = "bottom", annotation_legend_side = "bottom"))
   dev.off()
