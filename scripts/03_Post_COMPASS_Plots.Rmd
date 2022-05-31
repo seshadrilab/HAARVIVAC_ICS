@@ -118,7 +118,7 @@ mergeMatricesForPlotCOMPASSResultStack_tmp <- utils::getFromNamespace("mergeMatr
 
 ## CD4
 
-```{r, fig.width=7, fig.height=8}
+```{r, fig.width=6, fig.height=8}
 # CD4 runs
 cd4_data2plot <- mergeMatricesForPlotCOMPASSResultStack_tmp(crList[CD4RunNames],
                                    threshold=0.01,
@@ -152,7 +152,7 @@ cd4_naive_heatmap <- plot.COMPASSResult.ComplexHeatmap(cr = cd4_merged_COMPASSRe
                                   staircase_cytokine_annotation = TRUE,
                                   row_gap = unit(0.03, "in"))
 
-draw(cd4_naive_heatmap, gap = unit(0.1, "in"), merge_legends = T)
+draw(cd4_naive_heatmap, gap = unit(0.1, "in"), merge_legends = T, heatmap_legend_side = "bottom", annotation_legend_side = "bottom")
 
 # CD4 convalescent
 cd4_conv_heatmap <- plot.COMPASSResult.ComplexHeatmap(cr = cd4_merged_COMPASSResult,
@@ -166,12 +166,12 @@ cd4_conv_heatmap <- plot.COMPASSResult.ComplexHeatmap(cr = cd4_merged_COMPASSRes
                                   staircase_cytokine_annotation = TRUE,
                                   row_gap = unit(0.03, "in"))
 
-draw(cd4_conv_heatmap, gap = unit(0.1, "in"), merge_legends = T)
+draw(cd4_conv_heatmap, gap = unit(0.1, "in"), merge_legends = T, heatmap_legend_side = "bottom", annotation_legend_side = "bottom")
 ```
 
 ## CD8
 
-```{r, fig.width=7, fig.height=8}
+```{r, fig.width=6, fig.height=8}
 cd8_data2plot <- mergeMatricesForPlotCOMPASSResultStack_tmp(crList[CD8RunNames],
                                    threshold=0.01,
                                    minimum_dof=1,
@@ -202,7 +202,7 @@ cd8_naive_heatmap <- plot.COMPASSResult.ComplexHeatmap(cr = cd8_merged_COMPASSRe
                                   staircase_cytokine_annotation = TRUE,
                                   row_gap = unit(0.03, "in"))
 
-draw(cd8_naive_heatmap, gap = unit(0.1, "in"), merge_legends = T)
+draw(cd8_naive_heatmap, gap = unit(0.1, "in"), merge_legends = T, heatmap_legend_side = "bottom", annotation_legend_side = "bottom")
 
 # CD8 convalescent
 cd8_conv_heatmap <- plot.COMPASSResult.ComplexHeatmap(cr = cd8_merged_COMPASSResult,
@@ -216,7 +216,7 @@ cd8_conv_heatmap <- plot.COMPASSResult.ComplexHeatmap(cr = cd8_merged_COMPASSRes
                                   staircase_cytokine_annotation = TRUE,
                                   row_gap = unit(0.03, "in"))
 
-draw(cd8_conv_heatmap, gap = unit(0.1, "in"), merge_legends = T)
+draw(cd8_conv_heatmap, gap = unit(0.1, "in"), merge_legends = T, heatmap_legend_side = "bottom", annotation_legend_side = "bottom")
 ```
 
 # Boxplots by infection status
@@ -706,24 +706,24 @@ post_fs_plots
 
 ```{r save heatmaps pdf}
 if(save_output) {
-  cairo_pdf(file=here::here("out/post_compass_plots/CD4_naive_COMPASS_Heatmap.pdf"), width=7, height=8,
+  cairo_pdf(file=here::here("out/post_compass_plots/CD4_naive_COMPASS_Heatmap.pdf"), width=6, height=8,
         onefile = TRUE, bg = "transparent", family = "Arial") # default unit is inches, default font is Helvetica.
-  print(draw(cd4_naive_heatmap, gap = unit(0.1, "in"), merge_legends = T))
+  print(draw(cd4_naive_heatmap, gap = unit(0.1, "in"), merge_legends = T, heatmap_legend_side = "bottom", annotation_legend_side = "bottom"))
   dev.off()
   
-  cairo_pdf(file=here::here("out/post_compass_plots/CD4_conv_COMPASS_Heatmap.pdf"), width=7, height=8,
+  cairo_pdf(file=here::here("out/post_compass_plots/CD4_conv_COMPASS_Heatmap.pdf"), width=6, height=8,
         onefile = TRUE, bg = "transparent", family = "Arial") # default unit is inches, default font is Helvetica
-  print(draw(cd4_conv_heatmap, gap = unit(0.1, "in"), merge_legends = T))
+  print(draw(cd4_conv_heatmap, gap = unit(0.1, "in"), merge_legends = T, heatmap_legend_side = "bottom", annotation_legend_side = "bottom"))
   dev.off()
   
-  cairo_pdf(file=here::here("out/post_compass_plots/CD8_naive_COMPASS_Heatmap.pdf"), width=7, height=8,
+  cairo_pdf(file=here::here("out/post_compass_plots/CD8_naive_COMPASS_Heatmap.pdf"), width=6, height=8,
         onefile = TRUE, bg = "transparent", family = "Arial") # default unit is inches, default font is Helvetica
-  print(draw(cd8_naive_heatmap, gap = unit(0.1, "in"), merge_legends = T))
+  print(draw(cd8_naive_heatmap, gap = unit(0.1, "in"), merge_legends = T, heatmap_legend_side = "bottom", annotation_legend_side = "bottom"))
   dev.off()
   
-  cairo_pdf(file=here::here("out/post_compass_plots/CD8_conv_COMPASS_Heatmap.pdf"), width=7, height=8,
+  cairo_pdf(file=here::here("out/post_compass_plots/CD8_conv_COMPASS_Heatmap.pdf"), width=6, height=8,
         onefile = TRUE, bg = "transparent", family = "Arial") # default unit is inches, default font is Helvetica
-  print(draw(cd8_conv_heatmap, gap = unit(0.1, "in"), merge_legends = T))
+  print(draw(cd8_conv_heatmap, gap = unit(0.1, "in"), merge_legends = T, heatmap_legend_side = "bottom", annotation_legend_side = "bottom"))
   dev.off()
 }
 ```
