@@ -309,7 +309,8 @@ plot.COMPASSResult.ComplexHeatmap <- function(cr,
                           } else {
                             NULL
                           }),
-                          heatmap_legend_param = list(border=F, fontsize = 9),
+                          heatmap_legend_param = list(border=F, title_gp = gpar(fontsize = 13, fontface = "bold"),
+                                                      labels_gp = gpar(fontsize = 12), legend_direction = "horizontal", title_position = "topcenter"),
                           name="Response", use_raster = F,
                           col = colorRampPalette(brewer.pal(9,"Purples"))(20),
                           height = unit(5, "in"),
