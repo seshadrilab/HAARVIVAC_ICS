@@ -516,43 +516,57 @@ post_temra_cd107a_plots
 ```{r save boxplots pdf}
 if(save_output) {
   cairo_pdf(file=here::here("out/frequency_plots/CD4_naive_ifng_cd154_plot.pdf"), width=4, height=5,
-        onefile = TRUE, bg = "transparent", family = "Arial") # default unit is inches, default font is Helvetica.
+            onefile = TRUE, bg = "transparent", family = "Arial") # default unit is inches, default font is Helvetica.
   print(naive_ifng_cd154_plots[["DMSO"]])
   print(naive_ifng_cd154_plots[["S1"]])
   print(naive_s2_ifng_cd154_plot)
   print(naive_ifng_cd154_plots[["NCAP"]])
   dev.off()
   
-    cairo_pdf(file=here::here("out/frequency_plots/CD4_conv_ifng_cd154_plot.pdf"), width=4, height=5,
-        onefile = TRUE, bg = "transparent", family = "Arial") # default unit is inches, default font is Helvetica.
+  cairo_pdf(file=here::here("out/frequency_plots/CD4_conv_ifng_cd154_plot.pdf"), width=4, height=5,
+            onefile = TRUE, bg = "transparent", family = "Arial") # default unit is inches, default font is Helvetica.
   print(conv_ifng_cd154_plots[["DMSO"]])
   print(conv_ifng_cd154_plots[["S1"]])
   print(conv_ifng_cd154_plots[["S2"]])
   print(conv_ifng_cd154_plots[["NCAP"]])
   dev.off()
   
-      cairo_pdf(file=here::here("out/frequency_plots/CD4_post_ifng_cd154_plot.pdf"), width=4, height=5,
-        onefile = TRUE, bg = "transparent", family = "Arial") # default unit is inches, default font is Helvetica.
+  cairo_pdf(file=here::here("out/frequency_plots/CD4_post_ifng_cd154_plot.pdf"), width=4, height=5,
+            onefile = TRUE, bg = "transparent", family = "Arial") # default unit is inches, default font is Helvetica.
   print(post_ifng_cd154_plots[["DMSO"]])
   print(post_ifng_cd154_plots[["S1"]])
   print(post_ifng_cd154_plots[["S2"]])
   print(post_ifng_cd154_plots[["NCAP"]])
   dev.off()
   
-      cairo_pdf(file=here::here("out/frequency_plots/CD4_conv_ifng_cd107a_plot.pdf"), width=4, height=5,
-        onefile = TRUE, bg = "transparent", family = "Arial") # default unit is inches, default font is Helvetica.
+  cairo_pdf(file=here::here("out/frequency_plots/CD4_conv_ifng_cd107a_plot.pdf"), width=4, height=5,
+            onefile = TRUE, bg = "transparent", family = "Arial") # default unit is inches, default font is Helvetica.
   print(conv_ifng_cd107a_plots[["DMSO"]])
   print(conv_ifng_cd107a_plots[["S1"]])
   print(conv_s2_ifng_cd107a_plot)
   print(conv_ifng_cd107a_plots[["NCAP"]])
   dev.off()
   
-      cairo_pdf(file=here::here("out/frequency_plots/CD4_post_ifng_cd107a_plot.pdf"), width=4, height=5,
-        onefile = TRUE, bg = "transparent", family = "Arial") # default unit is inches, default font is Helvetica.
+  cairo_pdf(file=here::here("out/frequency_plots/CD4_post_ifng_cd107a_plot.pdf"), width=4, height=5,
+            onefile = TRUE, bg = "transparent", family = "Arial") # default unit is inches, default font is Helvetica.
   print(post_ifng_cd107a_plots[["DMSO"]])
   print(post_s1_ifng_cd107a_plot)
   print(post_ifng_cd107a_plots[["S2"]])
   print(post_ifng_cd107a_plots[["NCAP"]])
+  dev.off()
+  
+  cairo_pdf(file=here::here("out/frequency_plots/S1_CD8_temra_cd107a_plots.pdf"), width=4, height=5,
+            onefile = TRUE, bg = "transparent", family = "Arial") # default unit is inches, default font is Helvetica.
+  print(naive_temra_cd107a_plots[["S1"]])
+  print(conv_temra_cd107a_plots[["S1"]])
+  print(post_temra_cd107a_plots[["S1"]])
+  dev.off()
+  
+  cairo_pdf(file=here::here("out/frequency_plots/S2_CD8_cd107a_hladr_or_cd38_plots.pdf"), width=4, height=5,
+            onefile = TRUE, bg = "transparent", family = "Arial") # default unit is inches, default font is Helvetica.
+  print(naive_cd107a_hladr_cd38_plots[["S2"]])
+  print(conv_cd107a_hladr_cd38_plots[["S2"]])
+  print(post_cd107a_hladr_cd38_plots[["S2"]])
   dev.off()
 }
 ```
