@@ -88,4 +88,4 @@ out <- furrr::future_pmap(.l = list(stims_for_compass_runs_rep,
                           # Progress bar reflects how many COMPASS runs have completed
                           .progress = T,
                           .options = furrr_options(seed = T))
-toc() 
+toc()
