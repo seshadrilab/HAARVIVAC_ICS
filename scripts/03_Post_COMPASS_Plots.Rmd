@@ -241,7 +241,7 @@ cd4_naive_bg_corr_boxplots <- pmap(.l = list(CD4RunNames,
                                    c(7, 7, 7),
                                    c(1.3, 1.3, 1.3),
                                    list(NULL, NULL, NULL),
-                                   c("Spike 1", "Spike 2", "NCAP")),
+                                   c("S1", "S2", "NCAP")),
                          .f = function(n, p, y, p_text_size, left_cats_heatmap_padding, dichotomize_by_cytokine, main_title) {
                            # "staircase effect" for categories df heatmap gets done automatically, unlike in heatmap
                            # Returned plot is gtable
@@ -272,7 +272,7 @@ cd4_conv_bg_corr_boxplots <- pmap(.l = list(CD4RunNames,
                                    c(7, 7, 7),
                                    c(1.3, 1.3, 1.3),
                                    list(NULL, NULL, NULL),
-                                   c("Spike 1", "Spike 2", "NCAP")),
+                                   c("S1", "S2", "NCAP")),
                          .f = function(n, p, y, p_text_size, left_cats_heatmap_padding, dichotomize_by_cytokine, main_title) {
                            # "staircase effect" for categories df heatmap gets done automatically, unlike in heatmap
                            # Returned plot is gtable
@@ -314,7 +314,7 @@ cd8_naive_bg_corr_boxplots <- pmap(.l = list(CD8RunNames,
                                    c(7, 7, 7),
                                    c(1.3, 1.3, 1.3),
                                    list(NULL, NULL, NULL),
-                                   c("Spike 1", "Spike 2", "NCAP")),
+                                   c("S1", "S2", "NCAP")),
                          .f = function(n, p, y, p_text_size, left_cats_heatmap_padding, dichotomize_by_cytokine, main_title) {
                            # "staircase effect" for categories df heatmap gets done automatically, unlike in heatmap
                            # Returned plot is gtable
@@ -341,7 +341,7 @@ cd8_conv_bg_corr_boxplots <- pmap(.l = list(CD8RunNames,
                                    c(7, 7, 7),
                                    c(1.3, 1.3, 1.3),
                                    list(NULL, NULL, NULL),
-                                   c("Spike 1", "Spike 2", "NCAP")),
+                                   c("S1", "S2", "NCAP")),
                          .f = function(n, p, y, p_text_size, left_cats_heatmap_padding, dichotomize_by_cytokine, main_title) {
                            # "staircase effect" for categories df heatmap gets done automatically, unlike in heatmap
                            # Returned plot is gtable
@@ -382,7 +382,7 @@ pre_group_colors <- c("Naive PRE" = "#54A8E1", "Conv PRE" = "#EB4D4F")
 
 ## CD4
 
-```{r}
+```{r, fig.width=10, fig.height=7}
 # CD4 naive and convalescent pre
 cd4_pre_bg_corr_boxplots <- pmap(.l = list(CD4RunNames, 
                                    c("CD4+", "CD4+", "CD4+"),
@@ -390,7 +390,7 @@ cd4_pre_bg_corr_boxplots <- pmap(.l = list(CD4RunNames,
                                    c(7, 7, 7),
                                    c(1.3, 1.3, 1.3),
                                    list(NULL, NULL, NULL),
-                                   c("Spike 1", "Spike 2", "NCAP")),
+                                   c("S1", "S2", "NCAP")),
                          .f = function(n, p, y, p_text_size, left_cats_heatmap_padding, dichotomize_by_cytokine, main_title) {
                            # "staircase effect" for categories df heatmap gets done automatically, unlike in heatmap
                            # Returned plot is gtable
@@ -412,23 +412,15 @@ names(cd4_pre_bg_corr_boxplots) <- CD4RunNames
 if(save_output) {
   saveRDS(cd4_pre_bg_corr_boxplots, here::here("processed_data/CD4_pre_make_boxplot_for_COMPASS_run_list.rds"))
 }
-```
 
-```{r, fig.width=10, fig.height=7}
 grid.draw(cd4_pre_bg_corr_boxplots[["CD4_S1"]]$Plot)
-```
-
-```{r, fig.width=10, fig.height=7}
 grid.draw(cd4_pre_bg_corr_boxplots[["CD4_S2"]]$Plot)
-```
-
-```{r, fig.width=10, fig.height=7}
 grid.draw(cd4_pre_bg_corr_boxplots[["CD4_NCAP"]]$Plot)
 ```
 
 ## CD8 
 
-```{r}
+```{r, fig.width=10, fig.height=7}
 # CD8 naive and convalescent pre
 cd8_pre_bg_corr_boxplots <- pmap(.l = list(CD8RunNames,
                                    c("CD8+", "CD8+", "CD8+"),
@@ -436,7 +428,7 @@ cd8_pre_bg_corr_boxplots <- pmap(.l = list(CD8RunNames,
                                    c(7, 7, 7),
                                    c(1.3, 1.3, 1.3),
                                    list(NULL, NULL, NULL),
-                                   c("Spike 1", "Spike 2", "NCAP")),
+                                   c("S1", "S2", "NCAP")),
                          .f = function(n, p, y, p_text_size, left_cats_heatmap_padding, dichotomize_by_cytokine, main_title) {
                            # "staircase effect" for categories df heatmap gets done automatically, unlike in heatmap
                            # Returned plot is gtable
@@ -455,17 +447,9 @@ cd8_pre_bg_corr_boxplots <- pmap(.l = list(CD8RunNames,
                                                         save_test_results=TRUE, output_folder=here::here("processed_data"), adj_pval = FALSE)
                          })
 names(cd8_pre_bg_corr_boxplots) <- CD8RunNames
-```
 
-```{r, fig.width=10, fig.height=7}
 grid.draw(cd8_pre_bg_corr_boxplots[["CD8_S1"]]$Plot)
-```
-
-```{r, fig.width=10, fig.height=7}
 grid.draw(cd8_pre_bg_corr_boxplots[["CD8_S2"]]$Plot)
-```
-
-```{r, fig.width=10, fig.height=7}
 grid.draw(cd8_pre_bg_corr_boxplots[["CD8_NCAP"]]$Plot)
 ```
 
@@ -482,7 +466,7 @@ post_group_colors <- c("Naive POST" = "#196293", "Conv POST" = "#9D1213")
 
 ## CD4
 
-```{r}
+```{r, fig.width=10, fig.height=7}
 # CD4 naive and convalescent post
 cd4_post_bg_corr_boxplots <- pmap(.l = list(CD4RunNames, 
                                    c("CD4+", "CD4+", "CD4+"),
@@ -490,7 +474,7 @@ cd4_post_bg_corr_boxplots <- pmap(.l = list(CD4RunNames,
                                    c(7, 7, 7),
                                    c(1.3, 1.3, 1.3),
                                    list(NULL, NULL, NULL),
-                                   c("Spike 1", "Spike 2", "NCAP")),
+                                   c("S1", "S2", "NCAP")),
                          .f = function(n, p, y, p_text_size, left_cats_heatmap_padding, dichotomize_by_cytokine, main_title) {
                            # "staircase effect" for categories df heatmap gets done automatically, unlike in heatmap
                            # Returned plot is gtable
@@ -509,23 +493,15 @@ cd4_post_bg_corr_boxplots <- pmap(.l = list(CD4RunNames,
                                                         save_test_results=TRUE, output_folder=here::here("processed_data"), adj_pval = FALSE)
                          })
 names(cd4_post_bg_corr_boxplots) <- CD4RunNames
-```
 
-```{r, fig.width=10, fig.height=7}
 grid.draw(cd4_post_bg_corr_boxplots[["CD4_S1"]]$Plot)
-```
-
-```{r, fig.width=10, fig.height=7}
 grid.draw(cd4_post_bg_corr_boxplots[["CD4_S2"]]$Plot)
-```
-
-```{r, fig.width=10, fig.height=7}
 grid.draw(cd4_post_bg_corr_boxplots[["CD4_NCAP"]]$Plot)
 ```
 
 ## CD8 
 
-```{r}
+```{r, fig.width=10, fig.height=7}
 # CD8 naive and convalescent post
 cd8_post_bg_corr_boxplots <- pmap(.l = list(CD8RunNames,
                                    c("CD8+", "CD8+", "CD8+"),
@@ -533,7 +509,7 @@ cd8_post_bg_corr_boxplots <- pmap(.l = list(CD8RunNames,
                                    c(7, 7, 7),
                                    c(1.3, 1.3, 1.3),
                                    list(NULL, NULL, NULL),
-                                   c("Spike 1", "Spike 2", "NCAP")),
+                                   c("S1", "S2", "NCAP")),
                          .f = function(n, p, y, p_text_size, left_cats_heatmap_padding, dichotomize_by_cytokine, main_title) {
                            # "staircase effect" for categories df heatmap gets done automatically, unlike in heatmap
                            # Returned plot is gtable
@@ -552,17 +528,9 @@ cd8_post_bg_corr_boxplots <- pmap(.l = list(CD8RunNames,
                                                         save_test_results=TRUE, output_folder=here::here("processed_data"), adj_pval = FALSE)
                          })
 names(cd8_post_bg_corr_boxplots) <- CD8RunNames
-```
 
-```{r, fig.width=10, fig.height=7}
 grid.draw(cd8_post_bg_corr_boxplots[["CD8_S1"]]$Plot)
-```
-
-```{r, fig.width=10, fig.height=7}
 grid.draw(cd8_post_bg_corr_boxplots[["CD8_S2"]]$Plot)
-```
-
-```{r, fig.width=10, fig.height=7}
 grid.draw(cd8_post_bg_corr_boxplots[["CD8_NCAP"]]$Plot)
 ```
 
@@ -732,60 +700,76 @@ if(save_output) {
 
 ```{r save boxplots pdf}
 if(save_output) {
-  cairo_pdf(file=here::here("out/post_compass_plots/magnitude_plots/CD4_naive_boxplots.pdf"), width=10, height=7,
-        onefile = TRUE, bg = "transparent", family = "Arial") # default unit is inches, default font is Helvetica.
-  print(grid.draw(cd4_naive_bg_corr_boxplots[["CD4_S1"]]$Plot))
-  print(grid.draw(cd4_naive_bg_corr_boxplots[["CD4_S2"]]$Plot))
-  print(grid.draw(cd4_naive_bg_corr_boxplots[["CD4_NCAP"]]$Plot))
+  cairo_pdf(file=here::here("out/post_compass_plots/magnitude_plots/CD4_naive_boxplots.pdf"), width=10, height=6,
+            onefile = TRUE, bg = "transparent", family = "Arial") # default unit is inches, default font is Helvetica.
+  grid.draw(cd4_naive_bg_corr_boxplots[["CD4_S1"]]$Plot)
+  grid.newpage()
+  grid.draw(cd4_naive_bg_corr_boxplots[["CD4_S2"]]$Plot)
+  grid.newpage()
+  grid.draw(cd4_naive_bg_corr_boxplots[["CD4_NCAP"]]$Plot)
   dev.off()
   
-    cairo_pdf(file=here::here("out/post_compass_plots/magnitude_plots/CD4_conv_boxplots.pdf"), width=10, height=7,
-        onefile = TRUE, bg = "transparent", family = "Arial") # default unit is inches, default font is Helvetica.
-  print(grid.draw(cd4_conv_bg_corr_boxplots[["CD4_S1"]]$Plot))
-  print(grid.draw(cd4_conv_bg_corr_boxplots[["CD4_S2"]]$Plot))
-  print(grid.draw(cd4_conv_bg_corr_boxplots[["CD4_NCAP"]]$Plot))
+  cairo_pdf(file=here::here("out/post_compass_plots/magnitude_plots/CD4_conv_boxplots.pdf"), width=8, height=6,
+            onefile = TRUE, bg = "transparent", family = "Arial") # default unit is inches, default font is Helvetica.
+  grid.draw(cd4_conv_bg_corr_boxplots[["CD4_S1"]]$Plot)
+  grid.newpage()
+  grid.draw(cd4_conv_bg_corr_boxplots[["CD4_S2"]]$Plot)
+  grid.newpage()
+  grid.draw(cd4_conv_bg_corr_boxplots[["CD4_NCAP"]]$Plot)
   dev.off()
   
-    cairo_pdf(file=here::here("out/post_compass_plots/magnitude_plots/CD8_naive_boxplots.pdf"), width=10, height=7,
-        onefile = TRUE, bg = "transparent", family = "Arial") # default unit is inches, default font is Helvetica.
-  print(grid.draw(cd8_naive_bg_corr_boxplots[["CD8_S1"]]$Plot))
-  print(grid.draw(cd8_naive_bg_corr_boxplots[["CD8_S2"]]$Plot))
-  print(grid.draw(cd8_naive_bg_corr_boxplots[["CD8_NCAP"]]$Plot))
+  cairo_pdf(file=here::here("out/post_compass_plots/magnitude_plots/CD8_naive_boxplots.pdf"), width=10, height=6,
+            onefile = TRUE, bg = "transparent", family = "Arial") # default unit is inches, default font is Helvetica.
+  grid.draw(cd8_naive_bg_corr_boxplots[["CD8_S1"]]$Plot)
+  grid.newpage()
+  grid.draw(cd8_naive_bg_corr_boxplots[["CD8_S2"]]$Plot)
+  grid.newpage()
+  grid.draw(cd8_naive_bg_corr_boxplots[["CD8_NCAP"]]$Plot)
   dev.off()
   
-    cairo_pdf(file=here::here("out/post_compass_plots/magnitude_plots/CD8_conv_boxplots.pdf"), width=10, height=7,
-        onefile = TRUE, bg = "transparent", family = "Arial") # default unit is inches, default font is Helvetica.
-  print(grid.draw(cd8_conv_bg_corr_boxplots[["CD8_S1"]]$Plot))
-  print(grid.draw(cd8_conv_bg_corr_boxplots[["CD8_S2"]]$Plot))
-  print(grid.draw(cd8_conv_bg_corr_boxplots[["CD8_NCAP"]]$Plot))
+  cairo_pdf(file=here::here("out/post_compass_plots/magnitude_plots/CD8_conv_boxplots.pdf"), width=10, height=6,
+            onefile = TRUE, bg = "transparent", family = "Arial") # default unit is inches, default font is Helvetica.
+  grid.draw(cd8_conv_bg_corr_boxplots[["CD8_S1"]]$Plot)
+  grid.newpage()
+  grid.draw(cd8_conv_bg_corr_boxplots[["CD8_S2"]]$Plot)
+  grid.newpage()
+  grid.draw(cd8_conv_bg_corr_boxplots[["CD8_NCAP"]]$Plot)
   dev.off()
 
-    cairo_pdf(file=here::here("out/post_compass_plots/magnitude_plots/CD4_pre_boxplots.pdf"), width=10, height=7,
-        onefile = TRUE, bg = "transparent", family = "Arial") # default unit is inches, default font is Helvetica.
-  print(grid.draw(cd4_pre_bg_corr_boxplots[["CD4_S1"]]$Plot))
-  print(grid.draw(cd4_pre_bg_corr_boxplots[["CD4_S2"]]$Plot))
-  print(grid.draw(cd4_pre_bg_corr_boxplots[["CD4_NCAP"]]$Plot))
+  cairo_pdf(file=here::here("out/post_compass_plots/magnitude_plots/CD4_pre_boxplots.pdf"), width=10, height=6,
+            onefile = TRUE, bg = "transparent", family = "Arial") # default unit is inches, default font is Helvetica.
+  grid.draw(cd4_pre_bg_corr_boxplots[["CD4_S1"]]$Plot)
+  grid.newpage()
+  grid.draw(cd4_pre_bg_corr_boxplots[["CD4_S2"]]$Plot)
+  grid.newpage()
+  grid.draw(cd4_pre_bg_corr_boxplots[["CD4_NCAP"]]$Plot)
   dev.off()
   
-    cairo_pdf(file=here::here("out/post_compass_plots/magnitude_plots/CD8_pre_boxplots.pdf"), width=10, height=7,
-        onefile = TRUE, bg = "transparent", family = "Arial") # default unit is inches, default font is Helvetica.
-  print(grid.draw(cd8_pre_bg_corr_boxplots[["CD8_S1"]]$Plot))
-  print(grid.draw(cd8_pre_bg_corr_boxplots[["CD8_S2"]]$Plot))
-  print(grid.draw(cd8_pre_bg_corr_boxplots[["CD8_NCAP"]]$Plot))
+  cairo_pdf(file=here::here("out/post_compass_plots/magnitude_plots/CD8_pre_boxplots.pdf"), width=10, height=6,
+            onefile = TRUE, bg = "transparent", family = "Arial") # default unit is inches, default font is Helvetica.
+  grid.draw(cd8_pre_bg_corr_boxplots[["CD8_S1"]]$Plot)
+  grid.newpage()
+  grid.draw(cd8_pre_bg_corr_boxplots[["CD8_S2"]]$Plot)
+  grid.newpage()
+  grid.draw(cd8_pre_bg_corr_boxplots[["CD8_NCAP"]]$Plot)
   dev.off()
   
-      cairo_pdf(file=here::here("out/post_compass_plots/magnitude_plots/CD4_post_boxplot.pdf"), width=10, height=7,
-        onefile = TRUE, bg = "transparent", family = "Arial") # default unit is inches, default font is Helvetica.
-  print(grid.draw(cd4_post_bg_corr_boxplots[["CD4_S1"]]$Plot))
-  print(grid.draw(cd4_post_bg_corr_boxplots[["CD4_S2"]]$Plot))
-  print(grid.draw(cd4_post_bg_corr_boxplots[["CD4_NCAP"]]$Plot))
+  cairo_pdf(file=here::here("out/post_compass_plots/magnitude_plots/CD4_post_boxplot.pdf"), width=10, height=6,
+            onefile = TRUE, bg = "transparent", family = "Arial") # default unit is inches, default font is Helvetica.
+  grid.draw(cd4_post_bg_corr_boxplots[["CD4_S1"]]$Plot)
+  grid.newpage()
+  grid.draw(cd4_post_bg_corr_boxplots[["CD4_S2"]]$Plot)
+  grid.newpage()
+  grid.draw(cd4_post_bg_corr_boxplots[["CD4_NCAP"]]$Plot)
   dev.off()
   
-    cairo_pdf(file=here::here("out/post_compass_plots/magnitude_plots/CD8_post_boxplot.pdf"), width=10, height=7,
-        onefile = TRUE, bg = "transparent", family = "Arial") # default unit is inches, default font is Helvetica.
-  print(grid.draw(cd8_post_bg_corr_boxplots[["CD8_S1"]]$Plot))
-  print(grid.draw(cd8_post_bg_corr_boxplots[["CD8_S2"]]$Plot))
-  print(grid.draw(cd8_post_bg_corr_boxplots[["CD8_NCAP"]]$Plot))
+  cairo_pdf(file=here::here("out/post_compass_plots/magnitude_plots/CD8_post_boxplot.pdf"), width=10, height=6,
+            onefile = TRUE, bg = "transparent", family = "Arial") # default unit is inches, default font is Helvetica.
+  grid.draw(cd8_post_bg_corr_boxplots[["CD8_S1"]]$Plot)
+  grid.newpage()
+  grid.draw(cd8_post_bg_corr_boxplots[["CD8_S2"]]$Plot)
+  grid.newpage()
+  grid.draw(cd8_post_bg_corr_boxplots[["CD8_NCAP"]]$Plot)
   dev.off()
 }
 ```
@@ -794,12 +778,12 @@ if(save_output) {
 
 ```{r save split FS plots pdf}
 if(save_output) {
-  cairo_pdf(file=here::here("out/post_compass_plots/fs_plots/naive_pre_fs_plots.pdf"), width=7, height=5,
+  cairo_pdf(file=here::here("out/post_compass_plots/fs_plots/naive_pre_fs_plots.pdf"), width=3.5, height=4,
         onefile = TRUE, bg = "transparent", family = "Arial") # default unit is inches, default font is Helvetica.
   print(naive_pre_fs_plot)
   dev.off()
   
-  cairo_pdf(file=here::here("out/post_compass_plots/fs_plots/conv_pre_fs_plots.pdf"), width=7, height=5,
+  cairo_pdf(file=here::here("out/post_compass_plots/fs_plots/conv_pre_fs_plots.pdf"), width=3.5, height=4,
         onefile = TRUE, bg = "transparent", family = "Arial") # default unit is inches, default font is Helvetica.
   print(conv_pre_fs_plot)
   dev.off()
