@@ -551,11 +551,11 @@ naive_gg_themes <- ggplot(naive_data, aes(x=x.umap, y=y.umap)) +
         legend.position = "right",
         legend.justification = "left",
         legend.title.align = 0.5,
-        legend.text = element_text(size = 17),
-        legend.title = element_text(size = 20),
+        legend.text = element_text(size = 17, color = "black"),
+        legend.title = element_text(size = 20, color = "black"),
         legend.spacing.x = unit(0.5, "cm"),
         plot.margin = margin(1, 0, 0, 0, unit = "pt")) +
-  guides(colour = guide_legend(override.aes = list(size=12))) 
+  guides(colour = guide_legend(override.aes = list(size=12)))
 
 # # Naive PRE
 # naive_pre_gg_themes <- ggplot(naive_pre_data, aes(x=x.umap, y=y.umap)) +
@@ -599,8 +599,8 @@ conv_gg_themes <- ggplot(conv_data, aes(x=x.umap, y=y.umap)) +
         legend.position = "right",
         legend.justification = "left",
         legend.title.align = 0.5,
-        legend.text = element_text(size = 17),
-        legend.title = element_text(size = 20),
+        legend.text = element_text(size = 17, color = "black"),
+        legend.title = element_text(size = 20, color = "black"),
         legend.spacing.x = unit(0.5, "cm"),
         plot.margin = margin(1, 0, 0, 0, unit = "pt")) +
   guides(colour = guide_legend(override.aes = list(size=12))) 
@@ -722,15 +722,15 @@ naive_umap_list <- align_plots(naive_act_plot_colored_by_gate, naive_mem_plot_co
 names(naive_umap_list) <- c("act", "mem", "polyf")
 ```
 
-```{r, fig.width=7, fig.height=5}
+```{r, fig.width=5, fig.height=7}
 ggdraw(naive_umap_list[["polyf"]])
 ```
 
-```{r, fig.width=7, fig.height=5}
+```{r, fig.width=5, fig.height=7}
 ggdraw(naive_umap_list[["mem"]])
 ```
 
-```{r, fig.width=7, fig.height=5}
+```{r, fig.width=5, fig.height=7}
 ggdraw(naive_umap_list[["act"]])
 ```
 
