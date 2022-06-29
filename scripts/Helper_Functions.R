@@ -758,7 +758,7 @@ fs_pfs_plot <- function(df, FS_or_PFS = "FS", cd4_or_cd8 = "CD4", group = "Naive
   ggplot(d, aes(Stim, !!as.name(FS_or_PFS))) +
     geom_boxplot(outlier.shape=NA, position = position_dodge2(preserve = "total")) +
     geom_quasirandom(size=3, shape = 16, width = 0.3, aes(color=!!as.symbol(group_by_colname))) +
-    labs(y = if(FS_or_PFS == "FS") {sprintf("%s Functionality Score", cd4_or_cd8)} else if(FS_or_PFS == "PFS") {sprintf("%s Polyfunctionality Score", cd4_or_cd8)},
+    labs(y = if(FS_or_PFS == "FS") {sprintf("%s FS", cd4_or_cd8)} else if(FS_or_PFS == "PFS") {sprintf("%s PFS", cd4_or_cd8)},
          title = group) +
     theme_bw() +
     theme(axis.title.x = element_blank(),
