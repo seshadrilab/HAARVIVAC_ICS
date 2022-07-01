@@ -173,7 +173,7 @@ naive_act_plots <- purrr::pmap(.l = list(stims),
                                .f = function(n) {
                                  make_mag_plots(act_counts, current_stim = n, compare_time = TRUE, keep = "Naive", groups_to_compare = c("Naive PRE", "Naive POST"),
                                                 paired = TRUE, fill_colors = fill_colors, group_by_colname = "Group", subtitle = "HLA-DR+CD38+", 
-                                                y_axis_text = "% COMPASS-selected CD4+ T Cells", y_axis_size = 15)
+                                                y_axis_text = "% CD4+ T Cells", y_axis_size = 15)
                                })
 names(naive_act_plots) <- stims
 naive_act_plots
@@ -186,7 +186,7 @@ conv_act_plots <- purrr::pmap(.l = list(stims),
                                .f = function(n) {
                                  make_mag_plots(act_counts, current_stim = n, compare_time = TRUE, keep = "Conv", groups_to_compare = c("Conv PRE", "Conv POST"), 
                                                 paired = TRUE, fill_colors = fill_colors, group_by_colname = "Group", subtitle = "HLA-DR+CD38+", 
-                                                y_axis_text = "% COMPASS-selected CD4+ T Cells", y_axis_size = 15)
+                                                y_axis_text = "% CD4+ T Cells", y_axis_size = 15)
                                })
 names(conv_act_plots) <- stims
 conv_act_plots
@@ -199,7 +199,7 @@ pre_act_plots <- purrr::pmap(.l = list(stims),
                                .f = function(n) {
                                  make_mag_plots(act_counts, current_stim = n, compare_time = FALSE, keep = "PRE", groups_to_compare = c("Naive PRE", "Conv PRE"),
                                                 paired = FALSE, fill_colors = fill_colors, group_by_colname = "Group", subtitle = "HLA-DR+CD38+", 
-                                                y_axis_text = "% COMPASS-selected CD4+ T Cells", y_axis_size = 15)
+                                                y_axis_text = "% CD4+ T Cells", y_axis_size = 15)
                                })
 names(pre_act_plots) <- stims
 pre_act_plots
@@ -212,7 +212,7 @@ post_act_plots <- purrr::pmap(.l = list(stims),
                                .f = function(n) {
                                  make_mag_plots(act_counts, current_stim = n, compare_time = FALSE, keep = "POST", groups_to_compare = c("Naive POST", "Conv POST"),
                                                 paired = FALSE, fill_colors = fill_colors, group_by_colname = "Group", subtitle = "HLA-DR+CD38+", 
-                                                y_axis_text = "% COMPASS-selected CD4+ T Cells", y_axis_size = 15)
+                                                y_axis_text = "% CD4+ T Cells", y_axis_size = 15)
                                })
 names(post_act_plots) <- stims
 post_act_plots
@@ -227,7 +227,7 @@ naive_cd38_plots <- purrr::pmap(.l = list(stims),
                                .f = function(n) {
                                  make_mag_plots(cd38_counts, current_stim = n, compare_time = TRUE, keep = "Naive", groups_to_compare = c("Naive PRE", "Naive POST"),
                                                 paired = TRUE, fill_colors = fill_colors, group_by_colname = "Group", subtitle = "CD38+", 
-                                                y_axis_text = "% COMPASS-selected CD4+ T Cells", y_axis_size = 15)
+                                                y_axis_text = "% CD4+ T Cells", y_axis_size = 15)
                                })
 names(naive_cd38_plots) <- stims
 naive_cd38_plots
@@ -240,7 +240,7 @@ conv_cd38_plots <- purrr::pmap(.l = list(stims),
                                .f = function(n) {
                                  make_mag_plots(cd38_counts, current_stim = n, compare_time = TRUE, keep = "Conv", groups_to_compare = c("Conv PRE", "Conv POST"),
                                                 paired = TRUE, fill_colors = fill_colors, group_by_colname = "Group", subtitle = "CD38+", 
-                                                y_axis_text = "% COMPASS-selected CD4+ T Cells", y_axis_size = 15,  ylim = c(0, 65))
+                                                y_axis_text = "% CD4+ T Cells", y_axis_size = 15,  ylim = c(0, 65))
                                })
 names(conv_cd38_plots) <- stims
 conv_cd38_plots
@@ -253,7 +253,7 @@ pre_cd38_plots <- purrr::pmap(.l = list(stims),
                                .f = function(n) {
                                  make_mag_plots(cd38_counts, current_stim = n, compare_time = FALSE, keep = "PRE", groups_to_compare = c("Naive PRE", "Conv PRE"),
                                                 paired = FALSE, fill_colors = fill_colors, group_by_colname = "Group", subtitle = "CD38+", 
-                                                y_axis_text = "% COMPASS-selected CD4+ T Cells", y_axis_size = 15)
+                                                y_axis_text = "% CD4+ T Cells", y_axis_size = 15)
                                })
 names(pre_cd38_plots) <- stims
 pre_cd38_plots
@@ -266,7 +266,7 @@ post_cd38_plots <- purrr::pmap(.l = list(stims),
                                .f = function(n) {
                                  make_mag_plots(cd38_counts, current_stim = n, compare_time = FALSE, keep = "POST", groups_to_compare = c("Naive POST", "Conv POST"),
                                                 paired = FALSE, fill_colors = fill_colors, group_by_colname = "Group", subtitle = "CD38+", 
-                                                y_axis_text = "% COMPASS-selected CD4+ T Cells", y_axis_size = 15)
+                                                y_axis_text = "% CD4+ T Cells", y_axis_size = 15)
                                })
 names(post_cd38_plots) <- stims
 post_cd38_plots
@@ -281,7 +281,7 @@ naive_hladr_plots <- purrr::pmap(.l = list(stims),
                                .f = function(n) {
                                  make_mag_plots(hladr_counts, current_stim = n, compare_time = TRUE, keep = "Naive", groups_to_compare = c("Naive PRE", "Naive POST"),
                                                 paired = TRUE, fill_colors = fill_colors, group_by_colname = "Group", subtitle = "HLA-DR+", 
-                                                y_axis_text = "% COMPASS-selected CD4+ T Cells", y_axis_size = 15,  ylim = c(0, 50))
+                                                y_axis_text = "% CD4+ T Cells", y_axis_size = 15,  ylim = c(0, 50))
                                })
 names(naive_hladr_plots) <- stims
 naive_hladr_plots
@@ -294,7 +294,7 @@ conv_hladr_plots <- purrr::pmap(.l = list(stims),
                                .f = function(n) {
                                  make_mag_plots(hladr_counts, current_stim = n, compare_time = TRUE, keep = "Conv", groups_to_compare = c("Conv PRE", "Conv POST"),
                                                 paired = TRUE, fill_colors = fill_colors, group_by_colname = "Group", subtitle = "HLA-DR+", 
-                                                y_axis_text = "% COMPASS-selected CD4+ T Cells", y_axis_size = 15,  ylim = c(0, 20))
+                                                y_axis_text = "% CD4+ T Cells", y_axis_size = 15,  ylim = c(0, 20))
                                })
 names(conv_hladr_plots) <- stims
 conv_hladr_plots
@@ -307,7 +307,7 @@ pre_hladr_plots <- purrr::pmap(.l = list(stims),
                                .f = function(n) {
                                  make_mag_plots(hladr_counts, current_stim = n, compare_time = FALSE, keep = "PRE", groups_to_compare = c("Naive PRE", "Conv PRE"),
                                                 paired = FALSE, fill_colors = fill_colors, group_by_colname = "Group", subtitle = "HLA-DR+",
-                                                y_axis_text = "% COMPASS-selected CD4+ T Cells", y_axis_size = 15)
+                                                y_axis_text = "% CD4+ T Cells", y_axis_size = 15)
                                })
 names(pre_hladr_plots) <- stims
 pre_hladr_plots
@@ -320,7 +320,7 @@ post_hladr_plots <- purrr::pmap(.l = list(stims),
                                .f = function(n) {
                                  make_mag_plots(hladr_counts, current_stim = n, compare_time = FALSE, keep = "POST", groups_to_compare = c("Naive POST", "Conv POST"),
                                                 paired = FALSE, fill_colors = fill_colors, group_by_colname = "Group", subtitle = "HLA-DR+",
-                                                y_axis_text = "% COMPASS-selected CD4+ T Cells", y_axis_size = 15)
+                                                y_axis_text = "% CD4+ T Cells", y_axis_size = 15)
                                })
 names(post_hladr_plots) <- stims
 post_hladr_plots
@@ -335,7 +335,7 @@ naive_cm_plots <- purrr::pmap(.l = list(stims),
                                .f = function(n) {
                                  make_mag_plots(cm_counts, current_stim = n, compare_time = TRUE, keep = "Naive", groups_to_compare = c("Naive PRE", "Naive POST"),
                                                 paired = TRUE, fill_colors = fill_colors, group_by_colname = "Group", subtitle = "Central Memory (CD45RA-CCR7+)",
-                                                y_axis_text = "% COMPASS-selected CD4+ T Cells", y_axis_size = 15)
+                                                y_axis_text = "% CD4+ T Cells", y_axis_size = 15)
                                })
 names(naive_cm_plots) <- stims
 naive_cm_plots
@@ -348,7 +348,7 @@ conv_cm_plots <- purrr::pmap(.l = list(stims),
                                .f = function(n) {
                                  make_mag_plots(cm_counts, current_stim = n, compare_time = TRUE, keep = "Conv", groups_to_compare = c("Conv PRE", "Conv POST"), 
                                                 paired = TRUE, fill_colors = fill_colors, group_by_colname = "Group", subtitle = "Central Memory (CD45RA-CCR7+)",
-                                                y_axis_text = "% COMPASS-selected CD4+ T Cells", y_axis_size = 15)
+                                                y_axis_text = "% CD4+ T Cells", y_axis_size = 15)
                                })
 names(conv_cm_plots) <- stims
 conv_cm_plots
@@ -361,7 +361,7 @@ pre_cm_plots <- purrr::pmap(.l = list(stims),
                                .f = function(n) {
                                  make_mag_plots(cm_counts, current_stim = n, compare_time = FALSE, keep = "PRE", groups_to_compare = c("Naive PRE", "Conv PRE"),
                                                 paired = FALSE, fill_colors = fill_colors, group_by_colname = "Group", subtitle = "Central Memory (CD45RA-CCR7+)",
-                                                y_axis_text = "% COMPASS-selected CD4+ T Cells", y_axis_size = 15)
+                                                y_axis_text = "% CD4+ T Cells", y_axis_size = 15)
                                })
 names(pre_cm_plots) <- stims
 pre_cm_plots
@@ -374,7 +374,7 @@ post_cm_plots <- purrr::pmap(.l = list(stims),
                                .f = function(n) {
                                  make_mag_plots(cm_counts, current_stim = n, compare_time = FALSE, keep = "POST", groups_to_compare = c("Naive POST", "Conv POST"),
                                                 paired = FALSE, fill_colors = fill_colors, group_by_colname = "Group", subtitle = "Central Memory (CD45RA-CCR7+)",
-                                                y_axis_text = "% COMPASS-selected CD4+ T Cells", y_axis_size = 15)
+                                                y_axis_text = "% CD4+ T Cells", y_axis_size = 15)
                                })
 names(post_cm_plots) <- stims
 post_cm_plots
@@ -389,7 +389,7 @@ naive_em_plots <- purrr::pmap(.l = list(stims),
                                .f = function(n) {
                                  make_mag_plots(em_counts, current_stim = n, compare_time = TRUE, keep = "Naive", groups_to_compare = c("Naive PRE", "Naive POST"),
                                                 paired = TRUE, fill_colors = fill_colors, group_by_colname = "Group", subtitle = "Effector Memory (CD45RA-CCR7-)",
-                                                y_axis_text = "% COMPASS-selected CD4+ T Cells", y_axis_size = 15,   ylim = c(0, 100))
+                                                y_axis_text = "% CD4+ T Cells", y_axis_size = 15,   ylim = c(0, 100))
                                })
 names(naive_em_plots) <- stims
 naive_em_plots
@@ -402,7 +402,7 @@ conv_em_plots <- purrr::pmap(.l = list(stims),
                                .f = function(n) {
                                  make_mag_plots(em_counts, current_stim = n, compare_time = TRUE, keep = "Conv", groups_to_compare = c("Conv PRE", "Conv POST"), 
                                                 paired = TRUE, fill_colors = fill_colors, group_by_colname = "Group", subtitle = "Effector Memory (CD45RA-CCR7-)",
-                                                y_axis_text = "% COMPASS-selected CD4+ T Cells", y_axis_size = 15,  ylim = c(0, 65))
+                                                y_axis_text = "% CD4+ T Cells", y_axis_size = 15,  ylim = c(0, 65))
                                })
 names(conv_em_plots) <- stims
 conv_em_plots
@@ -415,7 +415,7 @@ pre_em_plots <- purrr::pmap(.l = list(stims),
                                .f = function(n) {
                                  make_mag_plots(em_counts, current_stim = n, compare_time = FALSE, keep = "PRE", groups_to_compare = c("Naive PRE", "Conv PRE"), 
                                                 paired = FALSE, fill_colors = fill_colors, group_by_colname = "Group", subtitle = "Effector Memory (CD45RA-CCR7-)",
-                                                y_axis_text = "% COMPASS-selected CD4+ T Cells", y_axis_size = 15)
+                                                y_axis_text = "% CD4+ T Cells", y_axis_size = 15)
                                })
 names(pre_em_plots) <- stims
 pre_em_plots
@@ -428,7 +428,7 @@ post_em_plots <- purrr::pmap(.l = list(stims),
                                .f = function(n) {
                                  make_mag_plots(em_counts, current_stim = n, compare_time = FALSE, keep = "POST", groups_to_compare = c("Naive POST", "Conv POST"),
                                                 paired = FALSE, fill_colors = fill_colors, group_by_colname = "Group", subtitle = "Effector Memory (CD45RA-CCR7-)",
-                                                y_axis_text = "% COMPASS-selected CD4+ T Cells", y_axis_size = 15)
+                                                y_axis_text = "% CD4+ T Cells", y_axis_size = 15)
                                })
 names(post_em_plots) <- stims
 post_em_plots
