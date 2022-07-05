@@ -733,9 +733,10 @@ fs_pfs_plot <- function(df, FS_or_PFS = "FS", cd4_or_cd8 = "CD4", group = "Naive
                                 p.val = c(n_s1_signed_rank_result$p.value,
                                           s1_s2_signed_rank_result$p.value,
                                           n_s2_signed_rank_result$p.value)) %>% 
+    mutate(p.adj = p.adjust(p.val, method = "bonferroni")) %>% # Strict
     mutate(group1.xloc = unname(stim_x_order[group1]),
            group2.xloc = unname(stim_x_order[group2]),
-           p_val_text = sapply(p.val, function(p) {
+           p_val_text = sapply(p.adj, function(p) {
              if(p < 0.001) {
                "p<0.001"
              } else {
@@ -822,9 +823,10 @@ split_fs_pfs_plot <- function(df, FS_or_PFS = "FS", current_stim = "S1",
                                           conv_signed_rank_result$p.value,
                                           pre_mann_whitney_result$p.value,
                                           post_mann_whitney_result$p.value)) %>% 
+    mutate(p.adj = p.adjust(p.val, method = "bonferroni")) %>% # Strict
     mutate(group1.xloc = unname(timepoint_infection_status_x_order[group1]),
            group2.xloc = unname(timepoint_infection_status_x_order[group2]),
-           p_val_text = sapply(p.val, function(p) {
+           p_val_text = sapply(p.adj, function(p) {
              if(p < 0.001) {
                "p<0.001"
              } else {
@@ -976,7 +978,7 @@ split_fs_pfs_plot <- function(df, FS_or_PFS = "FS", current_stim = "S1",
 # Individual magnitude/frequency plots
 
 make_mag_plots <- function(counts, counts_no_outlier = NULL, compare_time, keep, current_stim,
-                           groups_to_compare, paired, fill_colors,
+                           num_comparisons, groups_to_compare, paired, fill_colors,
                            group_by_colname, subtitle, ylim = NULL, y_axis_text,
                            y_axis_size, axis_break = NULL) {
   if(compare_time) {
@@ -1015,9 +1017,10 @@ make_mag_plots <- function(counts, counts_no_outlier = NULL, compare_time, keep,
     test_df <- data.frame(group1 = groups_to_compare[1],
                           group2 = groups_to_compare[2],
                           p.val = test$p.value) %>% 
+      mutate(p.adj = p.adjust(p.val, method = "bonferroni", n = num_comparisons)) %>% # Strict
       mutate(group1.xloc = unname(timepoint_infection_status_x_order[group1]),
              group2.xloc = unname(timepoint_infection_status_x_order[group2]),
-             p_val_text = sapply(p.val, function(p) {
+             p_val_text = sapply(p.adj, function(p) {
                if(p < 0.001) {
                  "p<0.001"
                } else {
@@ -1032,7 +1035,8 @@ make_mag_plots <- function(counts, counts_no_outlier = NULL, compare_time, keep,
              x.end.segment = 1:2 + 0.1)
   } else {
     test_df <- data.frame(p = as.numeric(unlist(test)["p.value"])) %>%
-      mutate(p_val_text = if_else(p < 0.001, "p<0.001", paste0("p=", formatC(round(p, 3), format='f', digits=3))))
+      mutate(p.adj = p.adjust(p, method = "bonferroni", n = num_comparisons)) %>% # Strict
+      mutate(p_val_text = if_else(p.adj < 0.001, "p<0.001", paste0("p=", formatC(round(p.adj, 3), format='f', digits=3))))
   }
   
   if(compare_time) {
