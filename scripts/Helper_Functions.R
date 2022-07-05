@@ -946,7 +946,7 @@ split_fs_pfs_plot <- function(df, FS_or_PFS = "FS", current_stim = "S1",
   }
   
   plot <- plot +
-    labs(y = if(FS_or_PFS == "FS") {sprintf("%s Functionality Score", cd4_or_cd8)} else if(FS_or_PFS == "PFS") {sprintf("%s Polyfunctionality Score", cd4_or_cd8)},
+    labs(y = if(FS_or_PFS == "FS") {sprintf("%s FS", cd4_or_cd8)} else if(FS_or_PFS == "PFS") {sprintf("%s PFS", cd4_or_cd8)},
          title = current_stim) +
     theme_bw() +
     theme(axis.title.x = element_blank(),
