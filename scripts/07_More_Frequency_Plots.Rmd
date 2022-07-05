@@ -227,7 +227,7 @@ fill_colors <- list("Naive" = c("Naive PRE" = "#54A8E1", "Naive POST" = "#196293
 # There is an outlier in the S2-stimmed CD4 IFNg+CD154+ samples, the S2 data will be plotted separately w/o the outlier PTID 
 naive_ifng_cd154_plots <- purrr::pmap(.l = list(stims[-3]),
                                .f = function(n) {
-                                 make_mag_plots(ifng_cd154_counts, current_stim = n, compare_time = TRUE, keep = "Naive",
+                                 make_mag_plots(ifng_cd154_counts, current_stim = n, num_comparisons = length(stims), compare_time = TRUE, keep = "Naive",
                                                 groups_to_compare = c("Naive PRE", "Naive POST"), paired = TRUE, fill_colors = fill_colors,
                                                 group_by_colname = "Group", subtitle = paste0("IFN", "\U03B3", "+CD154+"), y_axis_text = "% CD4+ T Cells",
                                                 ylim = c(0, 1), y_axis_size = 20)
@@ -238,9 +238,9 @@ ifng_cd154_counts_no_outlier <- ifng_cd154_counts %>%
   dplyr::filter(Stim == "S2") %>%
   dplyr::filter(`PATIENT ID` != "57H")
   
-naive_s2_ifng_cd154_plot <- make_mag_plots(counts = ifng_cd154_counts, counts_no_outlier = ifng_cd154_counts_no_outlier, current_stim = "S2", compare_time = TRUE, keep = "Naive",
-                                                groups_to_compare = c("Naive PRE", "Naive POST"), paired = TRUE, fill_colors = fill_colors,
-                                                group_by_colname = "Group", subtitle = paste0("IFN", "\U03B3", "+CD154+"), y_axis_text = "% CD4+ T Cells", 
+naive_s2_ifng_cd154_plot <- make_mag_plots(counts = ifng_cd154_counts, counts_no_outlier = ifng_cd154_counts_no_outlier, current_stim = "S2", num_comparisons = length(stims),
+                                           compare_time = TRUE, keep = "Naive", groups_to_compare = c("Naive PRE", "Naive POST"), paired = TRUE, fill_colors = fill_colors,
+                                           group_by_colname = "Group", subtitle = paste0("IFN", "\U03B3", "+CD154+"), y_axis_text = "% CD4+ T Cells", 
                                            ylim = c(0, 1), y_axis_size = 20)
 
 naive_ifng_cd154_plots[["DMSO"]]
@@ -254,7 +254,7 @@ naive_ifng_cd154_plots[["NCAP"]]
 ```{r}
 conv_ifng_cd154_plots <- purrr::pmap(.l = list(stims),
                                .f = function(n) {
-                                 make_mag_plots(ifng_cd154_counts, current_stim = n, compare_time = TRUE, keep = "Conv",
+                                 make_mag_plots(ifng_cd154_counts, current_stim = n, num_comparisons = length(stims), compare_time = TRUE, keep = "Conv",
                                                 groups_to_compare = c("Conv PRE", "Conv POST"), paired = TRUE, fill_colors = fill_colors,
                                                 group_by_colname = "Group", subtitle = paste0("IFN", "\U03B3", "+CD154+"), y_axis_text = "% CD4+ T Cells",
                                                 ylim = c(0, 1.75), y_axis_size = 20)
@@ -269,7 +269,7 @@ conv_ifng_cd154_plots
 ```{r}
 pre_ifng_cd154_plots <- purrr::pmap(.l = list(stims),
                                .f = function(n) {
-                                 make_mag_plots(ifng_cd154_counts, current_stim = n, compare_time = FALSE, keep = "PRE", 
+                                 make_mag_plots(ifng_cd154_counts, current_stim = n, num_comparisons = length(stims), compare_time = FALSE, keep = "PRE", 
                                                 groups_to_compare = c("Naive PRE", "Conv PRE"), paired = FALSE, fill_colors = fill_colors, 
                                                 group_by_colname = "Group", subtitle = paste0("IFN", "\U03B3", "+CD154+"), y_axis_text = "% CD4+ T Cells",
                                                 y_axis_size = 20)
@@ -284,7 +284,7 @@ pre_ifng_cd154_plots
 ```{r}
 post_ifng_cd154_plots <- purrr::pmap(.l = list(stims),
                                .f = function(n) {
-                                 make_mag_plots(ifng_cd154_counts, current_stim = n, compare_time = FALSE, keep = "POST", 
+                                 make_mag_plots(ifng_cd154_counts, current_stim = n, num_comparisons = length(stims), compare_time = FALSE, keep = "POST", 
                                                 groups_to_compare = c("Naive POST", "Conv POST"), paired = FALSE, fill_colors = fill_colors, 
                                                 group_by_colname = "Group", subtitle = paste0("IFN", "\U03B3", "+CD154+"), y_axis_text = "% CD4+ T Cells",
                                                 ylim = c(0, 2.75), y_axis_size = 20)
@@ -301,7 +301,7 @@ post_ifng_cd154_plots
 ```{r}
 naive_ifng_cd107a_plots <- purrr::pmap(.l = list(stims),
                                .f = function(n) {
-                                 make_mag_plots(ifng_cd107a_counts, current_stim = n, compare_time = TRUE, keep = "Naive",
+                                 make_mag_plots(ifng_cd107a_counts, current_stim = n, num_comparisons = length(stims), compare_time = TRUE, keep = "Naive",
                                                 groups_to_compare = c("Naive PRE", "Naive POST"), paired = TRUE, fill_colors = fill_colors,
                                                 group_by_colname = "Group", subtitle = paste0("IFN", "\U03B3", "+CD107a+"), y_axis_text = "% CD4+ T Cells",
                                                 ylim = c(0, 0.06), y_axis_size = 20)
@@ -317,7 +317,7 @@ naive_ifng_cd107a_plots
 # There is an outlier in the S2-stimmed CD4 IFNg+CD107a+ samples, the S2 data will be plotted separately w/o the outlier PTID 
 conv_ifng_cd107a_plots <- purrr::pmap(.l = list(stims[-3]),
                                .f = function(n) {
-                                 make_mag_plots(ifng_cd107a_counts, current_stim = n, compare_time = TRUE, keep = "Conv",
+                                 make_mag_plots(ifng_cd107a_counts, current_stim = n, num_comparisons = length(stims), compare_time = TRUE, keep = "Conv",
                                                 groups_to_compare = c("Conv PRE", "Conv POST"), paired = TRUE, fill_colors = fill_colors,
                                                 group_by_colname = "Group", subtitle = paste0("IFN", "\U03B3", "+CD107a+"), y_axis_text = "% CD4+ T Cells",
                                                 ylim = c(0, 0.35), y_axis_size = 20)
@@ -328,9 +328,9 @@ ifng_cd107a_counts_no_outlier <- ifng_cd107a_counts %>%
   dplyr::filter(Stim == "S2") %>%
   dplyr::filter(`PATIENT ID` != "242C")
   
-conv_s2_ifng_cd107a_plot <- make_mag_plots(counts = ifng_cd107a_counts, counts_no_outlier = ifng_cd107a_counts_no_outlier, current_stim = "S2", compare_time = TRUE, keep = "Conv",
-                                                groups_to_compare = c("Conv PRE", "Conv POST"), paired = TRUE, fill_colors = fill_colors,
-                                                group_by_colname = "Group", subtitle = paste0("IFN", "\U03B3", "+CD107a+"), y_axis_text = "% CD4+ T Cells", 
+conv_s2_ifng_cd107a_plot <- make_mag_plots(counts = ifng_cd107a_counts, counts_no_outlier = ifng_cd107a_counts_no_outlier, current_stim = "S2", num_comparisons = length(stims),
+                                           compare_time = TRUE, keep = "Conv", groups_to_compare = c("Conv PRE", "Conv POST"), paired = TRUE, fill_colors = fill_colors,
+                                           group_by_colname = "Group", subtitle = paste0("IFN", "\U03B3", "+CD107a+"), y_axis_text = "% CD4+ T Cells", 
                                            ylim = c(0, 0.35), y_axis_size = 20)
 
 
@@ -345,7 +345,7 @@ conv_ifng_cd107a_plots[["NCAP"]]
 ```{r}
 pre_ifng_cd107a_plots <- purrr::pmap(.l = list(stims),
                                .f = function(n) {
-                                 make_mag_plots(ifng_cd107a_counts, current_stim = n, compare_time = FALSE, keep = "PRE", 
+                                 make_mag_plots(ifng_cd107a_counts, current_stim = n, num_comparisons = length(stims), compare_time = FALSE, keep = "PRE", 
                                                 groups_to_compare = c("Naive PRE", "Conv PRE"), paired = FALSE, fill_colors = fill_colors, 
                                                 group_by_colname = "Group", subtitle = paste0("IFN", "\U03B3", "+CD107a+"), y_axis_text = "% CD4+ T Cells",
                                                 y_axis_size = 20)
@@ -361,7 +361,7 @@ pre_ifng_cd107a_plots
 # There is an outlier in the S1-stimmed CD4 IFNg+CD107a+ samples, the S1 data will be plotted separately w/o the outlier PTID 
 post_ifng_cd107a_plots <- purrr::pmap(.l = list(stims[-2]),
                                .f = function(n) {
-                                 make_mag_plots(ifng_cd107a_counts, current_stim = n, compare_time = FALSE, keep = "POST", 
+                                 make_mag_plots(ifng_cd107a_counts, current_stim = n, num_comparisons = length(stims), compare_time = FALSE, keep = "POST", 
                                                 groups_to_compare = c("Naive POST", "Conv POST"), paired = FALSE, fill_colors = fill_colors, 
                                                 group_by_colname = "Group", subtitle = paste0("IFN", "\U03B3", "+CD107a+"), y_axis_text = "% CD4+ T Cells",
                                                 ylim = c(0, 0.17), y_axis_size = 20)
@@ -372,8 +372,8 @@ ifng_cd107a_counts_no_outlier <- ifng_cd107a_counts %>%
   dplyr::filter(Stim == "S1") %>%
   dplyr::filter(`PATIENT ID` != "12C")
   
-post_s1_ifng_cd107a_plot <- make_mag_plots(counts = ifng_cd107a_counts, counts_no_outlier = ifng_cd107a_counts_no_outlier, current_stim = "S1", compare_time = FALSE, keep = "POST",
-                                           groups_to_compare = c("Naive POST", "Conv POST"), paired = FALSE, fill_colors = fill_colors,
+post_s1_ifng_cd107a_plot <- make_mag_plots(counts = ifng_cd107a_counts, counts_no_outlier = ifng_cd107a_counts_no_outlier, current_stim = "S1", num_comparisons = length(stims),
+                                           compare_time = FALSE, keep = "POST", groups_to_compare = c("Naive POST", "Conv POST"), paired = FALSE, fill_colors = fill_colors,
                                            group_by_colname = "Group", subtitle = paste0("IFN", "\U03B3", "+CD107a+"), y_axis_text = "% CD4+ T Cells", 
                                            ylim = c(0, 0.17), y_axis_size = 20)
 
@@ -392,7 +392,7 @@ post_ifng_cd107a_plots[["NCAP"]]
 # There is nothing in DMSO, so drop it here
 naive_cd107a_hladr_cd38_plots <- purrr::pmap(.l = list(stims[-1]),
                                .f = function(n) {
-                                 make_mag_plots(cd107a_hladr_cd38_counts, current_stim = n, compare_time = TRUE, keep = "Naive",
+                                 make_mag_plots(cd107a_hladr_cd38_counts, current_stim = n, num_comparisons = length(stims)-1, compare_time = TRUE, keep = "Naive",
                                                 groups_to_compare = c("Naive PRE", "Naive POST"), paired = TRUE, fill_colors = fill_colors,
                                                 group_by_colname = "Group", subtitle = "CD107a+HLA-DR+ or CD107a+CD38+", y_axis_text = "% CD8+ T Cells",
                                                 y_axis_size = 20)
@@ -408,7 +408,7 @@ naive_cd107a_hladr_cd38_plots
 ```{r}
 conv_cd107a_hladr_cd38_plots <- purrr::pmap(.l = list(stims),
                                .f = function(n) {
-                                 make_mag_plots(cd107a_hladr_cd38_counts, current_stim = n, compare_time = TRUE, keep = "Conv",
+                                 make_mag_plots(cd107a_hladr_cd38_counts, current_stim = n, num_comparisons = length(stims), compare_time = TRUE, keep = "Conv",
                                                 groups_to_compare = c("Conv PRE", "Conv POST"), paired = TRUE, fill_colors = fill_colors,
                                                 group_by_colname = "Group", subtitle = "CD107a+HLA-DR+ or CD107a+CD38+", y_axis_text = "% CD8+ T Cells",
                                                 y_axis_size = 20)
@@ -423,7 +423,7 @@ conv_cd107a_hladr_cd38_plots
 ```{r}
 pre_cd107a_hladr_cd38_plots <- purrr::pmap(.l = list(stims),
                                .f = function(n) {
-                                 make_mag_plots(cd107a_hladr_cd38_counts, current_stim = n, compare_time = FALSE, keep = "PRE", 
+                                 make_mag_plots(cd107a_hladr_cd38_counts, current_stim = n, num_comparisons = length(stims), compare_time = FALSE, keep = "PRE", 
                                                 groups_to_compare = c("Naive PRE", "Conv PRE"), paired = FALSE, fill_colors = fill_colors, 
                                                 group_by_colname = "Group", subtitle = "CD107a+HLA-DR+ or CD107a+CD38+", y_axis_text = "% CD8+ T Cells",
                                                 y_axis_size = 20)
@@ -438,7 +438,7 @@ pre_cd107a_hladr_cd38_plots
 ```{r}
 post_cd107a_hladr_cd38_plots <- purrr::pmap(.l = list(stims),
                                .f = function(n) {
-                                 make_mag_plots(cd107a_hladr_cd38_counts, current_stim = n, compare_time = FALSE, keep = "POST", 
+                                 make_mag_plots(cd107a_hladr_cd38_counts, current_stim = n, num_comparisons = length(stims), compare_time = FALSE, keep = "POST", 
                                                 groups_to_compare = c("Naive POST", "Conv POST"), paired = FALSE, fill_colors = fill_colors, 
                                                 group_by_colname = "Group", subtitle = "CD107a+HLA-DR+ or CD107a+CD38+", y_axis_text = "% CD8+ T Cells",
                                                 y_axis_size = 20)
@@ -455,7 +455,7 @@ post_cd107a_hladr_cd38_plots
 ```{r}
 naive_temra_cd107a_plots <- purrr::pmap(.l = list(stims),
                                .f = function(n) {
-                                 make_mag_plots(temra_cd107a_counts, current_stim = n, compare_time = TRUE, keep = "Naive",
+                                 make_mag_plots(temra_cd107a_counts, current_stim = n, num_comparisons = length(stims), compare_time = TRUE, keep = "Naive",
                                                 groups_to_compare = c("Naive PRE", "Naive POST"), paired = TRUE, fill_colors = fill_colors,
                                                 group_by_colname = "Group", subtitle = "TEMRA CD107a+", y_axis_text = "% CD8+ T Cells",
                                                 y_axis_size = 20)
@@ -471,7 +471,7 @@ naive_temra_cd107a_plots
 ```{r}
 conv_temra_cd107a_plots <- purrr::pmap(.l = list(stims),
                                .f = function(n) {
-                                 make_mag_plots(temra_cd107a_counts, current_stim = n, compare_time = TRUE, keep = "Conv",
+                                 make_mag_plots(temra_cd107a_counts, current_stim = n, num_comparisons = length(stims), compare_time = TRUE, keep = "Conv",
                                                 groups_to_compare = c("Conv PRE", "Conv POST"), paired = TRUE, fill_colors = fill_colors,
                                                 group_by_colname = "Group", subtitle = "TEMRA CD107a+", y_axis_text = "% CD8+ T Cells",
                                                 y_axis_size = 20)
@@ -486,7 +486,7 @@ conv_temra_cd107a_plots
 ```{r}
 pre_temra_cd107a_plots <- purrr::pmap(.l = list(stims),
                                .f = function(n) {
-                                 make_mag_plots(temra_cd107a_counts, current_stim = n, compare_time = FALSE, keep = "PRE", 
+                                 make_mag_plots(temra_cd107a_counts, current_stim = n, num_comparisons = length(stims), compare_time = FALSE, keep = "PRE", 
                                                 groups_to_compare = c("Naive PRE", "Conv PRE"), paired = FALSE, fill_colors = fill_colors, 
                                                 group_by_colname = "Group", subtitle = "TEMRA CD107a+", y_axis_text = "% CD8+ T Cells",
                                                 y_axis_size = 20)
@@ -501,7 +501,7 @@ pre_temra_cd107a_plots
 ```{r}
 post_temra_cd107a_plots <- purrr::pmap(.l = list(stims),
                                .f = function(n) {
-                                 make_mag_plots(temra_cd107a_counts, current_stim = n, compare_time = FALSE, keep = "POST", 
+                                 make_mag_plots(temra_cd107a_counts, current_stim = n, num_comparisons = length(stims), compare_time = FALSE, keep = "POST", 
                                                 groups_to_compare = c("Naive POST", "Conv POST"), paired = FALSE, fill_colors = fill_colors, 
                                                 group_by_colname = "Group", subtitle = "TEMRA CD107a+", y_axis_text = "% CD8+ T Cells",
                                                 y_axis_size = 20)

@@ -597,7 +597,7 @@ naive_pre_fs_plot <- fs_pfs_plot(df = fs_pfs_df, FS_or_PFS = "FS", cd4_or_cd8 = 
                                  group = "Naive PRE", fill_colors = fill_colors, group_by_colname = "Group")
 naive_pre_fs_plot
 
-conv_pre_fs_plot <- fs_pfs_plot(df = fs_pfs_df, FS_or_PFS = "FS", cd4_or_cd8 = "CD4", 
+conv_pre_fs_plot <- fs_pfs_plot(df = fs_pfs_df, FS_or_PFS = "FS", cd4_or_cd8 = "CD4",
                                 group = "Conv PRE", fill_colors = fill_colors, group_by_colname = "Group")
 conv_pre_fs_plot
 ```
