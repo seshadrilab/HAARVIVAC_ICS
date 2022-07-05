@@ -282,14 +282,15 @@ pre_ifng_cd154_plots
 ### Naive POST vs Conv POST
 
 ```{r}
-post_ifng_cd154_plots <- purrr::pmap(.l = list(stims),
+# Drop DMSO
+post_ifng_cd154_plots <- purrr::pmap(.l = list(stims[-1]),
                                .f = function(n) {
-                                 make_mag_plots(ifng_cd154_counts, current_stim = n, num_comparisons = length(stims), compare_time = FALSE, keep = "POST", 
+                                 make_mag_plots(ifng_cd154_counts, current_stim = n, num_comparisons = 3, compare_time = FALSE, keep = "POST", 
                                                 groups_to_compare = c("Naive POST", "Conv POST"), paired = FALSE, fill_colors = fill_colors, 
                                                 group_by_colname = "Group", subtitle = paste0("IFN", "\U03B3", "+CD154+"), y_axis_text = "% CD4+ T Cells",
                                                 ylim = c(0, 2.75), y_axis_size = 20)
                                })
-names(post_ifng_cd154_plots) <- stims
+names(post_ifng_cd154_plots) <- stims[-1]
 
 post_ifng_cd154_plots
 ```
@@ -314,30 +315,24 @@ naive_ifng_cd107a_plots
 ### Conv PRE vs Conv POST
 
 ```{r}
+# Drop DMSO and NCAP 
 # There is an outlier in the S2-stimmed CD4 IFNg+CD107a+ samples, the S2 data will be plotted separately w/o the outlier PTID 
-conv_ifng_cd107a_plots <- purrr::pmap(.l = list(stims[-3]),
-                               .f = function(n) {
-                                 make_mag_plots(ifng_cd107a_counts, current_stim = n, num_comparisons = length(stims), compare_time = TRUE, keep = "Conv",
-                                                groups_to_compare = c("Conv PRE", "Conv POST"), paired = TRUE, fill_colors = fill_colors,
-                                                group_by_colname = "Group", subtitle = paste0("IFN", "\U03B3", "+CD107a+"), y_axis_text = "% CD4+ T Cells",
-                                                ylim = c(0, 0.35), y_axis_size = 20)
-                               })
-names(conv_ifng_cd107a_plots) <- stims[-3]
+conv_s1_ifng_cd107a_plot <- make_mag_plots(counts = ifng_cd107a_counts, current_stim = "S1", num_comparisons = 2,
+                                           compare_time = TRUE, keep = "Conv", groups_to_compare = c("Conv PRE", "Conv POST"), paired = TRUE, fill_colors = fill_colors,
+                                           group_by_colname = "Group", subtitle = paste0("IFN", "\U03B3", "+CD107a+"), y_axis_text = "% CD4+ T Cells", 
+                                           ylim = c(0, 0.35), y_axis_size = 20)
 
 ifng_cd107a_counts_no_outlier <- ifng_cd107a_counts %>%
   dplyr::filter(Stim == "S2") %>%
   dplyr::filter(`PATIENT ID` != "242C")
   
-conv_s2_ifng_cd107a_plot <- make_mag_plots(counts = ifng_cd107a_counts, counts_no_outlier = ifng_cd107a_counts_no_outlier, current_stim = "S2", num_comparisons = length(stims),
+conv_s2_ifng_cd107a_plot <- make_mag_plots(counts = ifng_cd107a_counts, counts_no_outlier = ifng_cd107a_counts_no_outlier, current_stim = "S2", num_comparisons = 2,
                                            compare_time = TRUE, keep = "Conv", groups_to_compare = c("Conv PRE", "Conv POST"), paired = TRUE, fill_colors = fill_colors,
                                            group_by_colname = "Group", subtitle = paste0("IFN", "\U03B3", "+CD107a+"), y_axis_text = "% CD4+ T Cells", 
                                            ylim = c(0, 0.35), y_axis_size = 20)
 
-
-conv_ifng_cd107a_plots[["DMSO"]]
-conv_ifng_cd107a_plots[["S1"]]
+conv_s1_ifng_cd107a_plot
 conv_s2_ifng_cd107a_plot
-conv_ifng_cd107a_plots[["NCAP"]]
 ```
 
 ### Naive PRE vs Conv PRE
@@ -358,30 +353,25 @@ pre_ifng_cd107a_plots
 ### Naive POST vs Conv POST
 
 ```{r}
+# Drop DMSO and NCAP 
 # There is an outlier in the S1-stimmed CD4 IFNg+CD107a+ samples, the S1 data will be plotted separately w/o the outlier PTID 
-post_ifng_cd107a_plots <- purrr::pmap(.l = list(stims[-2]),
-                               .f = function(n) {
-                                 make_mag_plots(ifng_cd107a_counts, current_stim = n, num_comparisons = length(stims), compare_time = FALSE, keep = "POST", 
-                                                groups_to_compare = c("Naive POST", "Conv POST"), paired = FALSE, fill_colors = fill_colors, 
-                                                group_by_colname = "Group", subtitle = paste0("IFN", "\U03B3", "+CD107a+"), y_axis_text = "% CD4+ T Cells",
-                                                ylim = c(0, 0.17), y_axis_size = 20)
-                               })
-names(post_ifng_cd107a_plots) <- stims[-2]
+post_s2_ifng_cd107a_plot <- make_mag_plots(counts = ifng_cd107a_counts, current_stim = "S2", num_comparisons = 2,
+                                           compare_time = FALSE, keep = "POST", groups_to_compare = c("Naive POST", "Conv POST"), paired = FALSE, fill_colors = fill_colors,
+                                           group_by_colname = "Group", subtitle = paste0("IFN", "\U03B3", "+CD107a+"), y_axis_text = "% CD4+ T Cells", 
+                                           ylim = c(0, 0.17), y_axis_size = 20)
 
 ifng_cd107a_counts_no_outlier <- ifng_cd107a_counts %>%
   dplyr::filter(Stim == "S1") %>%
   dplyr::filter(`PATIENT ID` != "12C")
   
-post_s1_ifng_cd107a_plot <- make_mag_plots(counts = ifng_cd107a_counts, counts_no_outlier = ifng_cd107a_counts_no_outlier, current_stim = "S1", num_comparisons = length(stims),
+post_s1_ifng_cd107a_plot <- make_mag_plots(counts = ifng_cd107a_counts, counts_no_outlier = ifng_cd107a_counts_no_outlier, current_stim = "S1", num_comparisons = 2,
                                            compare_time = FALSE, keep = "POST", groups_to_compare = c("Naive POST", "Conv POST"), paired = FALSE, fill_colors = fill_colors,
                                            group_by_colname = "Group", subtitle = paste0("IFN", "\U03B3", "+CD107a+"), y_axis_text = "% CD4+ T Cells", 
                                            ylim = c(0, 0.17), y_axis_size = 20)
 
 
-post_ifng_cd107a_plots[["DMSO"]]
 post_s1_ifng_cd107a_plot
-post_ifng_cd107a_plots[["S2"]]
-post_ifng_cd107a_plots[["NCAP"]]
+post_s2_ifng_cd107a_plot
 ```
 
 ## CD8 CD107a+HLADR+CD38+
@@ -392,7 +382,7 @@ post_ifng_cd107a_plots[["NCAP"]]
 # There is nothing in DMSO, so drop it here
 naive_cd107a_hladr_cd38_plots <- purrr::pmap(.l = list(stims[-1]),
                                .f = function(n) {
-                                 make_mag_plots(cd107a_hladr_cd38_counts, current_stim = n, num_comparisons = length(stims)-1, compare_time = TRUE, keep = "Naive",
+                                 make_mag_plots(cd107a_hladr_cd38_counts, current_stim = n, num_comparisons = 3, compare_time = TRUE, keep = "Naive",
                                                 groups_to_compare = c("Naive PRE", "Naive POST"), paired = TRUE, fill_colors = fill_colors,
                                                 group_by_colname = "Group", subtitle = "CD107a+HLA-DR+ or CD107a+CD38+", y_axis_text = "% CD8+ T Cells",
                                                 y_axis_size = 20)
@@ -533,7 +523,6 @@ if(save_output) {
   
   cairo_pdf(file=here::here("out/frequency_plots/CD4_post_ifng_cd154_plot.pdf"), width=4, height=5,
             onefile = TRUE, bg = "transparent", family = "Arial") # default unit is inches, default font is Helvetica.
-  print(post_ifng_cd154_plots[["DMSO"]])
   print(post_ifng_cd154_plots[["S1"]])
   print(post_ifng_cd154_plots[["S2"]])
   print(post_ifng_cd154_plots[["NCAP"]])
@@ -541,18 +530,14 @@ if(save_output) {
   
   cairo_pdf(file=here::here("out/frequency_plots/CD4_conv_ifng_cd107a_plot.pdf"), width=4, height=5,
             onefile = TRUE, bg = "transparent", family = "Arial") # default unit is inches, default font is Helvetica.
-  print(conv_ifng_cd107a_plots[["DMSO"]])
-  print(conv_ifng_cd107a_plots[["S1"]])
+  print(conv_s1_ifng_cd107a_plot)
   print(conv_s2_ifng_cd107a_plot)
-  print(conv_ifng_cd107a_plots[["NCAP"]])
   dev.off()
   
   cairo_pdf(file=here::here("out/frequency_plots/CD4_post_ifng_cd107a_plot.pdf"), width=4, height=5,
             onefile = TRUE, bg = "transparent", family = "Arial") # default unit is inches, default font is Helvetica.
-  print(post_ifng_cd107a_plots[["DMSO"]])
   print(post_s1_ifng_cd107a_plot)
-  print(post_ifng_cd107a_plots[["S2"]])
-  print(post_ifng_cd107a_plots[["NCAP"]])
+  print(post_s2_ifng_cd107a_plot)
   dev.off()
   
   cairo_pdf(file=here::here("out/frequency_plots/S1_CD8_temra_cd107a_plots.pdf"), width=4, height=5,
