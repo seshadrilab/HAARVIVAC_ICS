@@ -173,7 +173,7 @@ ifng_cd107a_counts <- pData(gs) %>%
   dplyr::filter(Stim != "SEB") %>%
   mutate(Freq = (Subpop/ParentCount)*100) 
 
-ifng_cd107a_counts$Group <- factor(ifng_cd154_counts$Group, levels = c("Naive PRE", "Naive POST", "Conv PRE", "Conv POST"))
+ifng_cd107a_counts$Group <- factor(ifng_cd107a_counts$Group, levels = c("Naive PRE", "Naive POST", "Conv PRE", "Conv POST"))
 ```
 
 ## CD8 CD107a+HLADR+|CD107a+CD38+
