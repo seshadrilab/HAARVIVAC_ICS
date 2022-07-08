@@ -17,7 +17,7 @@ editor_options:
 
 Plot frequencies of naive and convalescent CD4+ T cells which co-express IFNg and CD154.
 
-Note: all p-values are unadjusted.
+Note: p-values are adjusted
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE, fig.width = 4, fig.height = 5)

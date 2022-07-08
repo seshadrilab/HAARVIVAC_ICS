@@ -588,7 +588,7 @@ fill_colors <- list("Naive" = c("Naive PRE" = "#54A8E1", "Naive POST" = "#196293
 
 Use Wilcoxon signed-rank test to compare across stims within a donor. 
 Show the medians in each group.
-Note: all p-values are unadjusted.
+Note: p-values are adjusted
 
 ## FS Plots
 
