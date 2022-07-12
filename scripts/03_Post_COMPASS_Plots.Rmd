@@ -233,7 +233,7 @@ conv_group_colors <- c("Conv PRE" = "#EB4D4F", "Conv POST" = "#9D1213")
 
 ## CD4 
 
-```{r, fig.width=10, fig.height=7}
+```{r}
 # CD4 naive
 cd4_naive_bg_corr_boxplots <- pmap(.l = list(CD4RunNames, 
                                    c("CD4+", "CD4+", "CD4+"),
@@ -295,18 +295,35 @@ names(cd4_conv_bg_corr_boxplots) <- CD4RunNames
 if(save_output) {
   saveRDS(cd4_conv_bg_corr_boxplots, here::here("processed_data/CD4_C_make_boxplot_for_COMPASS_run_list.rds"))
 }
+```
 
+```{r, fig.width=10, fig.height=7}
 grid.draw(cd4_naive_bg_corr_boxplots[["CD4_S1"]]$Plot)
+```
+
+```{r, fig.width=10, fig.height=7}
 grid.draw(cd4_conv_bg_corr_boxplots[["CD4_S1"]]$Plot)
+```
+
+```{r, fig.width=10, fig.height=7}
 grid.draw(cd4_naive_bg_corr_boxplots[["CD4_S2"]]$Plot)
+```
+
+```{r, fig.width=10, fig.height=7}
 grid.draw(cd4_conv_bg_corr_boxplots[["CD4_S2"]]$Plot)
+```
+
+```{r, fig.width=10, fig.height=7}
 grid.draw(cd4_naive_bg_corr_boxplots[["CD4_NCAP"]]$Plot)
+```
+
+```{r, fig.width=10, fig.height=7}
 grid.draw(cd4_conv_bg_corr_boxplots[["CD4_NCAP"]]$Plot)
 ```
 
 ## CD8 
 
-```{r, fig.width=10, fig.height=7}
+```{r}
 # CD8 naive
 cd8_naive_bg_corr_boxplots <- pmap(.l = list(CD8RunNames,
                                    c("CD8+", "CD8+", "CD8+"),
@@ -360,12 +377,29 @@ cd8_conv_bg_corr_boxplots <- pmap(.l = list(CD8RunNames,
                                                         save_test_results=TRUE, output_folder=here::here("processed_data"), adj_pval = FALSE)
                          })
 names(cd8_conv_bg_corr_boxplots) <- CD8RunNames
+```
 
+```{r, fig.width=10, fig.height=7}
 grid.draw(cd8_naive_bg_corr_boxplots[["CD8_S1"]]$Plot)
+```
+
+```{r, fig.width=10, fig.height=7}
 grid.draw(cd8_conv_bg_corr_boxplots[["CD8_S1"]]$Plot)
+```
+
+```{r, fig.width=10, fig.height=7}
 grid.draw(cd8_naive_bg_corr_boxplots[["CD8_S2"]]$Plot)
+```
+
+```{r, fig.width=10, fig.height=7}
 grid.draw(cd8_conv_bg_corr_boxplots[["CD8_S2"]]$Plot)
+```
+
+```{r, fig.width=10, fig.height=7}
 grid.draw(cd8_naive_bg_corr_boxplots[["CD8_NCAP"]]$Plot)
+```
+
+```{r, fig.width=10, fig.height=7}
 grid.draw(cd8_conv_bg_corr_boxplots[["CD8_NCAP"]]$Plot)
 ```
 
@@ -382,7 +416,7 @@ pre_group_colors <- c("Naive PRE" = "#54A8E1", "Conv PRE" = "#EB4D4F")
 
 ## CD4
 
-```{r, fig.width=10, fig.height=7}
+```{r}
 # CD4 naive and convalescent pre
 cd4_pre_bg_corr_boxplots <- pmap(.l = list(CD4RunNames, 
                                    c("CD4+", "CD4+", "CD4+"),
@@ -412,15 +446,23 @@ names(cd4_pre_bg_corr_boxplots) <- CD4RunNames
 if(save_output) {
   saveRDS(cd4_pre_bg_corr_boxplots, here::here("processed_data/CD4_pre_make_boxplot_for_COMPASS_run_list.rds"))
 }
+```
 
+```{r, fig.width=10, fig.height=7}
 grid.draw(cd4_pre_bg_corr_boxplots[["CD4_S1"]]$Plot)
+```
+
+```{r, fig.width=10, fig.height=7}
 grid.draw(cd4_pre_bg_corr_boxplots[["CD4_S2"]]$Plot)
+```
+
+```{r, fig.width=10, fig.height=7}
 grid.draw(cd4_pre_bg_corr_boxplots[["CD4_NCAP"]]$Plot)
 ```
 
 ## CD8 
 
-```{r, fig.width=10, fig.height=7}
+```{r}
 # CD8 naive and convalescent pre
 cd8_pre_bg_corr_boxplots <- pmap(.l = list(CD8RunNames,
                                    c("CD8+", "CD8+", "CD8+"),
@@ -447,9 +489,17 @@ cd8_pre_bg_corr_boxplots <- pmap(.l = list(CD8RunNames,
                                                         save_test_results=TRUE, output_folder=here::here("processed_data"), adj_pval = FALSE)
                          })
 names(cd8_pre_bg_corr_boxplots) <- CD8RunNames
+```
 
+```{r, fig.width=10, fig.height=7}
 grid.draw(cd8_pre_bg_corr_boxplots[["CD8_S1"]]$Plot)
+```
+
+```{r, fig.width=10, fig.height=7}
 grid.draw(cd8_pre_bg_corr_boxplots[["CD8_S2"]]$Plot)
+```
+
+```{r, fig.width=10, fig.height=7}
 grid.draw(cd8_pre_bg_corr_boxplots[["CD8_NCAP"]]$Plot)
 ```
 
@@ -466,7 +516,7 @@ post_group_colors <- c("Naive POST" = "#196293", "Conv POST" = "#9D1213")
 
 ## CD4
 
-```{r, fig.width=10, fig.height=7}
+```{r}
 # CD4 naive and convalescent post
 cd4_post_bg_corr_boxplots <- pmap(.l = list(CD4RunNames, 
                                    c("CD4+", "CD4+", "CD4+"),
@@ -493,15 +543,23 @@ cd4_post_bg_corr_boxplots <- pmap(.l = list(CD4RunNames,
                                                         save_test_results=TRUE, output_folder=here::here("processed_data"), adj_pval = FALSE)
                          })
 names(cd4_post_bg_corr_boxplots) <- CD4RunNames
+```
 
+```{r, fig.width=10, fig.height=7}
 grid.draw(cd4_post_bg_corr_boxplots[["CD4_S1"]]$Plot)
+```
+
+```{r, fig.width=10, fig.height=7}
 grid.draw(cd4_post_bg_corr_boxplots[["CD4_S2"]]$Plot)
+```
+
+```{r, fig.width=10, fig.height=7}
 grid.draw(cd4_post_bg_corr_boxplots[["CD4_NCAP"]]$Plot)
 ```
 
 ## CD8 
 
-```{r, fig.width=10, fig.height=7}
+```{r}
 # CD8 naive and convalescent post
 cd8_post_bg_corr_boxplots <- pmap(.l = list(CD8RunNames,
                                    c("CD8+", "CD8+", "CD8+"),
@@ -528,9 +586,17 @@ cd8_post_bg_corr_boxplots <- pmap(.l = list(CD8RunNames,
                                                         save_test_results=TRUE, output_folder=here::here("processed_data"), adj_pval = FALSE)
                          })
 names(cd8_post_bg_corr_boxplots) <- CD8RunNames
+```
 
+```{r, fig.width=10, fig.height=7}
 grid.draw(cd8_post_bg_corr_boxplots[["CD8_S1"]]$Plot)
+```
+
+```{r, fig.width=10, fig.height=7}
 grid.draw(cd8_post_bg_corr_boxplots[["CD8_S2"]]$Plot)
+```
+
+```{r, fig.width=10, fig.height=7}
 grid.draw(cd8_post_bg_corr_boxplots[["CD8_NCAP"]]$Plot)
 ```
 
