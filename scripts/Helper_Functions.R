@@ -711,7 +711,6 @@ make_boxplot_for_COMPASS_run <- function(cr, subset_keep = NULL, run_name, outpu
 # Plots of functionality scores and polyfunctionality scores for all stims for a given timepoint and infection status group
 # Use Wilcoxon signed-rank test to compare across stim within a donor.
 # Show the medians in each group.
-# Note: all p-values unadjusted
 
 fs_pfs_plot <- function(df, FS_or_PFS = "FS", cd4_or_cd8 = "CD4", group = "Naive PRE", fill_colors = NULL, group_by_colname = NULL) {
   d <- df %>% dplyr::filter(parent == cd4_or_cd8 & Group == group)
@@ -833,14 +832,6 @@ split_fs_pfs_plot <- function(df, FS_or_PFS = "FS", current_stim = "S1",
                paste0("p=", formatC(round(p, 3), format='f', digits=3))
              }
            }),
-           # y_pos = c(d %>% dplyr::filter(Group %in% c("Naive PRE", "Naive POST")) %>%
-           #             dplyr::pull(!!FS_or_PFS) %>% max() + 0.1*diff(range(d %>% dplyr::pull(!!FS_or_PFS))),
-           #           d %>% dplyr::filter(Group %in% c("Conv PRE", "Conv POST")) %>%
-           #             dplyr::pull(!!FS_or_PFS) %>% max() + 0.1*diff(range(d %>% dplyr::pull(!!FS_or_PFS))),
-           #           d %>% dplyr::filter(Group %in% c("Naive PRE", "Naive POST", "Conv PRE")) %>%
-           #             dplyr::pull(!!FS_or_PFS) %>% max() + 0.25*diff(range(d %>% dplyr::pull(!!FS_or_PFS))),
-           #           d %>% dplyr::filter(Group %in% c("Naive PRE", "Naive POST", "Conv PRE", "Conv POST")) %>%
-           #             dplyr::pull(!!FS_or_PFS) %>% max() + 0.4*diff(range(d %>% dplyr::pull(!!FS_or_PFS)))),
            geom_signif_group = paste0(group1, group2))
   
   medians <- d %>% group_by(Group, Infection_Status, Timepoint) %>%
