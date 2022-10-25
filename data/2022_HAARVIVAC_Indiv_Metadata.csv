@@ -1,0 +1,33 @@
+PTID,Cohort,Date of Symptom Onset,Illness Severity,Pre Vaccine Draw,Vaccine 1 Date,Vaccine 2 Date,Post Vaccine Draw,Vaccine,Match Pair ID,Batch,Age,Sex,BMI,Hispanic or Latino?,Race,Pre-existing conditions,Serostatus against SARS-CoV-2 at Pre Vaccine Draw date
+3H,Convalescent,Unknown,Asymptomatic,Nov-20,Dec-20,Jan-21,Jan-21,Pfizer,3,1,26,Male,NULL,No,Native Hawaiian or other Pacific Islander,NULL,Positive
+16H,Naive,NA,NA,Nov-20,Dec-20,Jan-21,Jan-21,Pfizer,8,5,47,Female,42.7674472,No,Black or African American,None,Negative
+17H,Naive,NA,NA,Dec-20,Jan-21,Feb-21,Mar-21,Pfizer,6,5,77,Male,NULL,No,White,Asthma,Negative
+24H,Naive,NA,NA,Oct-20,Jan-21,Jan-21,Feb-21,Moderna,15,5,25,Male,23.6252888,No,"Asian,White",None,Negative
+27H,Naive,NA,NA,Oct-20,Jan-21,Jan-21,Feb-21,Moderna,14,4,60,Male,NULL,No,White,Diabetes,Negative
+35H,Naive,NA,NA,Nov-20,Dec-20,Jan-21,Feb-21,Pfizer,7,4,60,Male,NULL,No,Other,"COPD,Emphysema",Negative
+37H,Naive,NA,NA,Feb-21,Mar-21,Apr-21,May-21,Moderna,10,5,58,Female,27.808264,No,White,None,Negative
+38H,Naive,NA,NA,Nov-20,Jan-21,Feb-21,Feb-21,Moderna,12,4,27,Female,19.0277586,No,White,Taking immunosuppressant medications,Negative
+44H,Convalescent,Unknown,Asymptomatic,Nov-20,Jan-21,Feb-21,Mar-21,Moderna,9,4,45,Female,29.2916667,Yes,White,None,Positive
+50H,Naive,NA,NA,Dec-20,NULL,Jan-21,Jan-21,Pfizer,2,1,32,Female,30.66345271,No,White,None,Negative
+53H,Naive,NA,NA,Dec-20,Dec-20,Jan-21,Feb-21,Pfizer,5,1,38,Female,NULL,No,White,Do not know,Negative
+54H,Naive,NA,NA,Dec-20,Dec-20,Jan-21,Jan-21,Pfizer,1,1,34,Female,NULL,No,White,None,Negative
+55H,Naive,NA,NA,Dec-20,Dec-20,Jan-21,Jan-21,Pfizer,4,1,52,Female,21.2846021,No,White,None,Negative
+57H,Naive,NA,NA,Dec-20,Jan-21,Jan-21,Feb-21,Moderna,13,5,37,Male,33.3783784,No,White,None,Negative
+60H,Naive,NA,NA,Jan-21,Jan-21,Feb-21,Feb-21,Moderna,11,5,42,Female,32.8870573,No,White,Asthma,Negative
+12C,Convalescent,Feb-20,Non_Hospitalized,Nov-20,Feb-21,Feb-21,Mar-21,Pfizer,6,5,68,Male,25.1021623,No,White,None,NA
+76C,Convalescent,Mar-20,Non_Hospitalized,Dec-20,Jan-21,Feb-21,Feb-21,Moderna,11,5,63,Female,24.3252595,No,White,None,NA
+87C,Convalescent,Mar-20,Non_Hospitalized,Dec-20,Jan-21,Mar-21,Mar-21,Moderna,15,5,76,Male,27.8912914,No,White,Hypertension,NA
+118C,Convalescent,Apr-20,Non_Hospitalized,Oct-20,Dec-20,Jan-21,Feb-21,Moderna,13,5,39,Male,26.5784499,No,"Asian,White",Hypertension,NA
+120C,Convalescent,Mar-20,Non_Hospitalized,Dec-20,Dec-20,Jan-21,Feb-21,Pfizer,2,1,48,Female,30.2115702,No,White,None,NA
+149C,Convalescent,Apr-20,Non_Hospitalized,Dec-20,Dec-20,Jan-21,Jan-21,Pfizer,3,1,25,Male,19.523904,No,White,NULL,NA
+161C,Convalescent,Apr-20,Non_Hospitalized,Oct-20,Dec-20,Jan-21,Jan-21,Pfizer,1,1,58,Female,32.60986328,No,White,None,NA
+188C,Convalescent,Mar-20,Non_Hospitalized,Dec-20,Jan-21,Feb-21,Mar-21,Moderna,14,4,52,Male,30.5121528,No,White,None,NA
+191C,Convalescent,Apr-20,Non_Hospitalized,Oct-20,Jan-21,Feb-21,Feb-21,Moderna,12,4,27,Female,NULL,No,White,NULL,NA
+194C,Convalescent,Mar-20,Non_Hospitalized,Oct-20,Dec-20,Jan-21,Jan-21,Pfizer,4,1,53,Male,30.4065744,No,White,None,NA
+210C,Convalescent,May-20,Non_Hospitalized,Jan-21,Jan-21,Feb-21,Feb-21,Moderna,9,4,45,Female,25.3285462,No,White,None,NA
+217C,Convalescent,Apr-20,Non_Hospitalized,Oct-20,Dec-20,Jan-21,Feb-21,Pfizer,8,5,41,Female,27.758494,No,White,None,NA
+235C,Convalescent,Aug-20,Non_Hospitalized,Nov-20,Jan-21,Feb-21,Mar-21,Pfizer,7,4,66,Male,32.9623883,No,White,Chronic kidney disease,NA
+239C,Convalescent,Aug-20,Non_Hospitalized,Oct-20,Dec-20,Jan-21,Jan-21,Pfizer,5,1,42,Female,NULL,No,White,Cancer,NA
+242C,Convalescent,Oct-20,Non_Hospitalized,Dec-20,Jan-21,Jan-21,Feb-21,Moderna,10,5,36,Female,25.7864204,No,Asian,None,NA
+,,,,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,,,,
