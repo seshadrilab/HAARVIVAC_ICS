@@ -4,7 +4,6 @@ library(flowWorkspace)
 library(ggcyto)
 library(here)
 library(tidyverse)
-library(readxl)
 library(cytoqc) # Use to fix inconsistent channels
 
 ## Create output directories if needed ## 
